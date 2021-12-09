@@ -1,0 +1,4 @@
+
+# Eventual sensitive info from pcap and flows
+*.pcap
+*.CLN.csv

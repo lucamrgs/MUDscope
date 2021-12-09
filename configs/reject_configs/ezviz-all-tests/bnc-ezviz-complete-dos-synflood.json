@@ -1,0 +1,11 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "88:36:6c:d7:1c:56",
+        "ipAddress": "192.168.0.1"
+    },
+    "deviceConfig": {
+        "device": "bc:1c:81:4b:ae:ba",
+        "deviceName": "ieee-ezviz-complete"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/Big_Data/IEEE-Huy-Kang/iot_intrusion_dataset/attacks-all-ezviz/dos-synflooding-all-ezviz.pcap"
+}

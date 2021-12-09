@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "b8:27:eb:fd:68:e2",
+        "ipAddress": "172.16.20.1",
+        "ipv6Address": "fe80::20c:43ff:feb0:b64b"
+    },
+    "deviceConfig": {
+        "device": "e4:6f:13:d3:0f:22",
+        "deviceName": "d-link"
+    },
+    "pcapLocation": "/Users/lucamrgs/Big_Data/IOT-Keeper/dlink-siren1-wlan0-30min-capture-31.pcap"
+}

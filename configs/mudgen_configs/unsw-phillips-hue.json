@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "14:cc:20:51:33:ea",
+        "ipAddress": "192.168.1.1",
+        "ipv6Address": ""
+    },
+    "deviceConfig": {
+        "device": "00:17:88:2b:9a:25",
+        "deviceName": "unsw-phillips-hue"
+    },
+    "pcapLocation": "/Users/lucamrgs/Big_Data/UNSW-ACM-SORS-19/18-10-16-B.pcap"
+}

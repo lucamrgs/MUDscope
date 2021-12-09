@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:86:05:66",
+        "ipAddress": "192.168.32.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "e0:09:bf:5f:0e:c1",
+        "deviceName": "ut-wansview-cam-exp4bis"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/UT/Benign/exp_4bis/ut_exp4bis_all_benign_00002_20211123134438.pcap"
+}

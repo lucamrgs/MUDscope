@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:86:05:66",
+        "ipAddress": "192.168.32.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "e0:09:bf:5f:0e:c1",
+        "deviceName": "ut-wansview-cam-exp2b"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/UT/Malign/exp_2b/ut_exp2b_wansview_tplink_00009_20211123114223.pcap"
+}

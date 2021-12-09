@@ -1,0 +1,10 @@
+{
+    "device_id" : "ut-tplink-plug",
+    "deployment_info" : {
+        "deployment_id" : "UT_SCS_IoT_fedlab",
+        "lat" : 52.239210,
+        "lon" : 6.856720,
+        "country" : "The Netherlands",
+        "industry_sector" : "Academic"
+    }
+}

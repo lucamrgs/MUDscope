@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:86:05:66",
+        "ipAddress": "192.168.32.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "e0:09:bf:5f:0e:c1",
+        "deviceName": "ut-wansview-cam"
+    },
+    "pcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/UT/Benign/FEDLAB-UT-BENIGN-10-11-2021.pcap"
+}

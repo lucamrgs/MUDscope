@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:e7:f3:5c",
+        "ipAddress": "192.168.10.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "68:ff:7b:df:58:4d",
+        "deviceName": "tue-tplink-plug-exp2"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/TUe/Malign/exp_2_trim/tue_exp2_trim_wansview_tplink_00006_20211118160819.pcap"
+}

@@ -1,0 +1,11 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "88:36:6c:d7:1c:56",
+        "ipAddress": "192.168.1.1"
+    },
+    "deviceConfig": {
+        "device": "3c:22:fb:97:59:a1",
+        "deviceName": "macbook-local-test"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/Big_Data/IEEE-Huy-Kang/iot_intrusion_dataset/dos-synflooding-1-dec.pcap"
+}

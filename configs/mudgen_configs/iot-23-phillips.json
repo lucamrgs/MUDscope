@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "78:8a:20:43:93:d5",
+        "ipAddress": "192.168.1.1",
+        "ipv6Address": ""
+    },
+    "deviceConfig": {
+        "device": "00:17:88:75:b3:82",
+        "deviceName": "phillips-hue"
+    },
+    "pcapLocation": "/Users/lucamrgs/Big_Data/IoT-23/Phillips-hue-benign/phillips-hue-benign.pcap"
+}

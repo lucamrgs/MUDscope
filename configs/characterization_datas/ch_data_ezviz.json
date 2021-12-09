@@ -1,0 +1,10 @@
+{
+    "device_id" : "ezviz_pf",
+    "deployment_info" : {
+        "deployment_id" : "Test Industry B.V.",
+        "lat" : 0,
+        "lon" : 0,
+        "country" : "pf-tests",
+        "industry_sector" : "pf-tests"
+    }
+}

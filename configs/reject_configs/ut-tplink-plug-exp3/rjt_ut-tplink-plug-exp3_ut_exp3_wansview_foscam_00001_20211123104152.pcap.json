@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:86:05:66",
+        "ipAddress": "192.168.32.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "00:31:92:e1:7b:17",
+        "deviceName": "ut-tplink-plug-exp3"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/UT/Malign/exp_3/ut_exp3_wansview_foscam_00001_20211123104152.pcap"
+}

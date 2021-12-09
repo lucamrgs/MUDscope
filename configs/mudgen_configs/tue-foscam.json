@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:e7:f3:5c",
+        "ipAddress": "192.168.10.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "00:62:6e:93:41:75",
+        "deviceName": "tue-foscam-cam"
+    },
+    "pcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/TUe/Benign/TUe_BENIGN_18_11_2021.pcap"
+}

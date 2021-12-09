@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "22:ef:03:1a:97:b9",
+        "ipAddress": "192.168.10.254",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "b0:d5:9d:b9:f0:b4",
+        "deviceName": "yi-cam-moniotr"
+    },
+    "pcapLocation": "/Users/lucamrgs/Big_Data/MonIoTr/iot-idle/us/yi-camera/unctrl/2019-04-25_16.49.03_192.168.10.204.pcap"
+}

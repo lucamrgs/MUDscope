@@ -1,0 +1,10 @@
+{
+    "device_id" : "ezviz_pt",
+    "deployment_info" : {
+        "deployment_id" : "Test Industry B.V.",
+        "lat" : 0,
+        "lon" : 0,
+        "country" : "PipelineTest",
+        "industry_sector" : "PipelineTest"
+    }
+}

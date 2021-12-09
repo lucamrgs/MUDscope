@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="com.mudgee.generator.AppTest" time="0.005" tests="1" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="14"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.runtime.version" value="14.0.1+7"/>
+    <property name="java.class.path" value="/Users/lucamrgs/.m2/repository/org/apache/maven/surefire/surefire-booter/2.22.1/surefire-booter-2.22.1.jar:/Users/lucamrgs/.m2/repository/org/apache/maven/surefire/surefire-api/2.22.1/surefire-api-2.22.1.jar:/Users/lucamrgs/.m2/repository/org/apache/maven/surefire/surefire-logger-api/2.22.1/surefire-logger-api-2.22.1.jar:/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/mudgee/target/test-classes:/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/mudgee/target/classes:/Users/lucamrgs/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar:/Users/lucamrgs/.m2/repository/net/java/dev/jna/jna/4.2.1/jna-4.2.1.jar:/Users/lucamrgs/.m2/repository/org/apache/commons/commons-lang3/3.0/commons-lang3-3.0.jar:/Users/lucamrgs/.m2/repository/org/pcap4j/pcap4j-core/1.7.3/pcap4j-core-1.7.3.jar:/Users/lucamrgs/.m2/repository/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar:/Users/lucamrgs/.m2/repository/org/pcap4j/pcap4j-packetfactory-static/1.7.3/pcap4j-packetfactory-static-1.7.3.jar:/Users/lucamrgs/.m2/repository/org/pcap4j/pcap4j-packetfactory-propertiesbased/1.7.3/pcap4j-packetfactory-propertiesbased-1.7.3.jar:/Users/lucamrgs/.m2/repository/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar:/Users/lucamrgs/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.9.4/jackson-core-2.9.4.jar:/Users/lucamrgs/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.9.4/jackson-annotations-2.9.4.jar:/Users/lucamrgs/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.9.4/jackson-databind-2.9.4.jar:/Users/lucamrgs/.m2/repository/org/apache/maven/surefire/surefire-junit3/2.22.1/surefire-junit3-2.22.1.jar"/>
+    <property name="user.name" value="lucamrgs"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="path.separator" value=":"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="os.version" value="10.16"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="java.vm.specification.version" value="14"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="IT"/>
+    <property name="localRepository" value="/Users/lucamrgs/.m2/repository"/>
+    <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/jdk-14.0.1.jdk/Contents/Home/lib"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/mudgee/target/surefire 2021-05-15T17-37-15_499-jvmRun1 surefire6576934137523191042tmp surefire_07573521134608011tmp"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="/var/folders/q4/1527kv7n1s15x6m4f46n13m80000gn/T/"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/mudgee/target/test-classes:/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/mudgee/target/classes:/Users/lucamrgs/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar:/Users/lucamrgs/.m2/repository/net/java/dev/jna/jna/4.2.1/jna-4.2.1.jar:/Users/lucamrgs/.m2/repository/org/apache/commons/commons-lang3/3.0/commons-lang3-3.0.jar:/Users/lucamrgs/.m2/repository/org/pcap4j/pcap4j-core/1.7.3/pcap4j-core-1.7.3.jar:/Users/lucamrgs/.m2/repository/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar:/Users/lucamrgs/.m2/repository/org/pcap4j/pcap4j-packetfactory-static/1.7.3/pcap4j-packetfactory-static-1.7.3.jar:/Users/lucamrgs/.m2/repository/org/pcap4j/pcap4j-packetfactory-propertiesbased/1.7.3/pcap4j-packetfactory-propertiesbased-1.7.3.jar:/Users/lucamrgs/.m2/repository/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar:/Users/lucamrgs/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.9.4/jackson-core-2.9.4.jar:/Users/lucamrgs/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.9.4/jackson-annotations-2.9.4.jar:/Users/lucamrgs/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.9.4/jackson-databind-2.9.4.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="java.version" value="14.0.1"/>
+    <property name="user.home" value="/Users/lucamrgs"/>
+    <property name="user.dir" value="/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/mudgee"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.version.date" value="2020-04-14"/>
+    <property name="java.home" value="/Library/Java/JavaVirtualMachines/jdk-14.0.1.jdk/Contents/Home"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/mudgee"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.library.path" value="/Users/lucamrgs/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.version" value="14.0.1+7"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
+    <property name="java.class.version" value="58.0"/>
+  </properties>
+  <testcase name="testApp" classname="com.mudgee.generator.AppTest" time="0.001"/>
+</testsuite>

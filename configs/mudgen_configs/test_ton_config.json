@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "a4:91:b1:1e:57:90",
+        "ipAddress": "192.168.1.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "00:0c:29:ee:e0:7a",
+        "deviceName": "ton-test-iot-device"
+    },
+    "pcapLocation": "/Users/lucamrgs/Big_Data/TON_IoT-Datasets/Raw_datasets/Raw_Network_dataset/Network_dataset_pcaps/normal_pcaps/normal_1.pcap"
+}

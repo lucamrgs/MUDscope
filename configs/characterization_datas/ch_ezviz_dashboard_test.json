@@ -1,0 +1,10 @@
+{
+    "device_id" : "ezviz-dashboard-tests",
+    "deployment_info" : {
+        "deployment_id" : "Test Industry B.V.",
+        "lat" : 0,
+        "lon" : 0,
+        "country" : "dashboard-test",
+        "industry_sector" : "dashboard-test"
+    }
+}
