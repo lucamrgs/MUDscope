@@ -61,4 +61,5 @@ echo ''
 echo ''
 sleep 1.2
 
-python3 src/MRTADashboard.py monodim
+#python3 src/MRTADashboard.py monodim
+python3 run.py --mode monitor --mrtfeeds_config /Users/lucamrgs/mudscope/configs/monitor_configs/monitor_test.json --monitor_features clusters_balance;all_dists_avg;mutual_matches_n;mutual_matches_percentage;fwd_matches_n;fwd_matches_percentage;bwd_matches_n;bwd_matches_percentage

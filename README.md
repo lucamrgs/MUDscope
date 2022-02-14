@@ -13,6 +13,7 @@ The pipeline works throuhg these steps:
 3. produces a custom NetFlow CSV dataset file of bi-directional flows of such rejected traffic;
 4. performs hierarchical clustering (characterization) of these flows to discern the connection types of MUD-rejected traffic;
 5. produces dataset entries that describe the evolution of so-produced clusters - thus network/connection events - across pairwise comparison of MUD-rejected traffic per given time windows.
+6. compares multiple MUD-rejected traffic description datasets from two or more devices to provide insights on how anomalous activities affect the selected devices.
 
 Below, the documentation for the executable files and usage of this software is provided.
 
@@ -59,7 +60,7 @@ NOTE: change system path constant as indicated in ``src/constants.py`` to local 
     - ``--flowsgen_tgt_dir`` : path to directory containing the MUD-rejected traffic pcap files produced with ``run.py --mode reject ...``
 
 - ``analyze``
-    - ``--analysis_tgt`` : full or relative path to (a) pcap or (b) json or (c) csv or (d) directory containing
+    - ``--analysis_tgt`` : full or relative path to (a) pcap or (b) json or (c) csv or (d) directory - as below specified:
         (a) rejected packets obtained with "reject" mode (specify ``outputs/<devname>/<capture-rejected.pcap>``),
         (b) rejected packets register obtained with "reject" mode (specify ``outputs/<devname>/<capture-rejected.json>``),
         (c) NetFlow CSV file of rejected flows, obtained with ``--mode flows_gen ...``,
@@ -80,8 +81,23 @@ NOTE: change system path constant as indicated in ``src/constants.py`` to local 
     If analysis_action is ``mrta_characterize``, the following parameter is needed:
     - ``--analysis_capture_metadata`` : name of json file (to be located in configs/characterization_datas/ directory) that contains the intended metadata information for the deployment and device. NOTE: it has to abide by a specific format, as its values are directly accessed by the code.
 
+- ``monitor``
+    - ``--mrtfeeds_config`` : path to json file listing the set of MRT feeds and associated device metadata to compare. An example can be found in configs/monitor_configs/monitor_test.json
+    - ``--monitor_features`` : list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2. Available/suggested features are: clusters_balance;
+    all_dists_avg;
+    mutual_matches_n;
+    mutual_matches_percentage;
+    fwd_matches_n;
+    fwd_matches_percentage;
+    fwd_matches_agglomeration_avg;
+    fwd_matches_agglomeration_max;
+    bwd_matches_n;
+    bwd_matches_percentage;
+    bwd_matches_agglomeration_avg;
+    bwd_matches_agglomeration_max
 
-**Pipeline Usage Sample**
+
+**Pipeline Usage Template**
 
 1. \> run.py --mode mudgen 
     --mudgen_config [from ./configs/mudgen/]<mudgee_config_file_path>.json
@@ -122,4 +138,6 @@ NOTE: change system path constant as indicated in ``src/constants.py`` to local 
             outputs/<device_name>/<device_name>_mrt_transitions_df/<clusters_evols_[datetime-when-generated]_[device_name]>.csv
 
 
-5. DONE, TO REPORT: Correlate/compare devices clusters evolution datasets related to same time windows and events, in parallel.
+5. \> run.py --mode monitor
+    --mrtfeeds_config configs/monitor_configs/<file>.json
+    --monitor_features <feature1_name>,<feature2_name>,... [example: all_dists_avg,mutual_matches_n,mutual_matches_percentage]

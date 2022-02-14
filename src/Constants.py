@@ -4,7 +4,7 @@ import numpy as np
 
 """ NOTE: CHANGE ON OWN DIRECTORIES THE BELOW LIST OF CONSTANTS
 """
-BASE_DIR = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/'
+BASE_DIR = '/Users/lucamrgs/mudscope/'
 # Download from: https://www.microsoft.com/en-us/download/confirmation.aspx?id=53602
 MICROSOFT_IP_RANGES_CSV = '/Users/lucamrgs/Downloads/msft-public-ips.csv'
 # Download from: https://github.com/ejrv/VPNs
@@ -22,6 +22,7 @@ CONFIGS_FOLDER = BASE_DIR + 'configs/'
 MUD_CONFIGS_FOLDER = CONFIGS_FOLDER + 'mudgen_configs/'
 REJECT_CONFIGS_FOLDER = CONFIGS_FOLDER + 'reject_configs/'
 CHATACTERIZATION_METADATA_FOLDER = CONFIGS_FOLDER + 'characterization_datas/'
+MONITOR_OUTPUTS_FOLDER = BASE_DIR + 'monitor_outputs/'
 
 MUDGEE_FOLDER = BASE_DIR + 'mudgee/'
 MUDGEE_RESULTS_FOLDER = BASE_DIR + 'result/'
@@ -35,6 +36,7 @@ MODE_MUDGEN = 'mudgen'
 MODE_REJECT = 'reject'
 MODE_ANALYZE = 'analyze'
 MODE_FLOWS_GENERATION = 'flows_gen'
+MODE_MONITOR = 'monitor'
 
 ANALYSIS_ACTION_IPS_MAP = 'ips_map'
 ANALYSIS_ACTION_PKTS_CSV = 'packets_csv'

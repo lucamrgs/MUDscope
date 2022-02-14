@@ -6,6 +6,8 @@ from itertools import combinations
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+from Constants import MONITOR_OUTPUTS_FOLDER
 plt.rcParams.update({'font.size': 11})
 
 import numpy as np
@@ -13,7 +15,8 @@ import pandas as pd
 from pandas.plotting import parallel_coordinates
 pd.set_option("display.precision", 16)
 
-MY_SAVE_PATH_DEFAULT = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/demo_results/'#pre-results-data/diff-attacks-monodim/'
+MY_SAVE_PATH_DEFAULT = MONITOR_OUTPUTS_FOLDER
+#'/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/demo_results/'#pre-results-data/diff-attacks-monodim/'
 
 from MRTAFeed import MRTFeed
 
@@ -100,6 +103,8 @@ class MRTADashboard:
     """
 
     def plot_monodim_metric(self, metric, save_dir=MY_SAVE_PATH_DEFAULT, show=False):
+        if not self.metric_exists(metric):
+            raise ValueError(f'>>> ERROR: Invalid metric queried on MRT feeds: [ {metric} ].')
         self.check_metric_monodim(metric)
         palette = sns.color_palette(None, len(self.feeds))
         f_plt = []
@@ -128,8 +133,12 @@ class MRTADashboard:
         
         if show:
             plt.show()
+        
+        print(f'>>> Output saved to {save_dir}.')
     
     def plot_multidim_metric(self, metric, save_dir=MY_SAVE_PATH_DEFAULT, show=False):
+        if not self.metric_exists(metric):
+            raise ValueError(f'>>> ERROR: Invalid metric queried on MRT feeds: [ {metric} ].')
         self.check_metric_multidim(metric)
 
         fig, axs = plt.subplots(len(self.feeds) + 1, 1, constrained_layout=True) # One axis per MRTFeed + axis for correlation heatmap
@@ -164,6 +173,8 @@ class MRTADashboard:
         
         if show:
             plt.show()
+
+        print(f'>>> Output saved to {save_dir}.')
 
 
     def print_feeds(self):
@@ -347,6 +358,14 @@ class MRTADashboard:
     # UTILITY
     ##################################################################################################
     
+    def metric_exists(self, metric):
+        try:
+            # TODO: Test
+            probe = self.feeds[0].data[metric][0]
+            return True
+        except Exception as e:
+            return False
+
     def align_feeds(self):
         """Normalizes feeds lists according to number of transitions recorded, and timings"""
         min_transitions = min([f.len for f in self.feeds])
@@ -366,7 +385,7 @@ class MRTADashboard:
         print(f'>>> DEBUG: End offset: {end_offset}')
         print(f'>>> DEBUG: Tolerance: {tolerance}')
         # Abort if start and end intervals are too much offset with respect to average captured time
-        """TODO NOTE TODO RESET TOLERANCE CHECKS"""
+        """TODO NOTE TODO RE SET TOLERANCE CHECKS"""
         #if start_offset > tolerance or end_offset > tolerance:
         #    raise ValueError(f'>>> ERROR: Feeds to process appear to be too much offset with respect to the transition timings. Aborting operations.')
 
@@ -430,6 +449,9 @@ class MRTADashboard:
 
 
 if __name__ == '__main__':
+
+
+
     print('>>> Testing MRTADashboard!')
     ezviz_metadata_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_data_ezviz.json'
     ezviz_mrt_feed_csv_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211028_13-56-55_ezviz-pf-SAME-ORDER.csv'

@@ -1,0 +1,14 @@
+{
+    "list" : [
+        {   
+            "name" : "test_ut_tplink_exp1",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_ut_tplink.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug/ut-tplink-plug_mrt_transitions_dfs/clusters_evols_20211119_14-14-38_ut-tplink-plug.csv"
+        },
+        {   
+            "name" : "test1_tue_tplink_exp1",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_tue_tplink.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-tplink-plug/tue-tplink-plug_mrt_transitions_dfs/clusters_evols_20211119_14-15-57_tue-tplink-plug.csv"
+        }
+    ]
+}

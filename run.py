@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime
 
 import logging
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import *
 
@@ -18,6 +19,8 @@ import PcapUtils
 import MUDGenUtils
 from Analyses import *
 from Constants import *
+from MRTAFeed import MRTFeed
+from MRTADashboard import MRTADashboard
 from VMUDEnforcer import Virtual_MUD_enforcer
 from MRTACharacterizator import MRTACharacterizator
 from MRTAPairClustersProcessor import MRTAPairClustersProcessor
@@ -115,6 +118,10 @@ def main(arguments=None):
 	
 	parser.add_argument('--dsr_path', help='Dataset Scaler Reference path. Must be specified to set global scaling parameters when processing MRT flows, for --analysisi_action={}'.format(ANALYSIS_ACTION_MRTA_CHARACTERIZE), required=False)
 
+	parser.add_argument('--mrtfeeds_config', metavar='file path', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the configuration monitor file from which mrt feeds to compare (JSON list of dev_metadata + csv feed) are taken.', required=False)
+	parser.add_argument('--monitor_features', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the MRT feed features to cross-compare on the MRT feeds list specified in --mrtfeeds_config.\nUse format feature1,feature2,... See documentation for the list of supported MRT feed features.', required=False)
+	#parser.add_argument('--monitor_output', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the path to which the monitor plots output will be exported.', required=False)
+
 	################################################################################################
 	# Arguments parsing
 	################################################################################################
@@ -144,6 +151,10 @@ def main(arguments=None):
 	
 	dsr_path = args.dsr_path if args.dsr_path is not None else None
 
+	mrtfeeds_config = args.mrtfeeds_config if args.mrtfeeds_config is not None else None
+	monitor_features = args.monitor_features if args.monitor_features is not None else None
+
+
 	################################################################################################
 	# Preliminary files existence checks
 	################################################################################################
@@ -167,6 +178,10 @@ def main(arguments=None):
 	if dsr_path is not None and not os.path.isfile(dsr_path):
 		print('>>> ERROR: Dataset scaler reference does not exist at [ {} ]'.format(dsr_path), file=sys.stderr)
 		sys.exit(-1)
+	if mrtfeeds_config is not None and not os.path.isfile(mrtfeeds_config):
+		print('>>> ERROR: MRT feeds config [ {} ] does not exist'.format(mrtfeeds_config), file=sys.stderr)
+		sys.exit(-1)
+
 
 	# NOTE: Modes in if-elif-else as mutually exclusive
 	################################################################################################
@@ -467,7 +482,41 @@ def main(arguments=None):
 			Path(output_path).mkdir(parents=True, exist_ok=True)
 			df.to_csv(output_path + clusters_evol_df_name)
 			
+	################################################################################################
+	# MODE MONITOR
+	################################################################################################
 
+	elif mode == MODE_MONITOR:
+		""" Generate fluctuation graphs """
+		# See MRTADashboard:
+		# 	Generate MRTFeed objects [CSV feed + metadata per device]
+		#	MRTFeed metric(s) to display
+		#	Save location for graphs and overall data
+		#	TODO/Future work: Specify time window section
+		
+		# MRT Feeds information and building
+		if mrtfeeds_config is None:
+			raise ValueError(f'>>> ERROR: Attempting monitor options without having specified the mrtfeeds_config file. A valid mrtfeeds_config file must be specified in order to compare mrt feeds. Exiting.')
+
+		with open(mrtfeeds_config) as mrtf_conf:
+			mrtf_data = json.load(mrtf_conf)
+		mrtf_data_list = mrtf_data['list']
+		
+		mrt_feeds_list = []
+		for l in mrtf_data_list:
+			mrt_feeds_list.append(MRTFeed(l['device_metadata'], l['csv_mrt_feed']))
+		
+		# Features to monitor
+		monitor_features = monitor_features.split(',')
+
+		mrtadb = MRTADashboard()
+		mrtadb.populate(mrt_feeds_list)
+		
+		for feature in monitor_features:
+			mrtadb.plot_monodim_metric(feature)
+
+
+		
 	else:
 		print('>>> --mode argument "{}" is invalid. Exiting.'.format(mode))
 		sys.exit(-1)
