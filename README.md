@@ -26,12 +26,19 @@ NOTEs:
 
 **Requisites**
 
-- I will setup a python venv with requirements.txt and all
+- Docker
 
 
 **Installation**
 
-TODO write instructions
+1. Download the repository and navigate to folder.
+2. Run ``docker run --name mudscope -w /mudscope -v "$(pwd):/mudscope" python:3.9-bullseye sh -c "pip3 install --no-cache-dir -r requirements.txt && tail -f /dev/null"``. This will start a docker container hosting the application, binding a volume to the MUDscope directory.
+3. Run ``docker exec -it mudscope \bin\bash``. This will open a terminal window to the environment where the code is ready to be run.
+
+NOTE: Place input files in the ``input`` folder in the MUDscope directory.
+
+5. Exit the terminal with ``exit`` when done
+6. Run ``docker rm -f mudscope`` to stop and remove the project image
 
 
 **Usage Documentation**

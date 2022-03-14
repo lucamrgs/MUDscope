@@ -43,14 +43,16 @@ ALL_CSV_FLOWS_DIR_TAG = '-all-flows-csv'
 ############################################################################################################
 ################### >>> GEO IP
 ############################################################################################################
-
-GEOIP2_LICENSE_KEY = 'V4GFJy5qgNrZl8Fr'
+"""
+    NOTE: GEO-DATA NOT SUPPORTED AT THE MOMENT
+"""
+GEOIP2_LICENSE_KEY = ''
 import asyncio
-import geoip2.webservice
+#import geoip2.webservice
 
 # To query the GeoLite2 web service, you must set the "host" keyword argument
 # to "geolite.info"
-async_client = geoip2.webservice.AsyncClient(587289, GEOIP2_LICENSE_KEY, host='geolite.info')
+#async_client = geoip2.webservice.AsyncClient(587289, GEOIP2_LICENSE_KEY, host='geolite.info')
 
 
 
@@ -343,6 +345,9 @@ def remove_spaces_from_addr_cols(df):
 # TODO: pip install maxminddb-geolite2
 # 'Fastest way to solve IP to country?' @ https://stackoverflow.com/questions/40211314/pandas-fastest-way-to-resolve-ip-to-country
 # ACCESS MAXMIND GEOLITE2 ACCOUNT @ https://dev.maxmind.com/geoip/geolite2-free-geolocation-data
+"""
+    NOTE: GEO-DATA NOT SUPPORTED AT THE MOMENT
+"""
 def add_geo_data_m3(csv_file):
     """
         DOES NOT WORK, 1k calls per day....
@@ -380,9 +385,9 @@ def add_geo_data_m3(csv_file):
     print(df.head(10))
     
 
-
-
-
+"""
+    NOTE: GEO-DATA NOT SUPPORTED AT THE MOMENT
+"""
 def add_geo_data_m2(csv_file):
     if not os.path.isfile(csv_file):
         raise ValueError('\n>>> File \n>>>[ {} ] \n>>>does not seem to exist, or is not a file'.format(csv_file))

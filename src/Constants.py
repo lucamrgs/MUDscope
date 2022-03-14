@@ -3,16 +3,19 @@ import os
 import numpy as np
 
 """ NOTE: CHANGE ON OWN DIRECTORIES THE BELOW LIST OF CONSTANTS
+    TODO: Dockerize
 """
-BASE_DIR = '/Users/lucamrgs/mudscope/'
-# Download from: https://www.microsoft.com/en-us/download/confirmation.aspx?id=53602
-MICROSOFT_IP_RANGES_CSV = '/Users/lucamrgs/Downloads/msft-public-ips.csv'
-# Download from: https://github.com/ejrv/VPNs
-KNOWN_IPV4_VPNS_TXT = '/Users/lucamrgs/Downloads/VPNs-master/vpn-ipv4.txt'
-KNOWN_IPV6_VPNS_TXT = '/Users/lucamrgs/Downloads/VPNs-master/vpn-ipv6.txt'
-KNOWN_IPV4_VPNS = np.genfromtxt(KNOWN_IPV4_VPNS_TXT, dtype='str')
-KNOWN_IPV6_VPNS = np.genfromtxt(KNOWN_IPV6_VPNS_TXT, dtype='str')
+# NOTE: Assumes main directory is one parent directory above
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/' #'/Users/lucamrgs/mudscope/'
 
+# --- DISCONTINUED --- Flows provenance analysis
+# Download from: https://www.microsoft.com/en-us/download/confirmation.aspx?id=53602
+#MICROSOFT_IP_RANGES_CSV = '/Users/lucamrgs/Downloads/msft-public-ips.csv'
+# Download from: https://github.com/ejrv/VPNs
+#KNOWN_IPV4_VPNS_TXT = '/Users/lucamrgs/Downloads/VPNs-master/vpn-ipv4.txt'
+#KNOWN_IPV6_VPNS_TXT = '/Users/lucamrgs/Downloads/VPNs-master/vpn-ipv6.txt'
+#KNOWN_IPV4_VPNS = np.genfromtxt(KNOWN_IPV4_VPNS_TXT, dtype='str')
+#KNOWN_IPV6_VPNS = np.genfromtxt(KNOWN_IPV6_VPNS_TXT, dtype='str')
 
 
 
@@ -165,8 +168,9 @@ if __name__ == '__main__':
     import ipaddress
     from pprint import pprint
 
-    print(len(KNOWN_IPV4_VPNS))
-    print(len(KNOWN_IPV6_VPNS))
+    #print(len(KNOWN_IPV4_VPNS))
+    #print(len(KNOWN_IPV6_VPNS))
+    print(BASE_DIR)
     ip_addr = ipaddress.ip_network('2a0b:e181:500::/40')
     print(type(ip_addr))
     print(ipaddress.ip_address('10.0.1.0') in ipaddress.ip_network('10.0.2.0'))

@@ -17,7 +17,7 @@ cwd = os.getcwd()
 sys.path.insert(1, cwd + '/src')
 import PcapUtils
 import MUDGenUtils
-from Analyses import *
+#from Analyses import *
 from Constants import *
 from MRTAFeed import MRTFeed
 from MRTADashboard import MRTADashboard
