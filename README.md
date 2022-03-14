@@ -68,31 +68,36 @@ NOTE: change system path constant as indicated in ``src/constants.py`` to local 
 
 - ``analyze``
     - ``--analysis_tgt`` : full or relative path to (a) pcap or (b) json or (c) csv or (d) directory - as below specified:
-    - 
-        a. rejected packets obtained with "reject" mode (specify ``outputs/<devname>/<capture-rejected.pcap>``),
-        b. rejected packets register obtained with "reject" mode (specify ``outputs/<devname>/<capture-rejected.json>``),
-        c. NetFlow CSV file of rejected flows, obtained with ``--mode flows_gen ...``,
-        d. directory containing characterization files for a device, obtained with "mrta_characterize" analysis action. (Specify ``outputs/<devname>/mrt_characterizations/>``)
+        - (a) rejected packets obtained with "reject" mode (specify ``outputs/<devname>/<capture-rejected.pcap>``),
+        - (b) rejected packets register obtained with "reject" mode (specify ``outputs/<devname>/<capture-rejected.json>``),
+        - (c) NetFlow CSV file of rejected flows, obtained with ``--mode flows_gen ...``,
+        - (d) directory containing characterization files for a device, obtained with "mrta_characterize" analysis action. (Specify ``outputs/<devname>/mrt_characterizations/>``)
 
     - ``--analysis_devname`` : name of the device for which traffic was filtered, needed to reference the correct output location
     - ``--analysis_action`` : analysis action to perform. Can be one of 
-            For pcaps only
-            - ``packets_csv`` : outputs a csv version of the pcap capture
-            - ``filter_known_providers`` : outputs a filtered pcap file where there are no packets outgoing or incoming to IP ranges known to be of notorious third party providers (e.g., Google, Amazon, Microsoft)
-            * For pcaps and json registers
-            - ``ips_flow_graphs`` : produces a graph showing how many flows are associated to each IP address in the capture
-            - ``ips_map`` : produces a map using Folium, pinning the locations and volumes of src and dst IPs on a global map
-            - ``ports_flow_graphs`` : produces a graph showing how many flows are associated to each port/service detected in the capture
-            For NetFlow flows CSV file
-            - ``mrta_characterize`` : produces a ch_ file, containing the clustering output and statistical descriptors of the flows per-cluster, over the NetFlow bidirectional flows CSV file, produced by ``device_mrt_pcaps_to_csv.py``
-            For ``mrt_characterizations`` directories
-            - ``device_mrt_evolution_datagen`` : generates a dataframe and related CSV file listing the entries of the evolution of flow clusters over the MUD-rejected traffic concerning one device. It does so by ordering the related characterization files chronologically over the datetime of the first flow processed by each characterization file - then computes two-by-two pairwise transition entries
+       
+        For pcaps only
+        - ``packets_csv`` : outputs a csv version of the pcap capture
+        - ``filter_known_providers`` : outputs a filtered pcap file where there are no packets outgoing or incoming to IP ranges known to be of notorious third party providers (e.g., Google, Amazon, Microsoft).
+    
+        For pcaps and json registers
+        - ``ips_flow_graphs`` : produces a graph showing how many flows are associated to each IP address in the capture
+        - ``ips_map`` : produces a map using Folium, pinning the locations and volumes of src and dst IPs on a global map
+        - ``ports_flow_graphs`` : produces a graph showing how many flows are associated to each port/service detected in the capture.
+    
+        For NetFlow flows CSV file
+        - ``mrta_characterize`` : produces a ch_ file, containing the clustering output and statistical descriptors of the flows per-cluster, over the NetFlow bidirectional flows CSV file, produced by ``device_mrt_pcaps_to_csv.py``.
+    
+        For ``mrt_characterizations`` directories
+        - ``device_mrt_evolution_datagen`` : generates a dataframe and related CSV file listing the entries of the evolution of flow clusters over the MUD-rejected traffic concerning one device. It does so by ordering the related characterization files chronologically over the datetime of the first flow processed by each characterization file - then computes two-by-two pairwise transition entries.
+    
     If analysis_action is ``mrta_characterize``, the following parameter is needed:
     - ``--analysis_capture_metadata`` : name of json file (to be located in configs/characterization_datas/ directory) that contains the intended metadata information for the deployment and device. NOTE: it has to abide by a specific format, as its values are directly accessed by the code.
 
 - ``monitor``
     - ``--mrtfeeds_config`` : path to json file listing the set of MRT feeds and associated device metadata to compare. An example can be found in configs/monitor_configs/monitor_test.json
-    - ``--monitor_features`` : list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2. Available/suggested features are: clusters_balance;
+    - ``--monitor_features`` : list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2. Available/suggested features are:
+    clusters_balance;
     all_dists_avg;
     mutual_matches_n;
     mutual_matches_percentage;
