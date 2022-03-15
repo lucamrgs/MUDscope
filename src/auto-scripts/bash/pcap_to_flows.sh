@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "hi"
 
 if [ "$#" -ne 1 ]; then

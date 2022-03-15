@@ -1,4 +1,4 @@
-
+#!/bin/bash
 #from https://stackoverflow.com/questions/24641948/merging-csv-files-appending-instead-of-merging/24643455
 
 if [ "$#" -ne 1 ]; then

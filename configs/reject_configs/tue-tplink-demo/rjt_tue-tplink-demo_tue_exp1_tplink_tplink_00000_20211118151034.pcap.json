@@ -8,5 +8,5 @@
         "device": "68:ff:7b:df:58:4d",
         "deviceName": "tue-tplink-demo"
     },
-    "filterPcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/TUe/Malign/demo/tue_exp1_tplink_tplink_00000_20211118151034.pcap"
+    "filterPcapLocation": "/mudscope/TestData/FedLab/TUe/Malign/demo/tue_exp1_tplink_tplink_00000_20211118151034.pcap"
 }

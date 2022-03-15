@@ -1,4 +1,5 @@
 
+from multiprocessing.sharedctypes import Value
 import os
 import sys
 import ast
@@ -45,8 +46,10 @@ class MRTADashboard:
         self.feeds = feeds_list
         self.align_feeds()
         mrt_feed_columns = [col for col in self.feeds[0].data.columns]
-        self.significant_features = mrt_feed_columns[mrt_feed_columns.index('clusters_balance'):] # SLICE AFTER METADATA
-        self.significant_features = [f for f in self.significant_features if not (f.endswith('_col_cluster') or f.endswith('_row_cluster') or f.endswith('noise_balance')) ] # REMOVE NOMINAL CLUSTER FEATURES
+        # SLICE AFTER METADATA
+        self.significant_features = mrt_feed_columns[mrt_feed_columns.index('clusters_balance'):]
+        # REMOVE NOMINAL CLUSTER FEATURES
+        self.significant_features = [f for f in self.significant_features if not (f.endswith('_col_cluster') or f.endswith('_row_cluster') or f.endswith('noise_balance')) ]
 
 
     """
@@ -451,8 +454,41 @@ class MRTADashboard:
 if __name__ == '__main__':
 
 
-
     print('>>> Testing MRTADashboard!')
+
+    # Below code is debug for testing
+    if sys.argv[1] == 'demo':
+        try:
+            monitor_features = sys.argv[2].split(',')
+        except Exception as e:
+            raise ValueError(f'>>> ERROR: Testing MRTDashboard code without monitor features specified. Exiting.')
+        
+        ut_csv_path = '/mudscope/outputs/ut-tplink-demo/ut-tplink-demo_mrt_transitions_dfs'
+        tue_csv_path = '/mudscope/outputs/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs'
+
+        ut_tplink_demo_metadata = '/mudscope/configs/characterization_datas/ch_fedlab_ut_tplink.json'
+        ut_tplink_demo_csv = os.path.abspath(os.path.join(ut_csv_path, os.listdir(ut_csv_path)[0]))
+        print(ut_tplink_demo_csv)
+
+        tue_tplink_demo_metadata = '/mudscope/configs/characterization_datas/ch_fedlab_tue_tplink.json'
+        tue_tplink_demo_csv = os.path.abspath(os.path.join(tue_csv_path, os.listdir(tue_csv_path)[0]))
+        print(tue_tplink_demo_csv)
+
+        mrtf_ut_tplink_demo = MRTFeed(ut_tplink_demo_metadata, ut_tplink_demo_csv)
+        mrtf_tue_tplink_demo = MRTFeed(tue_tplink_demo_metadata, tue_tplink_demo_csv)
+
+        mrta_d = MRTADashboard()
+        mrta_d.populate([mrtf_ut_tplink_demo, mrtf_tue_tplink_demo])
+
+        mrta_d.total_avg_corr()
+        
+        for feature in monitor_features:
+            mrta_d.plot_monodim_metric(feature)
+        
+        sys.exit(1)
+
+
+
     ezviz_metadata_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_data_ezviz.json'
     ezviz_mrt_feed_csv_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211028_13-56-55_ezviz-pf-SAME-ORDER.csv'
     ezviz_mrt_feed_csv_path_diff = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211104_11-41-20_ezviz-pf-RAND-ORDER.csv'
@@ -601,8 +637,7 @@ if __name__ == '__main__':
     
 
     mrta_d.total_avg_corr()
-    
-    
+
     if dim == 'mono':
         mrta_d.plot_monodim_metric('clusters_balance')
         mrta_d.plot_monodim_metric('noise_balance')

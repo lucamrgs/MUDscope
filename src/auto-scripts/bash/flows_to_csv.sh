@@ -1,4 +1,4 @@
-
+#!/bin/bash
 if [ "$#" -ne 1 ]; then
     echo ">>> Illegal number of parameters running flows_to_csv.sh"
     exit 2
