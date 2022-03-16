@@ -31,20 +31,11 @@ NOTEs:
 
 **Installation**
 
-1. Download the repository and navigate to folder.
-2. Run ``docker run --name mudscope -w /mudscope -v "$(pwd):/mudscope" python:3.9-bullseye sh -c "pip3 install --no-cache-dir -r requirements.txt && tail -f /dev/null"``. This will start a docker container hosting the application, binding a volume to the MUDscope directory.
-3. (Will work around this to have a single command) Run ``docker exec -it mudscope \bin\bash``. This will open a terminal window to the environment. Because of code dependency on pcap-scanning libraries, the following commands must be run *in the opened terminal*:
-    - \>``apt-get update && apt-get install flex -y && apt-get install nfdump -y``
-    - \>``ldconfig``
-    - \>``apt-get install build-essential autoconf automake libgtk2.0-dev libglu1-mesa-dev libsdl1.2-dev libglade2-dev gettext zlib1g-dev libosmesa6-dev intltool libagg-dev libasound2-dev libsoundtouch-dev libpcap-dev -y``
-    - \>``apt-get install bison -y && apt-get install byacc -y``
-    - \>``cd ..``
-    - \> ``git clone https://github.com/phaag/nfdump.git && cd nfdump``
-    - \> ``autoreconf -fi``
-    - \> ``./configure --enable-readpcap --enable-nfpcapd``
-    - \> ``make && make install``
-    - \> ``cd ../mudscope``
-4. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
+1. Download the repository and navigate to folder
+2. Run ``docker build -t mudscope .``
+3. Hang in there...
+4. Run ``docker run -w /mudscope -v "$(pwd):/mudscope" --name mudscope mudscope``
+5. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
     
 NOTE: Place input files in the ``input`` folder in the MUDscope directory.
 
