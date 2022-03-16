@@ -8,5 +8,5 @@
         "device": "00:31:92:e1:7b:17",
         "deviceName": "ut-tplink-plug"
     },
-    "pcapLocation": "/Users/lucamrgs/Big_Data/FederatedLab/UT/Benign/FEDLAB-UT-BENIGN-10-11-2021.pcap"
+    "pcapLocation": "/mudscope/TestData/FedLab/UT/Benign/FEDLAB-UT-BENIGN-10-11-2021.pcap"
 }
