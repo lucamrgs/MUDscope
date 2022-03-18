@@ -1,4 +1,5 @@
 
+import re
 import sys
 import argparse
 import os
@@ -212,7 +213,7 @@ def main(arguments=None):
 		if mudgee_gen_outcome == 0:
 			print('>>> MUD data output in result/{}'.format(device_name))
 		else:
-			print('>>> Some error occurred in generating MUD data.')
+			print('>>> ERROR: Some error occurred in generating MUD data.')
 
 
 	################################################################################################

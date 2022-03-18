@@ -45,8 +45,7 @@ NOTE: Place input files in the ``input`` folder in the MUDscope directory.
 
 **Usage Documentation**
 
-NOTE: change system path constant as indicated in ``src/constants.py`` to local repo/files locations.
-
+NOTE: Run code in opened docker mudscope terminal
 
 ``python run.py``
 
@@ -56,6 +55,7 @@ NOTE: change system path constant as indicated in ``src/constants.py`` to local 
 
 - ``mudgen`` : generates MUD data using MUDgee
     - ``--mudgen_config`` : name of json file in /mudgen_configs on which MUD profile and filtering rules are created
+    - OUTPUT: a folder in /mudscope/result/ containing device-specific MUD profile and derived OF rules.
 
 - ``reject`` : returns packets filtered from a pcap file by a virtual MUD enforcer
     - ``--reject_config`` : path to reject config file of reference OR folder containing a set of reject config files - config files contain device info and gateway MAC addresses related to filtering, and pcap to filter

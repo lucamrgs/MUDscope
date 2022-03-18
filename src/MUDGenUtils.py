@@ -22,6 +22,7 @@ def generate_mud_config(gw_mac, gw_ip4, gw_ip6, target_mac, target_name, srcpcap
         return json.dump(mud_config, json_file, indent=4)
 
 def run_mudgee(mud_config_file):
+    print(">>> DEBUG: MUDgee directory at: {}".format(MUDGEE_FOLDER))
     result = subprocess.call(["java",  "-jar", MUDGEE_FOLDER + "/target/mudgee-1.0.0-SNAPSHOT.jar", mud_config_file])
     print(">>> MUDgee invocation result: {}".format(result))
     return result
