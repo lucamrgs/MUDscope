@@ -1,7 +1,8 @@
 
 # Eventual sensitive info from pcap and flows
-*.pcap
-*.CLN.csv
+outputs/*.pcap
+inputs/*.pcap
+*CLN.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
