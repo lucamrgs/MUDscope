@@ -37,7 +37,8 @@ NOTEs:
 
 **Running**
 1. Run ``docker run -w /mudscope -v "$(pwd):/mudscope" --name mudscope mudscope``
-2. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
+2. Open new terminal and shell into MUDscope with docker ``exec -it mudscope /bin/bash``
+3. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
     
 NOTE: Place input files in the ``input`` folder in the MUDscope directory.
 
