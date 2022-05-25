@@ -9,7 +9,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from Constants import MONITOR_OUTPUTS_FOLDER
-plt.rcParams.update({'font.size': 11})
+plt.rcParams.update({'font.size': 16})
 
 import numpy as np
 import pandas as pd
@@ -116,23 +116,22 @@ class MRTADashboard:
         fig, axs = plt.subplots(2,1, gridspec_kw={'height_ratios': [3, 1]}, constrained_layout=True)
         fig.set_figheight(5)
         fig.set_figwidth(12)
-
-
         
         #plt.figure(figsize=(12, 7))
-        fig.suptitle(f'All feeds, monodimensonal metric: {metric}')
+        #fig.suptitle(f'All feeds, monodimensonal metric: {metric}')
         for i, feed in enumerate(self.feeds):
             f, = axs[0].plot(feed.data[metric], color=palette[i], label=feed.id) # https://stackoverflow.com/questions/11983024/matplotlib-legends-not-working
             l_plt.append(feed.id.split('_')[-1])
             f_plt.append(f)
 
         axs[0].legend(f_plt, l_plt, loc='upper left')
-        axs[0].set(xlabel='Transition entry')
+        axs[0].set_xlabel('Transition entry')
+        axs[0].set_ylabel(metric)
 
         cor = self.corr_monodim_metric(metric)
-        axs[1].tick_params(labelrotation=60)
         sns.heatmap(cor, ax=axs[1], annot=True, fmt='.2f', cmap=plt.cm.Blues, vmin=-1, vmax=1, yticklabels=True, xticklabels=True)
-        plt.savefig(MY_SAVE_PATH_DEFAULT + metric + '.png')
+        axs[1].tick_params(axis='x', labelrotation=10)
+        plt.savefig(MY_SAVE_PATH_DEFAULT + metric + '.pdf')
         
         if show:
             plt.show()
