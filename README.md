@@ -34,13 +34,15 @@ NOTEs:
 1. Download the repository and navigate to folder
 2. Run ``docker build -t mudscope .``
 3. Hang in there...
-4. Run ``docker run -w /mudscope -v "$(pwd):/mudscope" --name mudscope mudscope``
-5. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
+
+**Running**
+1. Run ``docker run -w /mudscope -v "$(pwd):/mudscope" --name mudscope mudscope``
+2. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
     
 NOTE: Place input files in the ``input`` folder in the MUDscope directory.
 
-5. Exit the terminal with ``exit`` when done
-6. Run ``docker rm -f mudscope`` to stop and remove the project image
+3. Exit the terminal with ``exit`` when done
+4. Run ``docker rm -f mudscope`` to stop and remove the project image
 
 
 **Usage Documentation**
