@@ -532,35 +532,6 @@ if __name__ == '__main__':
 	sys.exit(0)
 
 """
-	Full Pipeline sample: ('+' are preferred usage)
-	
-	1 > python run.py
-		--mode mudgen 
-		--mudgen_config config.json (located in configs/mudgen_config/ directory)
-
-	NOTE: run-ezviz-tests.py can extend rejected pcap generation to folder of pcaps to reject traffic from!
-		--rules_arg
-		--tgt_folder
-
-	2 > python run.py
-		--mode reject 
-		--reject_config config.json (located in configs/reject_config/ directory)
-		--reject_mud_rules mudgee/out/devicefolder/*rule.csv --pcap_limit int (OPTIONAL)
-
-	3 > python device_mrt_pcaps_to_csv.py --pcaps_dir outputs/device_name/
-
-	4 > python run.py
-		--mode analyze 
-		--analysis_action one-of-Constants.py{ANALYSIS_ACTION_*}
-			+ ANALYSIS_ACTION_MRTA_CHARACTERIZE : mrta_characterize
-		--analysis_devname devicename_used_in_configs_above 
-		--analysys_file 
-			+ path/to/rejectedflowsCSV.csv (in NetFlow format and as parsed via device_mrt_pcaps_to_csv)
-			OR
-			path/to/pcapwithrejectedpackets.pcap
-		--analysis_capture_metadata capture_metadata.json (located in configs/characterization_datas/ directory)
-
-
 
 
 **** DEMO COMMANDS FOR SINGLE-DEVICE FUNCTIONS ****
@@ -602,6 +573,9 @@ python3 MACRO_rjt_to_ch.py --devname ieee-ezviz-demo-1 --reject_config configs/r
 #			DONE >>> IT LOOKS LIKE IT WORKS!!
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 
+SPLIT PCAP FILES ON SECONDS: editpcap -i 60 input.pcap output.pcap
+https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
+https://www.wireshark.org/docs/man-pages/editcap.html
 
 DSR PATH EZVIZ: '/Users/lucamrgs/Big_Data/IEEE-Huy-Kang/dataset_scaler_gen_reference.csv'
 

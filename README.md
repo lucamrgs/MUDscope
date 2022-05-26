@@ -157,3 +157,8 @@ NOTE: Run code in opened docker mudscope terminal
 5. \> run.py --mode monitor
     --mrtfeeds_config configs/monitor_configs/<file>.json
     --monitor_features <feature1_name>,<feature2_name>,... [example: all_dists_avg,mutual_matches_n,mutual_matches_percentage]
+
+
+Additional note: ``editpcap -i 60 input.pcap output.pcap`` splits a pcap file into smaller files each containing traffic for ``-i`` seconds. Refer to:
+- https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
+- https://www.wireshark.org/docs/man-pages/editcap.html

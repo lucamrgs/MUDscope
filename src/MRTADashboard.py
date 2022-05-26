@@ -452,7 +452,12 @@ class MRTADashboard:
 
 
 if __name__ == '__main__':
-
+    """
+    MRTADashboard.py
+    argv1 : 
+        - 'demo' backdoor for demo run
+        - dim: 'monodim', 'multi', 'mono'. 'monodim' is backdoor for higher-correlation features
+    """
 
     print('>>> Testing MRTADashboard!')
 

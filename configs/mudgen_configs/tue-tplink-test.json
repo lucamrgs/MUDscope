@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:e7:f3:5c",
+        "ipAddress": "192.168.10.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "68:ff:7b:df:58:4d",
+        "deviceName": "tue-tplink-plug-test"
+    },
+    "pcapLocation": "/Users/lucamrgs/mudscope/TestData/FedLab/TUe/Benign/TUe_BENIGN_18_11_2021.pcap"
+}
