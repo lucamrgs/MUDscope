@@ -20,7 +20,7 @@ import PcapUtils
 import MUDGenUtils
 #from Analyses import *
 from Constants import *
-from MRTAFeed import MRTFeed
+from MRTFeed import MRTFeed
 from MRTADashboard import MRTADashboard
 from VMUDEnforcer import Virtual_MUD_enforcer
 from MRTACharacterizator import MRTACharacterizator
@@ -153,7 +153,6 @@ def main(arguments=None):
 	dsr_path = args.dsr_path if args.dsr_path is not None else None
 
 	mrtfeeds_config = args.mrtfeeds_config if args.mrtfeeds_config is not None else None
-	monitor_features = args.monitor_features if args.monitor_features is not None else None
 
 
 	################################################################################################
@@ -501,17 +500,16 @@ def main(arguments=None):
 
 		with open(mrtfeeds_config) as mrtf_conf:
 			mrtf_data = json.load(mrtf_conf)
-		mrtf_data_list = mrtf_data['list']
+		mrtf_data_list = mrtf_data['mrtfeeds']
+		monitor_features = mrtf_data['features_watch']
+		transition_window = mrtf_data['transition_window']
 		
 		mrt_feeds_list = []
 		for l in mrtf_data_list:
 			mrt_feeds_list.append(MRTFeed(l['device_metadata'], l['csv_mrt_feed']))
-		
-		# Features to monitor
-		monitor_features = monitor_features.split(',')
 
 		mrtadb = MRTADashboard()
-		mrtadb.populate(mrt_feeds_list)
+		mrtadb.setup(mrt_feeds_list, monitor_features, transition_window)
 		
 		for feature in monitor_features:
 			mrtadb.plot_monodim_metric(feature)

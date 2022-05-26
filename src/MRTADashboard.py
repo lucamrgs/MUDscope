@@ -1,14 +1,19 @@
 
+from audioop import avg
+from distutils.log import debug
+from lib2to3.pgen2.token import PERCENT
 from multiprocessing.sharedctypes import Value
 import os
 import sys
 import ast
 from itertools import combinations
 
+import json
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from Constants import MONITOR_OUTPUTS_FOLDER
+from Constants import MONITOR_OUTPUTS_FOLDER, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER
 plt.rcParams.update({'font.size': 16})
 
 import numpy as np
@@ -19,7 +24,7 @@ pd.set_option("display.precision", 16)
 MY_SAVE_PATH_DEFAULT = MONITOR_OUTPUTS_FOLDER
 #'/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/demo_results/'#pre-results-data/diff-attacks-monodim/'
 
-from MRTAFeed import MRTFeed
+from MRTFeed import MRTFeed
 
 """
     TODO TODO TODO
@@ -35,22 +40,115 @@ class MRTADashboard:
         An MRT Feed is a pair of type <file.json, pandas.dataframe> 
     """
     def __init__(self):
-        print('>>> Dashboard generated')
+        
         self.feeds = []
-    
-    def populate(self, feeds_list):
+        self.signature_transitions_window_size = 0
+        self.total_corr_significant_features = []
+        self.features_watch_list = []
+        self.feeds_signatures_set = {}
+        self.feeds_signatures_comparison_matrix = pd.DataFrame()
+        
+        print('>>> Dashboard generated')
+
+
+    def setup(self, feeds_list, features_watch, signature_transitions_window_size):
         for mrt_feed in feeds_list:
             if not isinstance(mrt_feed, MRTFeed):
                 raise ValueError(f">>> ERROR: feeds_list contain non MRTFeed-type values.")
-            
+
         self.feeds = feeds_list
-        self.align_feeds()
+        self.signature_transitions_window_size = signature_transitions_window_size
+
+        print(self.feeds[0].data.head())
+        print(f'rolling window: {signature_transitions_window_size}')
+
+        #self.align_feeds()
         mrt_feed_columns = [col for col in self.feeds[0].data.columns]
         # SLICE AFTER METADATA
-        self.significant_features = mrt_feed_columns[mrt_feed_columns.index('clusters_balance'):]
+        self.total_corr_significant_features = mrt_feed_columns[mrt_feed_columns.index('clusters_balance'):]
         # REMOVE NOMINAL CLUSTER FEATURES
-        self.significant_features = [f for f in self.significant_features if not (f.endswith('_col_cluster') or f.endswith('_row_cluster') or f.endswith('noise_balance')) ]
+        self.total_corr_significant_features = [f for f in self.total_corr_significant_features if not (f.endswith('_col_cluster') or f.endswith('_row_cluster') or f.endswith('noise_balance')) ]
+        self.features_watch_list = features_watch
 
+
+
+    ##################################################################################################################################
+    # ROLLING WINDOW SIGNATURE CORRELATION
+    ##################################################################################################################################
+    """
+        - For the MRTFeeds of the dashboard, split each in rolling sub-feeds of signature_transitions_window_size entries each
+        - Build a 2D matrix with feed_#_window_#
+        - compute average(/max?) correlation among selected features, for each pair of time windows from different feeds
+        - Only compute triangular matrix
+            - Util: https://stackoverflow.com/questions/34417685/melt-the-upper-triangular-matrix-of-a-pandas-dataframe
+    """
+
+    def get_mrt_feed_csv_rolling_windows(self, mrt_feed):
+        #NOTE: mrt_feed.data is a pd dataframe
+        # https://stackoverflow.com/questions/21303224/iterate-over-all-pairs-of-consecutive-items-in-a-list
+        # Method 10 at https://towardsdatascience.com/23-efficient-ways-of-subsetting-a-pandas-dataframe-6264b8000a77
+        # Rolling window: https://stackoverflow.com/questions/6822725/rolling-or-sliding-window-iterator
+        
+        sub_feeds = [] # Will be populated with all rolling signature_transitions_window_size feeds
+
+        feed_rows_n = len(mrt_feed.data.index)
+        if feed_rows_n < self.signature_transitions_window_size:
+            raise ValueError(f">>> ERROR: MRT feed {mrt_feed.id} has less transition entries than the rolling window and cannot be compared. Aborting monitoring.")    
+
+        print(f'Feed length: {feed_rows_n}')
+        for i in range(feed_rows_n - self.signature_transitions_window_size + 1):
+            sub_feeds.append(mrt_feed.data.iloc[mrt_feed.data.index[i: i+self.signature_transitions_window_size]])
+
+        return sub_feeds
+
+    def generate_feeds_signatures_set(self):
+        """
+        - Take each csv feed
+        - divide in sub-csvs acc to time_window, label precisely
+        - build a dataframe w/ index-columns all windows pointers
+        - set triangular (default cell values/other smarter smethods)
+        """
+        self.feeds_signatures_set = {}
+        for mrt_feed in self.feeds:
+            for idx, sf in enumerate(self.get_mrt_feed_csv_rolling_windows(mrt_feed)):
+                self.feeds_signatures_set[f'{mrt_feed.id}{MRT_WINDOW_SIGNATURE_DF_NAME_TAG}{idx}'] = sf
+    
+    def generate_feeds_signatures_comparison_matrix(self):
+        # Comparison matrix with same index and columns for pairwise correlation over all possible sets
+        self.feeds_signatures_comparison_matrix = pd.DataFrame(MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, index=self.feeds_signatures_set.keys(), columns=self.feeds_signatures_set.keys())
+        upper_triangular_mask = np.triu(np.ones(self.feeds_signatures_comparison_matrix.shape)).astype(bool) # https://stackoverflow.com/questions/34417685/melt-the-upper-triangular-matrix-of-a-pandas-dataframe
+        self.feeds_signatures_comparison_matrix = self.feeds_signatures_comparison_matrix.where(upper_triangular_mask)
+
+    def populate_feeds_signatures_comparison_matrix_over_watch_features_correlation(self):
+        """
+            - Mind only upper triangular to avoid replicated correlation checks
+                - https://stackoverflow.com/questions/36375939/how-to-get-row-column-indices-of-all-non-nan-items-in-pandas-dataframe
+            - Select pairs of signatures from signature comparison matrix index and columns
+            - Check that pair is not from same feed (feed.id)
+        """
+        # TODO: Find an efficient way to iterate over relevant coordinates. Tried some pages but couldn't find a go-to approach.
+        for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
+            for sig_row_id in self.feeds_signatures_comparison_matrix.index:
+                # Check not same mrt feed of origin
+                sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                # If same origin, set value to NaN
+                if sig_row_origin_feed == sig_col_origin_feed:
+                    self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = np.nan
+                else:
+                    # If different, check that we're not in lower triangular (repested checks), and that the value has not been computed yet (PLACEHOLDER, == [2.0, 2.0])
+                    val = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
+                    if not np.isnan(val) and val == MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER:
+                        corr_over_watch_features = []
+                        # Here, compute the correlations for each metric in the watchlist across the two fluctuation windows
+                        for metric in self.features_watch_list:
+                            metric_avg_corr = self.corr_signatures_pair_monodim_metric(metric, sig_row_id, sig_col_id)
+                            corr_over_watch_features.append(metric_avg_corr)
+                        # get the max and average of the correlations
+                        avg_corr_over_watch_features = np.average(corr_over_watch_features)
+                        max_corr_over_watch_features = np.max(corr_over_watch_features)
+                        self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = avg_corr_over_watch_features
+                        #self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = (avg_corr_over_watch_features, max_corr_over_watch_features)
 
     """
     ****************************************************************************************************************
@@ -127,6 +225,7 @@ class MRTADashboard:
         axs[0].legend(f_plt, l_plt, loc='upper left')
         axs[0].set_xlabel('Transition entry')
         axs[0].set_ylabel(metric)
+        axs[0].tick_params(axis='x', labelrotation=45)
 
         cor = self.corr_monodim_metric(metric)
         sns.heatmap(cor, ax=axs[1], annot=True, fmt='.2f', cmap=plt.cm.Blues, vmin=-1, vmax=1, yticklabels=True, xticklabels=True)
@@ -208,7 +307,7 @@ class MRTADashboard:
         """ Generates dataframe with
             - MRTFeed IDs as columns
             - MRTFeed.#[metric][row_i] as rows
-            Then applies corr() on dataset 
+            Then applies corr() on dataset columns
 
             **************************
             M_monodim_metric[i, j] = corr(
@@ -218,18 +317,28 @@ class MRTADashboard:
             **************************
         """    
         self.check_metric_monodim(metric)
-        
-        #NOTE: REAL CONSTRUCTOR: {feed.id : feed.data[metric].values.tolist() for feed in self.feeds} - Used to test: {feed.id + str(i) : feed.data[metric].values.tolist() for i, feed in enumerate(self.feeds)}
+        #NOTE: REAL CONSTRUCTOR: {feed.id : feed.data[metric].values.tolist() for feed in self.feeds}
+        #      Used to test: {feed.id + str(i) : feed.data[metric].values.tolist() for i, feed in enumerate(self.feeds)}
         per_metric_dict = {feed.id.split('_')[-1] : feed.data[metric].values.tolist() for feed in self.feeds}
         per_metric_feeds_df = pd.DataFrame.from_dict(per_metric_dict)
-        #plt.figure(figsize=(18, 14))
         cor = per_metric_feeds_df.corr().fillna(0)
-        #print(cor)
-        #plt.tight_layout()
-        #sns.heatmap(cor, annot=True, fmt='.2f', cmap=plt.cm.Blues)
-        #plt.show()
         return cor
 
+    def corr_signatures_pair_monodim_metric(self, metric, sig1_id, sig2_id):
+        print(sig1_id)
+        print(sig2_id)
+        pair_signatures_metric_dict = {
+            sig1_id+f'_{metric}' : self.feeds_signatures_set[sig1_id][metric].values.tolist(),
+            sig2_id+f'_{metric}' : self.feeds_signatures_set[sig2_id][metric].values.tolist()
+            }
+        print(pair_signatures_metric_dict)
+        per_metric_feeds_df = pd.DataFrame.from_dict(pair_signatures_metric_dict)
+        print(f'######################################################')
+        print(f'# Dataframe of the feature values for for two signature (i.e., transitions windows) of two MRT feeds')
+        print(f'######################################################')
+        print(per_metric_feeds_df)
+        cor = per_metric_feeds_df.corr().fillna(0)
+        return cor
 
     def corr_multidim_metric(self, metric):
         """
@@ -294,7 +403,7 @@ class MRTADashboard:
         """Computes correlation over all contributing features, returns descriptors"""
         monodim_features_correlation_arrays = []
         multidim_features_correlation_arrays = []
-        for col in self.significant_features:
+        for col in self.total_corr_significant_features:
             if self.is_monodim_metric(col):
                 cor_matrix = self.corr_monodim_metric(col)
                 cor_matrix = cor_matrix.to_numpy() # To numpy to use upper triangular selection
@@ -359,7 +468,7 @@ class MRTADashboard:
     ##################################################################################################
     # UTILITY
     ##################################################################################################
-    
+
     def metric_exists(self, metric):
         try:
             # TODO: Test
@@ -460,6 +569,39 @@ if __name__ == '__main__':
 
     print('>>> Testing MRTADashboard!')
 
+    with open('/Users/lucamrgs/mudscope/configs/monitor_configs/monitor_test.json') as mrtf_conf:
+        mrtf_data = json.load(mrtf_conf)
+    mrtf_data_list = mrtf_data['mrtfeeds']
+    monitor_features = mrtf_data['features_watch']
+    signature_transitions_window_size = mrtf_data['transition_window']
+        
+    mrt_feeds_list = []
+    for l in mrtf_data_list:
+        mrt_feeds_list.append(MRTFeed(l['device_metadata'], l['csv_mrt_feed']))
+
+    mrta_test = MRTADashboard()
+    mrta_test.setup(mrt_feeds_list, monitor_features, signature_transitions_window_size)
+
+    #print(f'>>> DEBUG: Test mrt_csv_rolling_windows')
+    #subfeeds_test = mrta_test.get_mrt_feed_csv_rolling_windows(mrta_test.feeds[0])
+    #for f in subfeeds_test:
+    #    print(f)
+
+    mrta_test.generate_feeds_signatures_set()
+    print(f'############################################################################################################')
+    print(f'>>> DEBUG: Test generated feeds signatures set')
+    print(mrta_test.feeds_signatures_set)
+    
+    mrta_test.generate_feeds_signatures_comparison_matrix()
+    print(f'############################################################################################################')
+    print(f'>>> DEBUG: Test generated signatures comparison matrix')
+    print(mrta_test.feeds_signatures_comparison_matrix)
+
+    mrta_test.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
+    print(f'############################################################################################################')
+    print(f'>>> DEBUG: Test generated signatures comparison matrix after population')
+    print(mrta_test.feeds_signatures_comparison_matrix.to_string())
+
     # Below code is debug for testing
     if sys.argv[1] == 'demo':
         try:
@@ -467,14 +609,14 @@ if __name__ == '__main__':
         except Exception as e:
             raise ValueError(f'>>> ERROR: Testing MRTDashboard code without monitor features specified. Exiting.')
         
-        ut_csv_path = '/mudscope/outputs/ut-tplink-demo/ut-tplink-demo_mrt_transitions_dfs'
-        tue_csv_path = '/mudscope/outputs/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs'
+        ut_csv_path = '/Users/lucamrgs/mudscope/outputs/ut-tplink-demo/ut-tplink-demo_mrt_transitions_dfs'
+        tue_csv_path = '/Users/lucamrgs/mudscope/outputs/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs'
 
-        ut_tplink_demo_metadata = '/mudscope/configs/characterization_datas/ch_fedlab_ut_tplink.json'
+        ut_tplink_demo_metadata = '/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_ut_tplink.json'
         ut_tplink_demo_csv = os.path.abspath(os.path.join(ut_csv_path, os.listdir(ut_csv_path)[0]))
         print(ut_tplink_demo_csv)
 
-        tue_tplink_demo_metadata = '/mudscope/configs/characterization_datas/ch_fedlab_tue_tplink.json'
+        tue_tplink_demo_metadata = '/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_tplink.json'
         tue_tplink_demo_csv = os.path.abspath(os.path.join(tue_csv_path, os.listdir(tue_csv_path)[0]))
         print(tue_tplink_demo_csv)
 
@@ -482,7 +624,7 @@ if __name__ == '__main__':
         mrtf_tue_tplink_demo = MRTFeed(tue_tplink_demo_metadata, tue_tplink_demo_csv)
 
         mrta_d = MRTADashboard()
-        mrta_d.populate([mrtf_ut_tplink_demo, mrtf_tue_tplink_demo])
+        mrta_d.setup([mrtf_ut_tplink_demo, mrtf_tue_tplink_demo], 1)
 
         mrta_d.total_avg_corr()
         
@@ -492,7 +634,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
 
-
+    """
     ezviz_metadata_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_data_ezviz.json'
     ezviz_mrt_feed_csv_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211028_13-56-55_ezviz-pf-SAME-ORDER.csv'
     ezviz_mrt_feed_csv_path_diff = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211104_11-41-20_ezviz-pf-RAND-ORDER.csv'
@@ -607,36 +749,36 @@ if __name__ == '__main__':
     mrta_d = MRTADashboard()
     
     # DEMO
-    #mrta_d.populate([mrt_f_ut_tplink_demo, mrt_f_tue_tplink_demo])
+    #mrta_d.setup([mrt_f_ut_tplink_demo, mrt_f_tue_tplink_demo])
 
     # PRE-FINAL Experiments
-    #mrta_d.populate([mrt_ezviz_pf_ord, mrt_nugu_pf_ord])
-    #mrta_d.populate([mrt_ezviz_pf_diff, mrt_nugu_pf_diff])
+    #mrta_d.setup([mrt_ezviz_pf_ord, mrt_nugu_pf_ord])
+    #mrta_d.setup([mrt_ezviz_pf_diff, mrt_nugu_pf_diff])
 
     # Experiment 1
-    #mrta_d.populate([mrt_f_ut_tplink_1, mrt_f_tue_tplink_1])
-    #mrta_d.populate([mrt_f_ut_wansview_1, mrt_f_tue_foscam_1])
-    #mrta_d.populate([mrt_f_ut_tplink_1, mrt_f_tue_tplink_1, mrt_f_ut_wansview_1, mrt_f_tue_foscam_1])
+    #mrta_d.setup([mrt_f_ut_tplink_1, mrt_f_tue_tplink_1])
+    #mrta_d.setup([mrt_f_ut_wansview_1, mrt_f_tue_foscam_1])
+    #mrta_d.setup([mrt_f_ut_tplink_1, mrt_f_tue_tplink_1, mrt_f_ut_wansview_1, mrt_f_tue_foscam_1])
 
     # Experiment 2
-    #mrta_d.populate([mrt_f_ut_wansview_2, mrt_f_tue_tplink_2]) # attacked
-    #mrta_d.populate([mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # non-attacked
-    #mrta_d.populate([mrt_f_ut_wansview_2, mrt_f_tue_tplink_2, mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # all
+    #mrta_d.setup([mrt_f_ut_wansview_2, mrt_f_tue_tplink_2]) # attacked
+    #mrta_d.setup([mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # non-attacked
+    #mrta_d.setup([mrt_f_ut_wansview_2, mrt_f_tue_tplink_2, mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # all
     # Experiment 2b
-    #mrta_d.populate([mrt_f_ut_wansview_2b, mrt_f_tue_tplink_2b]) # attacked
-    #mrta_d.populate([mrt_f_ut_tplink_2b, mrt_f_tue_foscam_2b]) # non-attacked
-    #mrta_d.populate([mrt_f_ut_wansview_2b, mrt_f_tue_tplink_2b, mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # all
+    #mrta_d.setup([mrt_f_ut_wansview_2b, mrt_f_tue_tplink_2b]) # attacked
+    #mrta_d.setup([mrt_f_ut_tplink_2b, mrt_f_tue_foscam_2b]) # non-attacked
+    #mrta_d.setup([mrt_f_ut_wansview_2b, mrt_f_tue_tplink_2b, mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # all
     
     # Experiment 3
-    #mrta_d.populate([mrt_f_ut_wansview_3, mrt_f_tue_foscam_3])
-    #mrta_d.populate([mrt_f_ut_tplink_3, mrt_f_tue_tplink_3])
-    #mrta_d.populate([mrt_f_ut_wansview_3, mrt_f_tue_foscam_3, mrt_f_ut_tplink_3, mrt_f_tue_tplink_3])
+    #mrta_d.setup([mrt_f_ut_wansview_3, mrt_f_tue_foscam_3])
+    #mrta_d.setup([mrt_f_ut_tplink_3, mrt_f_tue_tplink_3])
+    #mrta_d.setup([mrt_f_ut_wansview_3, mrt_f_tue_foscam_3, mrt_f_ut_tplink_3, mrt_f_tue_tplink_3])
 
     # Experiment 4
-    #mrta_d.populate([mrt_f_ut_tplink_4, mrt_f_ut_wansview_4])
+    #mrta_d.setup([mrt_f_ut_tplink_4, mrt_f_ut_wansview_4])
     # Experiment 4bis
-    #mrta_d.populate([mrt_f_ut_tplink_4bis, mrt_f_ut_wansview_4bis])
-    mrta_d.populate([mrt_f_ut_tplink_4, mrt_f_ut_wansview_4, mrt_f_ut_tplink_4bis, mrt_f_ut_wansview_4bis])
+    #mrta_d.setup([mrt_f_ut_tplink_4bis, mrt_f_ut_wansview_4bis])
+    mrta_d.setup([mrt_f_ut_tplink_4, mrt_f_ut_wansview_4, mrt_f_ut_tplink_4bis, mrt_f_ut_wansview_4bis])
 
     
 
@@ -705,3 +847,4 @@ if __name__ == '__main__':
             mrta_d.plot_multidim_metric('bwd_vects_decile_' + str(i))
     else:
         raise ValueError(f'>>> ERROR: Check dim parameter when directly calling this script.')
+    """

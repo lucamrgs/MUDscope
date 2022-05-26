@@ -8,5 +8,5 @@
         "device": "68:ff:7b:df:58:4d",
         "deviceName": "tue-tplink-plug"
     },
-    "pcapLocation": "/mudscope/TestData/FedLab/TUe/Benign/TUe_BENIGN_18_11_2021.pcap"
+    "pcapLocation": "/Users/lucamrgs/mudscope/TestData/FedLab/TUe/Benign/TUe_BENIGN_18_11_2021.pcap"
 }

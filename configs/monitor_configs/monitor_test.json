@@ -1,14 +1,16 @@
 {
-    "list" : [
+    "mrtfeeds" : [
         {   
             "name" : "test_ut_tplink_exp1",
-            "device_metadata" : "/mudscope/configs/characterization_datas/ch_fedlab_ut_tplink.json",
-            "csv_mrt_feed": "/mudscope/TestData/FedLab/ut-tplink-demo/ut-tplink-demo_mrt_transitions_dfs/clusters_evols_20220315_09-57-55_ut-tplink-demo.csv"
+            "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_ut_tplink.json",
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/ut-tplink-demo/ut-tplink-demo_mrt_transitions_dfs/clusters_evols_20220526_10-48-00_ut-tplink-demo.csv"
         },
         {   
             "name" : "test1_tue_tplink_exp1",
-            "device_metadata" : "/mudscope/configs/characterization_datas/ch_fedlab_tue_tplink.json",
-            "csv_mrt_feed": "/mudscope/TestData/FedLab/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs/clusters_evols_20220315_09-57-55_tue-tplink-demo.csv"
+            "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_tplink.json",
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs/clusters_evols_20220526_10-48-24_tue-tplink-demo.csv"
         }
-    ]
+    ],
+    "transition_window" : 3,
+    "features_watch" : ["clusters_balance","mutual_matches_n","mutual_matches_percentage","fwd_matches_n","fwd_matches_percentage", "fwd_matches_agglomeration_avg", "fwd_matches_agglomeration_max_percentage", "bwd_matches_n","bwd_matches_percentage", "bwd_matches_agglomeration_avg", "bwd_matches_agglomeration_max_percentage"]
 }

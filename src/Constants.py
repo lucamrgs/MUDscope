@@ -163,6 +163,14 @@ IEEE_EZVIZ_GT_CSV = '/Users/lucamrgs/Big_Data/IEEE-Huy-Kang/iot_intrusion_datase
 
 STRFTIME_READABLE_FORMAT = "%Y/%m/%d,%H:%M:%S"
 
+
+# MRT FEEDS CORRELATION
+MRT_WINDOW_SIGNATURE_DF_NAME_TAG = '_signature_'
+MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER = 2.0
+
+
+
+
 # Tests...
 if __name__ == '__main__':
     import ipaddress

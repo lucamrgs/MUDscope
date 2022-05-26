@@ -2,7 +2,7 @@
   "ietf-mud:mud" : {
     "mud-version" : 1,
     "mud-url" : "https://ut-tplink-plug.com/ut-tplink-plug",
-    "last-update" : "2022-03-18T11:47:54.810+01:00",
+    "last-update" : "2022-05-26T10:39:24.186+02:00",
     "cache-validity" : 100,
     "is-supported" : true,
     "systeminfo" : "ut-tplink-plug",

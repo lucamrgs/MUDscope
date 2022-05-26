@@ -165,3 +165,7 @@ NOTE: Run code in opened docker mudscope terminal
 Additional note: ``editpcap -i 60 input.pcap output.pcap`` splits a pcap file into smaller files each containing traffic for ``-i`` seconds. Refer to:
 - https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
 - https://www.wireshark.org/docs/man-pages/editcap.html
+
+Additional note: dataset scaling references to be obtained via:
+- device_mrt_pcaps_to_csv.py
+- scale_reference_df_script.py
