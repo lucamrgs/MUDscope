@@ -4,16 +4,19 @@ from distutils.log import debug
 from lib2to3.pgen2.token import PERCENT
 from multiprocessing.sharedctypes import Value
 import os
+from pyexpat import features
 import sys
 import ast
 from itertools import combinations
+
+from datetime import datetime
 
 import json
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from Constants import MONITOR_OUTPUTS_FOLDER, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER
+from Constants import MONITOR_OUTPUTS_FOLDER, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, CORRELATION_THRESHOLD, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
 plt.rcParams.update({'font.size': 16})
 
 import numpy as np
@@ -47,6 +50,8 @@ class MRTADashboard:
         self.features_watch_list = []
         self.feeds_signatures_set = {}
         self.feeds_signatures_comparison_matrix = pd.DataFrame()
+        self.feeds_signatures_correlation_dictionary = {}
+        self.signatures_correlation_report = ['\n\n*~*~*~*~*~*~*~* Similar anomalies observed for the selected devices *~*~*~*~*~*~*~*']
         
         print('>>> Dashboard generated')
 
@@ -56,14 +61,14 @@ class MRTADashboard:
             if not isinstance(mrt_feed, MRTFeed):
                 raise ValueError(f">>> ERROR: feeds_list contain non MRTFeed-type values.")
 
-        self.feeds = feeds_list
+        self.feeds = {feed.id : feed for feed in feeds_list}
         self.signature_transitions_window_size = signature_transitions_window_size
 
-        print(self.feeds[0].data.head())
+        #print(self.feeds[0].data.head())
         print(f'rolling window: {signature_transitions_window_size}')
 
         #self.align_feeds()
-        mrt_feed_columns = [col for col in self.feeds[0].data.columns]
+        mrt_feed_columns = [col for col in self.feeds[list(self.feeds.keys())[0]].data.columns]
         # SLICE AFTER METADATA
         self.total_corr_significant_features = mrt_feed_columns[mrt_feed_columns.index('clusters_balance'):]
         # REMOVE NOMINAL CLUSTER FEATURES
@@ -109,7 +114,7 @@ class MRTADashboard:
         - set triangular (default cell values/other smarter smethods)
         """
         self.feeds_signatures_set = {}
-        for mrt_feed in self.feeds:
+        for mrt_feed in list(self.feeds.values()):
             for idx, sf in enumerate(self.get_mrt_feed_csv_rolling_windows(mrt_feed)):
                 self.feeds_signatures_set[f'{mrt_feed.id}{MRT_WINDOW_SIGNATURE_DF_NAME_TAG}{idx}'] = sf
     
@@ -139,16 +144,72 @@ class MRTADashboard:
                     # If different, check that we're not in lower triangular (repested checks), and that the value has not been computed yet (PLACEHOLDER, == [2.0, 2.0])
                     val = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
                     if not np.isnan(val) and val == MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER:
-                        corr_over_watch_features = []
+                        corr_over_watch_features = {}
                         # Here, compute the correlations for each metric in the watchlist across the two fluctuation windows
                         for metric in self.features_watch_list:
-                            metric_avg_corr = self.corr_signatures_pair_monodim_metric(metric, sig_row_id, sig_col_id)
-                            corr_over_watch_features.append(metric_avg_corr)
+                            metric_corr = self.corr_signatures_pair_monodim_metric(metric, sig_row_id, sig_col_id)
+                            corr_over_watch_features[metric] = metric_corr
                         # get the max and average of the correlations
-                        avg_corr_over_watch_features = np.average(corr_over_watch_features)
-                        max_corr_over_watch_features = np.max(corr_over_watch_features)
+                        avg_corr_over_watch_features = np.mean(list(corr_over_watch_features.values()))
+                        max_corr_over_watch_features = np.max(list(corr_over_watch_features.values()))
+
+                        corr_over_watch_features = dict(sorted(corr_over_watch_features.items(), key=lambda item: item[1], reverse=True))
+
                         self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = avg_corr_over_watch_features
-                        #self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = (avg_corr_over_watch_features, max_corr_over_watch_features)
+                        self.feeds_signatures_correlation_dictionary[sig_row_id + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_id] = {'avg' : avg_corr_over_watch_features, 'max' : max_corr_over_watch_features, 'metrics' : corr_over_watch_features}
+
+    
+    def generate_signatures_correlation_report(self, save_dir=MY_SAVE_PATH_DEFAULT, report_name='report.txt'):
+        corr_counter = 0
+        for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
+            for sig_row_id in self.feeds_signatures_comparison_matrix.index:
+                signatures_correlation = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
+                if signatures_correlation > CORRELATION_THRESHOLD:
+                    sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                    sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                    
+                    # Device ids
+                    device_row_sig = self.feeds[sig_row_origin_feed].metadata['device_id']
+                    device_col_sig = self.feeds[sig_col_origin_feed].metadata['device_id']
+
+                    # Anomaly/attack time windows
+                    row_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch1_t_start'].iloc[0])
+                    row_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch2_t_end'].iloc[-1])
+
+                    col_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch1_t_start'].iloc[0])
+                    col_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch2_t_end'].iloc[-1])
+                    
+                    corr_dictionary_entry = self.feeds_signatures_correlation_dictionary[sig_row_id + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_id]
+                    features_correlation_list = corr_dictionary_entry['metrics']
+
+                    # Rerport entry
+                    report_entry = f'\n\n[{corr_counter}] Similar anomalous activity was recorded for the following devices at these times:\n \
+    * {device_row_sig} - between: {row_signature_start_time} and {row_signature_end_time}  \n \
+    * {device_col_sig} - between: {col_signature_start_time} and {col_signature_end_time} \n \
+Average correlation of watchlist features: {signatures_correlation} ) \n\n \
+Features and correlation: {features_correlation_list}. \n\n'
+
+                    self.signatures_correlation_report.append(report_entry)
+                    corr_counter = corr_counter+1
+        
+        self.signatures_correlation_report.append(f'Total of windows with similar anomalies observed: {corr_counter}.\n\n')
+
+        for entry in self.signatures_correlation_report:
+            print(entry)
+
+        now = datetime.now()
+        date = now.strftime("%Y-%m-%d-%H-%M")
+        save_fullpath = MY_SAVE_PATH_DEFAULT + date + '_' + report_name
+        with open(save_fullpath, 'w') as output:
+            for line in self.signatures_correlation_report:
+                output.write(line)
+        print(f'>>> Report saved to {save_fullpath}.')
+        
+
+        for feature in list(features_correlation_list.keys()):
+            self.plot_monodim_metric(feature)
+        
+
 
     """
     ****************************************************************************************************************
@@ -207,7 +268,7 @@ class MRTADashboard:
         if not self.metric_exists(metric):
             raise ValueError(f'>>> ERROR: Invalid metric queried on MRT feeds: [ {metric} ].')
         self.check_metric_monodim(metric)
-        palette = sns.color_palette(None, len(self.feeds))
+        palette = sns.color_palette(None, len(list(self.feeds.items())))
         f_plt = []
         l_plt = []
         
@@ -217,7 +278,7 @@ class MRTADashboard:
         
         #plt.figure(figsize=(12, 7))
         #fig.suptitle(f'All feeds, monodimensonal metric: {metric}')
-        for i, feed in enumerate(self.feeds):
+        for i, feed in enumerate(list(self.feeds.values())):
             f, = axs[0].plot(feed.data[metric], color=palette[i], label=feed.id) # https://stackoverflow.com/questions/11983024/matplotlib-legends-not-working
             l_plt.append(feed.id.split('_')[-1])
             f_plt.append(f)
@@ -228,7 +289,7 @@ class MRTADashboard:
         axs[0].tick_params(axis='x', labelrotation=45)
 
         cor = self.corr_monodim_metric(metric)
-        sns.heatmap(cor, ax=axs[1], annot=True, fmt='.2f', cmap=plt.cm.Blues, vmin=-1, vmax=1, yticklabels=True, xticklabels=True)
+        sns.heatmap(cor, ax=axs[1], annot=True, fmt='.3f', cmap=plt.cm.Blues, vmin=-1, vmax=1, yticklabels=True, xticklabels=True)
         axs[1].tick_params(axis='x', labelrotation=10)
         plt.savefig(MY_SAVE_PATH_DEFAULT + metric + '.pdf')
         
@@ -269,7 +330,7 @@ class MRTADashboard:
         fig.legend(handles, labels, loc='upper right')
         
         cor_avgs, _ = self.corr_multidim_metric(metric)
-        sns.heatmap(cor_avgs, ax=axs[-1] ,annot=True, fmt='.2f', cmap=plt.cm.Blues, vmin=-1, vmax=1)
+        sns.heatmap(cor_avgs, ax=axs[-1] ,annot=True, fmt='.3f', cmap=plt.cm.Blues, vmin=-1, vmax=1)
         plt.savefig(MY_SAVE_PATH_DEFAULT + metric + '.png')
         
         if show:
@@ -319,40 +380,23 @@ class MRTADashboard:
         self.check_metric_monodim(metric)
         #NOTE: REAL CONSTRUCTOR: {feed.id : feed.data[metric].values.tolist() for feed in self.feeds}
         #      Used to test: {feed.id + str(i) : feed.data[metric].values.tolist() for i, feed in enumerate(self.feeds)}
-        per_metric_dict = {feed.id.split('_')[-1] : feed.data[metric].values.tolist() for feed in self.feeds}
+        per_metric_dict = {feed.id.split('_')[-1] : feed.data[metric].values.tolist() for feed in list(self.feeds.values())}
         per_metric_feeds_df = pd.DataFrame.from_dict(per_metric_dict)
         cor = per_metric_feeds_df.corr().fillna(0)
         return cor
 
     def corr_signatures_pair_monodim_metric(self, metric, sig1_id, sig2_id):
-        print(sig1_id)
-        print(sig2_id)
         pair_signatures_metric_dict = {
             sig1_id+f'_{metric}' : self.feeds_signatures_set[sig1_id][metric].values.tolist(),
             sig2_id+f'_{metric}' : self.feeds_signatures_set[sig2_id][metric].values.tolist()
             }
-        print(pair_signatures_metric_dict)
+        #print(pair_signatures_metric_dict)
         per_metric_feeds_df = pd.DataFrame.from_dict(pair_signatures_metric_dict)
-        print(f'######################################################')
-        print(f'# Dataframe of the feature values for for two signature (i.e., transitions windows) of two MRT feeds')
-        print(f'######################################################')
-        print(per_metric_feeds_df)
         cor = per_metric_feeds_df.corr().fillna(0)
-        return cor
+        correlation = cor.iloc[0, -1]
+        return correlation
 
     def corr_multidim_metric(self, metric):
-        """
-        TODO TODO TODO
-            - POPULATE ONLY UPPER TRIANGULAR
-
-            ************************************
-            M_multidim_metric[i, j] = avg(
-                corr(feed_i[metric][dim1], feed_j[metric][dim1])
-                ...,
-                corr(feed_i[metric][dimN], feed_j[metric][dimN])
-            )
-            ************************************
-        """
 
         self.check_metric_multidim(metric)
                                         # Feed-specific dataframe of multidim metric 
@@ -391,12 +435,6 @@ class MRTADashboard:
         corr_matrix_all_values.fillna(0, inplace=True)
         corr_matrix_averages.fillna(0, inplace=True)
 
-        #print(corr_matrix_all_values)
-        #print(corr_matrix_averages)
-        
-        #plt.figure(figsize=(10, 6))
-        #sns.heatmap(corr_matrix_averages, annot=True, fmt='.2f', cmap=plt.cm.Blues)
-        #plt.show()
         return corr_matrix_averages, corr_matrix_all_values
 
     def total_avg_corr(self):
@@ -472,7 +510,7 @@ class MRTADashboard:
     def metric_exists(self, metric):
         try:
             # TODO: Test
-            probe = self.feeds[0].data[metric][0]
+            probe = list(self.feeds.values())[0].data[metric].iloc[0]
             return True
         except Exception as e:
             return False
@@ -509,7 +547,7 @@ class MRTADashboard:
             print(f'>>> WARNING: MRT Feeds in MRTADashboard have been cropped to [ {min_transitions} ] to be of equal size.')
     
     def is_monodim_metric(self, metric):
-        probe = self.feeds[0].data[metric][0]
+        probe = list(self.feeds.values())[0].data[metric].iloc[0]
         try:
             a = ast.literal_eval(probe)
         except Exception as e:
@@ -517,7 +555,7 @@ class MRTADashboard:
             return True
         return False
     def is_multidim_metric(self, metric):
-        probe = self.feeds[0].data[metric][0]
+        probe = list(self.feeds.values())[0].data[metric].iloc[0]
         try:
             a = ast.literal_eval(probe)
         except Exception as e:
@@ -590,17 +628,23 @@ if __name__ == '__main__':
     mrta_test.generate_feeds_signatures_set()
     print(f'############################################################################################################')
     print(f'>>> DEBUG: Test generated feeds signatures set')
-    print(mrta_test.feeds_signatures_set)
+    #print(mrta_test.feeds_signatures_set)
     
     mrta_test.generate_feeds_signatures_comparison_matrix()
     print(f'############################################################################################################')
     print(f'>>> DEBUG: Test generated signatures comparison matrix')
-    print(mrta_test.feeds_signatures_comparison_matrix)
+    #print(mrta_test.feeds_signatures_comparison_matrix)
 
     mrta_test.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
     print(f'############################################################################################################')
     print(f'>>> DEBUG: Test generated signatures comparison matrix after population')
     print(mrta_test.feeds_signatures_comparison_matrix.to_string())
+    #print(mrta_test.feeds_signatures_correlation_dictionary)
+
+    print(f'############################################################################################################')
+    print(f'>>> DEBUG: Test generated signatures correlation report')
+    mrta_test.generate_signatures_correlation_report()
+
 
     # Below code is debug for testing
     if sys.argv[1] == 'demo':
