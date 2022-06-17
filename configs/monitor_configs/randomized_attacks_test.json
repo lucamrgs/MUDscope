@@ -1,0 +1,16 @@
+{
+    "mrtfeeds" : [
+        {   
+            "name" : "ezviz-randorder",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_data_ezviz.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211104_11-41-20_ezviz-pf-RAND-ORDER.csv"
+        },
+       {   
+            "name" : "nugu-randorder",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_data_nugu.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/nugu-pf/nugu-pf_mrt_transitions_dfs/clusters_evols_20211104_11-43-21_nugu-pf-RAND-ORDER.csv"
+        }
+    ],
+    "transition_window" : 6,
+    "features_watch" : ["clusters_balance","mutual_matches_n","mutual_matches_percentage","fwd_matches_n","fwd_matches_percentage", "fwd_matches_agglomeration_avg", "fwd_matches_agglomeration_max_percentage", "bwd_matches_n","bwd_matches_percentage", "bwd_matches_agglomeration_avg", "bwd_matches_agglomeration_max_percentage"]
+}

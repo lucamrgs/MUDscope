@@ -100,8 +100,7 @@ NOTE: Run code in opened docker mudscope terminal
     - ``--analysis_capture_metadata`` : name of json file (to be located in configs/characterization_datas/ directory) that contains the intended metadata information for the deployment and device. NOTE: it has to abide by a specific format, as its values are directly accessed by the code.
 
 - ``monitor``
-    - ``--mrtfeeds_config`` : path to json file listing the set of MRT feeds and associated device metadata to compare. An example can be found in configs/monitor_configs/monitor_test.json
-    - ``--monitor_features`` : list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2. Available/suggested features are:
+    - ``--mrtfeeds_config`` : path to json file listing the set of MRT feeds and associated device metadata to compare. It also lists the features of the MRTfeeds to analyse for correlation, and the ``transition_window``, which allows to specify the number of transition entries to check for correlation. In other words, it's the size of the signatures, which depends in turn on the size of the base time windows. ``features_watch`` is the list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2.Available/suggested features are:
     clusters_balance;
     all_dists_avg;
     mutual_matches_n;
@@ -113,7 +112,8 @@ NOTE: Run code in opened docker mudscope terminal
     bwd_matches_n;
     bwd_matches_percentage;
     bwd_matches_agglomeration_avg;
-    bwd_matches_agglomeration_max
+    bwd_matches_agglomeration_max.
+    An example can be found in configs/monitor_configs/monitor_test.json.
 
 
 **Pipeline Usage Template**
@@ -159,7 +159,6 @@ NOTE: Run code in opened docker mudscope terminal
 
 5. \> run.py --mode monitor
     --mrtfeeds_config configs/monitor_configs/<file>.json
-    --monitor_features <feature1_name>,<feature2_name>,... [example: all_dists_avg,mutual_matches_n,mutual_matches_percentage]
 
 
 Additional note: ``editpcap -i 60 input.pcap output.pcap`` splits a pcap file into smaller files each containing traffic for ``-i`` seconds. Refer to:

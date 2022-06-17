@@ -537,6 +537,10 @@ if __name__ == '__main__':
 # Generate MUD profile
 $> python3 run.py --mode mudgen --mudgen_config ieee-ezviz-demo-1.json
 
+# Generate reject configs
+$> python3 generate_rjt_configs.py --devname [] --dev_mac [] --gw_mac []  --gw_ip4 [] --gw_ip6 [] --tgt_dir []
+	/Users/lucamrgs/Big_Data/FederatedLab/UT/Malign
+
 # Filter traffic off a pcap
 $> python3 run.py --mode reject --reject_mud_rules result/ieee-ezviz-demo-1/ieee-ezviz-demo-1rule.csv --reject_config configs/reject_configs/ieee-ezviz-demo-1-A-floods --reject_to_named_dir time_1
 $> python3 run.py --mode reject --reject_mud_rules result/ieee-ezviz-demo-1/ieee-ezviz-demo-1rule.csv --reject_config configs/reject_configs/ieee-ezviz-demo-1-B-scans --reject_to_named_dir time_2

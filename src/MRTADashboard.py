@@ -16,7 +16,7 @@ import json
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from Constants import MONITOR_OUTPUTS_FOLDER, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, CORRELATION_THRESHOLD, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
+from Constants import MONITOR_OUTPUTS_FOLDER, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, MRT_SIGNATURES_CORRELATION_THRESHOLD, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
 plt.rcParams.update({'font.size': 16})
 
 import numpy as np
@@ -29,17 +29,12 @@ MY_SAVE_PATH_DEFAULT = MONITOR_OUTPUTS_FOLDER
 
 from MRTFeed import MRTFeed
 
-"""
-    TODO TODO TODO
-        - CHECK time window over all MRT Feed files: start and end must be reasonably overlayed through all feeds
-        - CHECK each feed has same number of transitions (or cut to minimum number of transitions over correct period)
-"""
 
 MRTFEEDS_TIME_OFFSET_TOLERANCE = 0.1
 
 class MRTADashboard:
     """
-        Class that stores multiple (N) MRT Feeds, and plots them, along group-wise metrics and information
+        Class that stores multiple MRT Feeds, and plots them, along group-wise metrics and information
         An MRT Feed is a pair of type <file.json, pandas.dataframe> 
     """
     def __init__(self):
@@ -164,7 +159,7 @@ class MRTADashboard:
         for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
             for sig_row_id in self.feeds_signatures_comparison_matrix.index:
                 signatures_correlation = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
-                if signatures_correlation > CORRELATION_THRESHOLD:
+                if signatures_correlation > MRT_SIGNATURES_CORRELATION_THRESHOLD:
                     sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
                     sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
                     
@@ -211,38 +206,13 @@ Features and correlation: {features_correlation_list}. \n\n'
         
 
 
-    """
-    ****************************************************************************************************************
-    TODO:
-        - Produce 'generic visualization' panel plotting the most relevant and generalized metrics
-            * clusters balance
-            * all dists average
-            * all dists std
-            * all dists deciles
-
-            * mutual matches n + percentage
-            * mutual vects average
-
-            * fwd matches n + percentage
-            * fwd vects agglomeration average
-            * fwd vects average
-
-            * bwd matches n + percentage
-            * bwd vects agglomeration average
-            * bwd vects average
-        
-            ....FOR EACH FEED
-
-    ****************************************************************************************************************
-    """
-
     ##################################################################################################################################
     # VISUALIZATION
     ##################################################################################################################################
     """
         *****************************************************************************************************
         # NOTE: It can be expected that the MRT feeds do not keep at the same time a huge number of entries.
-                It could be therefore possible to plot these info in a resonably non-cluttered chart (!??!?)
+                It could be therefore possible to plot these info in a resonably non-cluttered chart 
         *****************************************************************************************************
         MONO-DIMENSIONAL FEATURES:
             For each MRT feed, plot the pd series of the feature in one line graph. There will be as many lines as MRT feeds
@@ -286,7 +256,7 @@ Features and correlation: {features_correlation_list}. \n\n'
         axs[0].legend(f_plt, l_plt, loc='upper left')
         axs[0].set_xlabel('Transition entry')
         axs[0].set_ylabel(metric)
-        axs[0].tick_params(axis='x', labelrotation=45)
+        axs[0].tick_params(axis='y', labelrotation=45)
 
         cor = self.corr_monodim_metric(metric)
         sns.heatmap(cor, ax=axs[1], annot=True, fmt='.3f', cmap=plt.cm.Blues, vmin=-1, vmax=1, yticklabels=True, xticklabels=True)
@@ -297,6 +267,7 @@ Features and correlation: {features_correlation_list}. \n\n'
             plt.show()
         
         print(f'>>> Output saved to {save_dir}.')
+
     
     def plot_multidim_metric(self, metric, save_dir=MY_SAVE_PATH_DEFAULT, show=False):
         if not self.metric_exists(metric):
@@ -516,7 +487,10 @@ Features and correlation: {features_correlation_list}. \n\n'
             return False
 
     def align_feeds(self):
-        """Normalizes feeds lists according to number of transitions recorded, and timings"""
+        """
+        OBSOLETE
+        Normalizes feeds lists according to number of transitions recorded, and timings
+        """
         min_transitions = min([f.len for f in self.feeds])
 
         avg_feed_duration = np.average([f.duration for f in self.feeds]).item()
@@ -607,7 +581,11 @@ if __name__ == '__main__':
 
     print('>>> Testing MRTADashboard!')
 
-    with open('/Users/lucamrgs/mudscope/configs/monitor_configs/monitor_test.json') as mrtf_conf:
+    """
+        NOTE: Test different setups from available configs, or define new ones with configs
+    """
+    config_file = 'nonrandomized_attacks_preliminary.json'
+    with open('/Users/lucamrgs/mudscope/configs/monitor_configs/' + config_file) as mrtf_conf:
         mrtf_data = json.load(mrtf_conf)
     mrtf_data_list = mrtf_data['mrtfeeds']
     monitor_features = mrtf_data['features_watch']
@@ -638,7 +616,7 @@ if __name__ == '__main__':
     mrta_test.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
     print(f'############################################################################################################')
     print(f'>>> DEBUG: Test generated signatures comparison matrix after population')
-    print(mrta_test.feeds_signatures_comparison_matrix.to_string())
+    #print(mrta_test.feeds_signatures_comparison_matrix.to_string())
     #print(mrta_test.feeds_signatures_correlation_dictionary)
 
     print(f'############################################################################################################')

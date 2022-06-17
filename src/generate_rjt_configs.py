@@ -28,10 +28,7 @@ def module_main(arguments=None):
 
     parser = argparse.ArgumentParser(description='TBD')
 
-    # If mode is "reject", 
-    #   - the config file for the referred device and gateway information, and
-    #   - the relative path to MUD (OpenFLow) rules in CSV
-    # must be specified
+
     parser.add_argument('--devname', help='Name of the device referred for MRT generation and overall pipeline.', required=True)
     parser.add_argument('--dev_mac', help='MAC address of device', required=True)
     

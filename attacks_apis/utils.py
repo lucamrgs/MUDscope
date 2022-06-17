@@ -55,8 +55,9 @@ def check_boolean_var(var):
 
 def check_int_var(var, min, max):
     try:
-        if not (isinstance(int(var), int) and int(var) >= min and int(var) <= max):
-            raise ValueError(f'>>> ERROR: Parameter {var} is supposed to be an integer in [{min}, {max}]. Exiting.')
+        if var is not None:
+            if not (isinstance(int(var), int) and int(var) >= min and int(var) <= max):
+                raise ValueError(f'>>> ERROR: Parameter {var} is supposed to be an integer in [{min}, {max}]. Exiting.')
     except Exception as e:
         print(e)
         raise ValueError(f'>>> ERROR: Parameter {var} is supposed to be an integer in [{min}, {max}]. Exiting.')

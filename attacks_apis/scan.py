@@ -50,7 +50,7 @@
         - basically an nmap wrapper
         - Provide experiments-specific macros
 
-        - Abstract parameters to call functions types (e.g., host_discovery_only(), syn_scan(), udp_scan())
+        - Abstracts parameters to call functions types (e.g., host_discovery_only(), syn_scan(), udp_scan())
             Interface top down:
                 PARAMS: ip/subnet
                 * host discovery only on subnet
@@ -64,13 +64,6 @@
                     >>> --script=vuln (tests all vulnerability scripts),
                     --script=vulscan/ (requires additional github installation)
                     --script=vulners tests one script
-"""
-
-"""
-    NOTE:
-        - Useful wrapper library: https://github.com/nmmapper/python3-nmap/tree/1c60dff9b557e8127545604e029e763cb0c4f3f3
-        $ pip intall nmap3
-        >>> SEEMS VULNERABLE TO COMMAND INJECTION
 """
 
 """
@@ -90,14 +83,16 @@ import ipaddress
 import subprocess
 import shlex
 
-cwd = os.getcwd()
-sys.path.insert(1, cwd + '/src')
-from Constants import *
+#cwd = os.getcwd()
+#sys.path.insert(1, cwd + '/src')
+#from Constants import *
 from utils import *
 
 SCAN_TYPES = ['syn', 'udp', 'syn_udp', 'con']
 MODE_PRESET = 'preset'
 MODE_CUSTOM = 'custom'
+MAX_PORTS=1024
+MAX_TIMEOUT_S=60
 
 
 ##################################################################################################
@@ -133,7 +128,7 @@ def print_popen_output(func):
     return inner
 
 @print_popen_output
-def run_nmap(opts, target, timeout=None):
+def run_nmap(opts, target, timeout=MAX_TIMEOUT_S):
     
     # Taken and adapted from https://github.com/nmmapper/python3-nmap/tree/1c60dff9b557e8127545604e029e763cb0c4f3f3
     """
@@ -142,14 +137,15 @@ def run_nmap(opts, target, timeout=None):
         @param: timeout--> command subprocess timeout in seconds.
     """
     check_valid_target(target)
+    
     check_int_var(timeout, 0, MAX_TIMEOUT_S)
-    timeout = int(timeout)
+    timeout = int(timeout) if timeout is not None else None
     nmaptool = get_nmap_path()
     print(nmaptool)
     if (os.path.exists(nmaptool)):
         cmd = nmaptool + ' ' + opts + ' ' + target
         args = shlex.split(cmd)
-        
+
         print(cmd)
         
         sub_proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
@@ -187,7 +183,8 @@ def base_scan(target, scan_type='syn', host_detection=True, ports_scan=True, ser
     check_int_var(evasion_lvl, 0, 5)
     check_int_var(top_ports, 0, MAX_PORTS)
     check_boolean_var(dns)
-    check_int_var(timeout, 0, MAX_TIMEOUT_S)
+    if timeout is not None:
+        check_int_var(timeout, 0, MAX_TIMEOUT_S)
 
     base_opts = '--randomize-hosts ' + f'T{evasion_lvl} ' + f'--top-ports {top_ports}'
     
@@ -261,7 +258,7 @@ def host_discovery_only(target, timeout=None):
     res = run_nmap(base_opts, target, timeout)
     return res
 
-def scan_top_1024_ports(target, timeout=None):
+def scan_top_1024_ports(target, timeout=MAX_TIMEOUT_S):
     res = base_scan(target, top_ports=1024, timeout=timeout)
 supported_functions[scan_top_1024_ports.__name__] = scan_top_1024_ports
 
@@ -343,6 +340,6 @@ def module_main(arguments=None):
 
 
 if __name__ == '__main__':
-    module_main()
-    #scan_top_1024_ports('192.168.1.1')
+    #module_main()
+    scan_top_1024_ports('192.168.1.1')
     sys.exit(0)

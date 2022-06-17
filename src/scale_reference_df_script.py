@@ -97,10 +97,6 @@ def scaling_ref_to_numerical_vals(df):
     return to_numerical_wrapper(df)
 
 
-"""
-TODO: save to CSV
-"""
-
 if __name__ == '__main__':
     dataset_scaler_gen_reference_path = sys.argv[1]
     dataset_scaler_gen_reference = pd.read_csv(dataset_scaler_gen_reference_path)

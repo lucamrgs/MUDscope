@@ -1,0 +1,26 @@
+{
+    "mrtfeeds" : [
+        {   
+            "name" : "test_ut_tplink_exp2",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_ut_tplink.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug-exp2/ut-tplink-plug-exp2_mrt_transitions_dfs/clusters_evols_20211122_11-12-40_ut-tplink-plug-exp2.csv"
+        },
+       {   
+            "name" : "test_ut_wansview_exp2",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_ut_wansview.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-wansview-cam-exp2/ut-wansview-cam-exp2_mrt_transitions_dfs/clusters_evols_20211119_17-30-00_ut-wansview-cam-exp2.csv"
+        },
+       {   
+            "name" : "test_tue_tplink_exp2",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_tue_tplink.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-tplink-plug-exp2/tue-tplink-plug-exp2_mrt_transitions_dfs/clusters_evols_20211119_17-30-49_tue-tplink-plug-exp2.csv"
+        },
+        {   
+            "name" : "test1_tue_foscam_exp1",
+            "device_metadata" : "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_tue_foscam.json",
+            "csv_mrt_feed": "/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-foscam-cam-exp2/tue-foscam-cam-exp2_mrt_transitions_dfs/clusters_evols_20211122_10-54-51_tue-foscam-cam-exp2.csv"
+        }
+    ],
+    "transition_window" : 5,
+    "features_watch" : ["clusters_balance","mutual_matches_n","mutual_matches_percentage","fwd_matches_n","fwd_matches_percentage", "fwd_matches_agglomeration_avg", "fwd_matches_agglomeration_max_percentage", "bwd_matches_n","bwd_matches_percentage", "bwd_matches_agglomeration_avg", "bwd_matches_agglomeration_max_percentage"]
+}
