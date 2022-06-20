@@ -655,11 +655,11 @@ def module_each_pcap_to_complete_csv(pcaps_dir):
     all_csvs_dir, _ = flows_to_aggregated_csvs(dir)
     print(all_csvs_dir)
 
-    #change_csvs_headers_to_custom(all_csvs_dir)
-    #set_all_csvs_clean(all_csvs_dir)
+    change_csvs_headers_to_custom(all_csvs_dir)
+    set_all_csvs_clean(all_csvs_dir)
 
-    #clean_up_unused_csvs(all_csvs_dir)
-    #clean_up_flow_folders(dir)
+    clean_up_unused_csvs(all_csvs_dir)
+    clean_up_flow_folders(dir)
 
 
 if __name__ == '__main__':
