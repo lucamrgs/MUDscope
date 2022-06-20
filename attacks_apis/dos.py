@@ -66,7 +66,7 @@ def dos(target, timeout_s, method, pps=1000, dports=None, spoof=True):
         s.connect(('192.255.255.255', 1))
         local_ip = s.getsockname()[0]
         s.close()
-        print(local_ip)
+        print(f'Local ip: {local_ip}')
     except Exception as e:
         print(e)
         raise ValueError(f'\n>>> ERROR: Unable to get local IP of current machine. Exiting.')
@@ -133,7 +133,7 @@ def module_main(arguments=None):
     spoof = assign_non_req(args.spoof, True)
 
     pps = int(assign_non_req(args.pps, 1000))
-    dports = assign_non_req(args.dports, default=None)
+    dports = assign_non_req(args.dports, default='80,8080')
     dports = dports.strip().split(',')
     dports = [int(p) for p in dports]
 

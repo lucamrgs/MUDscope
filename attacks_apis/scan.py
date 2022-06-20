@@ -186,7 +186,7 @@ def base_scan(target, scan_type='syn', host_detection=True, ports_scan=True, ser
     if timeout is not None:
         check_int_var(timeout, 0, MAX_TIMEOUT_S)
 
-    base_opts = '--randomize-hosts ' + f'T{evasion_lvl} ' + f'--top-ports {top_ports}'
+    base_opts = '--randomize-hosts ' + f'-T{evasion_lvl} ' + f'--top-ports {top_ports}, -p 80,8080'
     
     if not ports_scan:
         base_opts = base_opts + ' -sn '
@@ -340,6 +340,6 @@ def module_main(arguments=None):
 
 
 if __name__ == '__main__':
-    #module_main()
-    scan_top_1024_ports('192.168.1.1')
+    module_main()
+    #scan_top_1024_ports('192.168.1.1')
     sys.exit(0)
