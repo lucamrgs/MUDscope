@@ -510,10 +510,12 @@ def main(arguments=None):
 
 		mrtadb = MRTADashboard()
 		mrtadb.setup(mrt_feeds_list, monitor_features, transition_window)
-		
-		for feature in monitor_features:
-			mrtadb.plot_monodim_metric(feature)
+		mrtadb.detect_anomalies()
+		mrtadb.generate_feeds_signatures_set()
+		mrtadb.generate_feeds_signatures_comparison_matrix()
+		mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
 
+		mrtadb.generate_report()
 
 		
 	else:

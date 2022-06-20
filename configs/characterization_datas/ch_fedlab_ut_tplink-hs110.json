@@ -1,5 +1,5 @@
 {
-    "device_id" : "ut-tplink-plug",
+    "device_id" : "ut-tplink-plug-hs110",
     "deployment_info" : {
         "deployment_id" : "UT_SCS_IoT_fedlab",
         "lat" : 52.239210,

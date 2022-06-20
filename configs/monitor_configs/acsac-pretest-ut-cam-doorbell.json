@@ -1,0 +1,16 @@
+{
+    "mrtfeeds" : [
+        {   
+            "name" : "ut-wansview-cam",
+            "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_ut_wansview.json",
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/ut-wansview-cam/ut-wansview-cam_cd-test/ut-wansview-cam_mrt_transitions_dfs/clusters_evols_20220620_17-23-38_ut-wansview-cam.csv"
+        },
+       {   
+            "name" : "ut-ring-doorbell",
+            "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_ut_ring-doorbell.json",
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/ut-ring-doorbell/ut-ring-doorbell_cd-test/ut-ring-doorbell_mrt_transitions_dfs/clusters_evols_20220620_17-24-23_ut-ring-doorbell.csv"
+        }
+    ],
+    "transition_window" : 3,
+    "features_watch" : ["clusters_balance","mutual_matches_n","mutual_matches_percentage","fwd_matches_n","fwd_matches_percentage", "fwd_matches_agglomeration_avg", "fwd_matches_agglomeration_max_percentage", "bwd_matches_n","bwd_matches_percentage", "bwd_matches_agglomeration_avg", "bwd_matches_agglomeration_max_percentage"]
+}

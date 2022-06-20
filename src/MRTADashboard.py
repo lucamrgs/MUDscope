@@ -46,8 +46,12 @@ class MRTADashboard:
         self.feeds_signatures_set = {}
         self.feeds_signatures_comparison_matrix = pd.DataFrame()
         self.feeds_signatures_correlation_dictionary = {}
-        self.signatures_correlation_report = ['\n\n*~*~*~*~*~*~*~* Similar anomalies observed for the selected devices *~*~*~*~*~*~*~*']
+
+        self.signatures_correlation_report = []
         
+        self.devices_anomalies = {}
+        self.anomalies_report = []
+
         print('>>> Dashboard generated')
 
 
@@ -57,6 +61,7 @@ class MRTADashboard:
                 raise ValueError(f">>> ERROR: feeds_list contain non MRTFeed-type values.")
 
         self.feeds = {feed.id : feed for feed in feeds_list}
+        self.devices_anomalies = {feed.id : [] for feed in feeds_list}
         self.signature_transitions_window_size = signature_transitions_window_size
 
         #print(self.feeds[0].data.head())
@@ -69,6 +74,42 @@ class MRTADashboard:
         # REMOVE NOMINAL CLUSTER FEATURES
         self.total_corr_significant_features = [f for f in self.total_corr_significant_features if not (f.endswith('_col_cluster') or f.endswith('_row_cluster') or f.endswith('noise_balance')) ]
         self.features_watch_list = features_watch
+
+    def detect_anomalies(self):
+        """
+            Base anomaly detection that considers any period of fluctuations between periods of flat behaviours as an anomaly.
+            The markers for the period are two transitions where clusters_balance = 0, ch_2_clusters_n = 1
+        """
+        for feed in self.feeds.values():
+            
+            clusters_balances = feed.data['clusters_balance']
+            clusters_numbers = feed.data['ch2_clusters_n']
+            time_markers = feed.data['ch1_t_start']
+            
+            anomaly_markers = zip(clusters_balances, clusters_numbers, time_markers)
+            anomalies_windows = {}
+            anomaly_count = 0
+            in_anomaly = False
+
+            for marker in anomaly_markers:
+                # If not baseline behaviour at transitions
+                if not(marker[0] == 0 and marker[1] == 1):
+                    # If not recording ongoing anomaly
+                    if not in_anomaly:
+                        # Log begin time of anomaly
+                        anomalies_windows[anomaly_count] = {'start' : marker[2], 'end' : 0}
+                        in_anomaly = True
+                # If in baseline behaviour, we're not recording an anomaly
+                elif marker[0] == 0 and marker[1] == 1:
+                    if in_anomaly: # We were logging an anomaly, which stopped. Hence we log the end time
+                        anomalies_windows[anomaly_count]['end'] = marker[2]
+                        anomaly_count = anomaly_count + 1
+                    in_anomaly = False
+
+            print(anomalies_windows)
+            self.devices_anomalies[feed.id] = anomalies_windows
+
+        print(self.devices_anomalies)
 
 
 
@@ -126,7 +167,7 @@ class MRTADashboard:
             - Select pairs of signatures from signature comparison matrix index and columns
             - Check that pair is not from same feed (feed.id)
         """
-        # TODO: Find an efficient way to iterate over relevant coordinates. Tried some pages but couldn't find a go-to approach.
+        # TODO: Find an efficient way to iterate over relevant coordinates. Tried some but couldn't find a go-to approach.
         for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
             for sig_row_id in self.feeds_signatures_comparison_matrix.index:
                 # Check not same mrt feed of origin
@@ -136,7 +177,7 @@ class MRTADashboard:
                 if sig_row_origin_feed == sig_col_origin_feed:
                     self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = np.nan
                 else:
-                    # If different, check that we're not in lower triangular (repested checks), and that the value has not been computed yet (PLACEHOLDER, == [2.0, 2.0])
+                    # If different, check that we're not in lower triangular (repested checks), and that the value has not been computed yet (MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER in Constants)
                     val = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
                     if not np.isnan(val) and val == MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER:
                         corr_over_watch_features = {}
@@ -151,60 +192,91 @@ class MRTADashboard:
                         corr_over_watch_features = dict(sorted(corr_over_watch_features.items(), key=lambda item: item[1], reverse=True))
 
                         self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = avg_corr_over_watch_features
-                        self.feeds_signatures_correlation_dictionary[sig_row_id + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_id] = {'avg' : avg_corr_over_watch_features, 'max' : max_corr_over_watch_features, 'metrics' : corr_over_watch_features}
+                        signatures_correlation_dictionary_key = str(sig_row_id + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_id)
+                        self.feeds_signatures_correlation_dictionary[signatures_correlation_dictionary_key] = {'avg' : avg_corr_over_watch_features, 'max' : max_corr_over_watch_features, 'metrics' : corr_over_watch_features}
+                        #print(f'Signatures correlation key: \n>>>{signatures_correlation_dictionary_key}\n')
 
-    
-    def generate_signatures_correlation_report(self, save_dir=MY_SAVE_PATH_DEFAULT, report_name='report.txt'):
+
+    def generate_anomalies_report(self, save_dir=MY_SAVE_PATH_DEFAULT, report_name='recorded_anomalies.txt'):
+        self.anomalies_report.append('\n\n*~*~*~*~*~*~*~* Anomalies recorded for each MRT feed submitted *~*~*~*~*~*~*~*\n\n')
+        for entry, val in self.devices_anomalies.items():
+            print(f'ENTRY: {entry}')
+            feed_id = entry
+            report_entry = f'{feed_id} :\n'
+            # Iterate over time windows of anomalies
+            for k, e in val.items():
+                start = datetime.fromtimestamp(e['start']).time()
+                end = datetime.fromtimestamp(e['end']).time()
+                date = datetime.fromtimestamp(e['end']).date()
+                report_entry = report_entry + f'\t between: {start} and {end} on the {date}\n'
+            report_entry = report_entry + '\n'
+            print(report_entry)
+            self.anomalies_report.append(report_entry)
+
+        
+    def generate_signatures_correlation_report(self, save_dir=MY_SAVE_PATH_DEFAULT, report_name='matching_anomalies_report.txt'):
+        
+        self.signatures_correlation_report.append('\n\n*~*~*~*~*~*~*~* Similar anomalies observed for the selected devices *~*~*~*~*~*~*~*\n\n')
         corr_counter = 0
         for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
             for sig_row_id in self.feeds_signatures_comparison_matrix.index:
                 signatures_correlation = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
-                if signatures_correlation > MRT_SIGNATURES_CORRELATION_THRESHOLD:
-                    sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
-                    sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
-                    
-                    # Device ids
-                    device_row_sig = self.feeds[sig_row_origin_feed].metadata['device_id']
-                    device_col_sig = self.feeds[sig_col_origin_feed].metadata['device_id']
+                # Again, skip non-relevant cells
+                if not np.isnan(signatures_correlation) and not (signatures_correlation == MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER):
 
-                    # Anomaly/attack time windows
-                    row_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch1_t_start'].iloc[0])
-                    row_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch2_t_end'].iloc[-1])
-
-                    col_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch1_t_start'].iloc[0])
-                    col_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch2_t_end'].iloc[-1])
-                    
                     corr_dictionary_entry = self.feeds_signatures_correlation_dictionary[sig_row_id + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_id]
                     features_correlation_list = corr_dictionary_entry['metrics']
 
-                    # Rerport entry
-                    report_entry = f'\n\n[{corr_counter}] Similar anomalous activity was recorded for the following devices at these times:\n \
-    * {device_row_sig} - between: {row_signature_start_time} and {row_signature_end_time}  \n \
-    * {device_col_sig} - between: {col_signature_start_time} and {col_signature_end_time} \n \
-Average correlation of watchlist features: {signatures_correlation} ) \n\n \
-Features and correlation: {features_correlation_list}. \n\n'
+                    if signatures_correlation > MRT_SIGNATURES_CORRELATION_THRESHOLD:
+                        sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                        sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                        
+                        # Device ids
+                        device_row_sig = self.feeds[sig_row_origin_feed].metadata['device_id']
+                        device_col_sig = self.feeds[sig_col_origin_feed].metadata['device_id']
+                        
+                        # Anomaly/attack time windows
+                        row_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch1_t_start'].iloc[0])
+                        row_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch2_t_end'].iloc[-1])
 
-                    self.signatures_correlation_report.append(report_entry)
-                    corr_counter = corr_counter+1
+                        col_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch1_t_start'].iloc[0])
+                        col_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch2_t_end'].iloc[-1])
+
+                        # Rerport entry
+                        report_entry = f'\n\n[{corr_counter}] Similar anomalous activity was recorded for the following devices at these times:\n \
+        * {device_row_sig} - between: {row_signature_start_time} and {row_signature_end_time} \n \
+        * {device_col_sig} - between: {col_signature_start_time} and {col_signature_end_time} \n \
+    Average correlation of watchlist features: {signatures_correlation} ) \n\n \
+    Features and correlation: {features_correlation_list}. \n\n'
+
+                        self.signatures_correlation_report.append(report_entry)
+                        corr_counter = corr_counter+1
         
         self.signatures_correlation_report.append(f'Total of windows with similar anomalies observed: {corr_counter}.\n\n')
 
         for entry in self.signatures_correlation_report:
             print(entry)
+        
+        # Output plots
+        for feature in list(features_correlation_list.keys()):
+            self.plot_monodim_metric(feature)
+
+
+    
+    def generate_report(self, report_name='report-txt'):
+        self.generate_anomalies_report()
+        self.generate_signatures_correlation_report()
 
         now = datetime.now()
         date = now.strftime("%Y-%m-%d-%H-%M")
         save_fullpath = MY_SAVE_PATH_DEFAULT + date + '_' + report_name
         with open(save_fullpath, 'w') as output:
+            for line in self.anomalies_report:
+                output.write(line)
             for line in self.signatures_correlation_report:
                 output.write(line)
         print(f'>>> Report saved to {save_fullpath}.')
         
-
-        for feature in list(features_correlation_list.keys()):
-            self.plot_monodim_metric(feature)
-        
-
 
     ##################################################################################################################################
     # VISUALIZATION
