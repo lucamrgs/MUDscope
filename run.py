@@ -123,6 +123,8 @@ def main(arguments=None):
 	parser.add_argument('--monitor_features', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the MRT feed features to cross-compare on the MRT feeds list specified in --mrtfeeds_config.\nUse format feature1,feature2,... See documentation for the list of supported MRT feed features.', required=False)
 	#parser.add_argument('--monitor_output', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the path to which the monitor plots output will be exported.', required=False)
 
+	parser.add_argument('--session_name')
+
 	################################################################################################
 	# Arguments parsing
 	################################################################################################
@@ -130,6 +132,8 @@ def main(arguments=None):
 	args = parser.parse_args(arguments)
 
 	mode = args.mode
+
+	session_name = args.session_name if args.session_name is not None else None
 
 	# NOTE: All parameters default to None values if not specified
 
@@ -405,6 +409,8 @@ def main(arguments=None):
 				characterization_name = 'ch_' + dt_string + '_' + analysis_devname + os.path.splitext(analysis_tgt)[0] + '.json'
 
 				output_path = output_folder + analysis_devname + '_mrt_characterizations/'
+				if session_name is not None:
+					output_path = f'{output_folder}{analysis_devname}_{session_name}/{analysis_devname}_{session_name}_mrt_characterizations/'
 				Path(output_path).mkdir(parents=True, exist_ok=True)
 				mrta_characterizator.save_characterization(output_path + characterization_name)
 
@@ -477,6 +483,8 @@ def main(arguments=None):
 			now = datetime.now()
 			dt_string = now.strftime("%Y%m%d_%H-%M-%S")
 			clusters_evol_df_name = 'clusters_evols_' + dt_string + '_' + analysis_devname + '.csv'
+			if session_name is not None:
+					clusters_evol_df_name = f'clusters_evols_{analysis_devname}_{session_name}.csv'
 
 			output_path = output_folder + analysis_devname + '_mrt_transitions_dfs/'
 			Path(output_path).mkdir(parents=True, exist_ok=True)

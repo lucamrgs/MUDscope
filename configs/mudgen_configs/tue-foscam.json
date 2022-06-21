@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "",
+        "ipAddress": "192.168.5.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "",
+        "deviceName": "tue-foscam-cam"
+    },
+    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/TBD.pcap"
+}
