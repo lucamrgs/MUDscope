@@ -486,7 +486,7 @@ def main(arguments=None):
 			dt_string = now.strftime("%Y%m%d_%H-%M-%S")
 			clusters_evol_df_name = 'clusters_evols_' + dt_string + '_' + analysis_devname + '.csv'
 			if session_name is not None:
-					clusters_evol_df_name = f'clusters_evols_{analysis_devname}_{session_name}.csv'
+					clusters_evol_df_name = f'clusters_evols_{session_name}_{analysis_devname}.csv'
 
 			output_path = output_folder + analysis_devname + '_mrt_transitions_dfs/'
 			Path(output_path).mkdir(parents=True, exist_ok=True)

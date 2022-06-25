@@ -11,6 +11,8 @@ from itertools import combinations
 
 from datetime import datetime
 
+import time
+
 import json
 
 import seaborn as sns
@@ -30,11 +32,16 @@ MY_SAVE_PATH_DEFAULT = MONITOR_OUTPUTS_FOLDER
 from MRTFeed import MRTFeed
 
 MRTFEEDS_TIME_OFFSET_TOLERANCE = 0.1
+# To gather the name of the device from the feed name
+# TODO: Set to -1 when device name is the last substrnig after the last '_'
+LABEL_OFFSET = -2
 
 
 def anonymise_string(string: str) -> str:
+    #print(f'STRING!! = {string}')
     ret = string.replace('tue-', 'l1-')
-    ret = string.replace('ut-', 'l2-')
+    ret = ret.replace('ut-', 'l2-')
+    #print(f'RET!! = {ret}')
     return ret
 
 
@@ -66,13 +73,16 @@ class MRTADashboard:
             if not isinstance(mrt_feed, MRTFeed):
                 raise ValueError(f">>> ERROR: feeds_list contain non MRTFeed-type values.")
 
-        self.feeds = {anonymise_string(feed.id) : feed for feed in feeds_list}
+        self.feeds = {anonymise_string(feed.id) : feed for feed in feeds_list}        
         self.devices_anomalies = {anonymise_string(feed.id) : [] for feed in feeds_list}
         self.signature_transitions_window_size = signature_transitions_window_size
 
         for feed, data in self.feeds.items():
             data.metadata['device_id'] = anonymise_string(data.metadata['device_id'])
             data.id = anonymise_string(data.id)
+            #print(feed)
+            #print(data.id)
+            #print(data.metadata['device_id'])
 
         #print(self.feeds[0].data.head())
         print(f'rolling window: {signature_transitions_window_size}')
@@ -84,6 +94,7 @@ class MRTADashboard:
         # REMOVE NOMINAL CLUSTER FEATURES
         self.total_corr_significant_features = [f for f in self.total_corr_significant_features if not (f.endswith('_col_cluster') or f.endswith('_row_cluster') or f.endswith('noise_balance')) ]
         self.features_watch_list = features_watch
+
 
     def detect_anomalies(self):
         """
@@ -163,7 +174,10 @@ class MRTADashboard:
         self.feeds_signatures_set = {}
         for mrt_feed in list(self.feeds.values()):
             for idx, sf in enumerate(self.get_mrt_feed_csv_rolling_windows(mrt_feed)):
+                sf.rename(columns={'Unnamed: 0' : 'window'}, inplace=True)
                 self.feeds_signatures_set[f'{mrt_feed.id}{MRT_WINDOW_SIGNATURE_DF_NAME_TAG}{idx}'] = sf
+                #print(self.feeds_signatures_set[f'{mrt_feed.id}{MRT_WINDOW_SIGNATURE_DF_NAME_TAG}{idx}'].head())
+        
     
     def generate_feeds_signatures_comparison_matrix(self):
         # Comparison matrix with same index and columns for pairwise correlation over all possible sets
@@ -181,14 +195,16 @@ class MRTADashboard:
         # TODO: Find an efficient way to iterate over relevant coordinates. Tried some but couldn't find a go-to approach.
         for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
             for sig_row_id in self.feeds_signatures_comparison_matrix.index:
+                #print(f'\n\nITERATING ANOMALIES SIGNATURES AT \n \tCOL: {sig_col_id}\n \tROW: {sig_row_id}\n')
                 # Check not same mrt feed of origin
                 sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
                 sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                #print(f'\n\nORIGINS \n \tCOL: {sig_col_origin_feed}\n \tROW: {sig_row_origin_feed}\n')
                 # If same origin, set value to NaN
                 if sig_row_origin_feed == sig_col_origin_feed:
                     self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = np.nan
                 else:
-                    # If different, check that we're not in lower triangular (repested checks), and that the value has not been computed yet (MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER in Constants)
+                    # If different, check that we're not in lower triangular (repeted checks), and that the value has not been computed yet (MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER in Constants)
                     val = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
                     if not np.isnan(val) and val == MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER:
                         corr_over_watch_features = {}
@@ -202,11 +218,12 @@ class MRTADashboard:
 
                         corr_over_watch_features = dict(sorted(corr_over_watch_features.items(), key=lambda item: item[1], reverse=True))
 
-                        self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = avg_corr_over_watch_features
+                        self.feeds_signatures_comparison_matrix.at[sig_row_id, sig_col_id] = max_corr_over_watch_features
+                        #print(f'CORRELATION VALUE OBTAINED: \t{avg_corr_over_watch_features}\n\n')
                         signatures_correlation_dictionary_key = str(sig_row_id + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_id)
                         self.feeds_signatures_correlation_dictionary[signatures_correlation_dictionary_key] = {'avg' : avg_corr_over_watch_features, 'max' : max_corr_over_watch_features, 'metrics' : corr_over_watch_features}
                         #print(f'Signatures correlation key: \n>>>{signatures_correlation_dictionary_key}\n')
-
+        #print(self.feeds_signatures_comparison_matrix)
 
     def generate_anomalies_report(self, save_dir=MY_SAVE_PATH_DEFAULT, report_name='recorded_anomalies.txt'):
         self.anomalies_report.append('\n\n*~*~*~*~*~*~*~* Anomalies recorded for each MRT feed submitted *~*~*~*~*~*~*~*\n\n')
@@ -232,6 +249,16 @@ class MRTADashboard:
         
         self.signatures_correlation_report.append('\n\n*~*~*~*~*~*~*~* Similar anomalies observed for the selected devices *~*~*~*~*~*~*~*\n\n')
         corr_counter = 0
+        
+        # To collect all matching windows per device couples to produce aggregated alerts
+        device_pairs_anomaly_pinpointer = {}
+        for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
+            for sig_row_id in self.feeds_signatures_comparison_matrix.index:
+                k1 = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                k2 = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                if (k1 != k2):
+                    device_pairs_anomaly_pinpointer[k1 + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + k2] = []
+
         for sig_col_id in self.feeds_signatures_comparison_matrix.columns:
             for sig_row_id in self.feeds_signatures_comparison_matrix.index:
                 signatures_correlation = self.feeds_signatures_comparison_matrix.loc[sig_row_id, sig_col_id]
@@ -240,10 +267,11 @@ class MRTADashboard:
 
                     corr_dictionary_entry = self.feeds_signatures_correlation_dictionary[sig_row_id + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_id]
                     features_correlation_list = corr_dictionary_entry['metrics']
-
+                    
+                    sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                    sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
+                    
                     if signatures_correlation > MRT_SIGNATURES_CORRELATION_THRESHOLD:
-                        sig_row_origin_feed = sig_row_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
-                        sig_col_origin_feed = sig_col_id.split(MRT_WINDOW_SIGNATURE_DF_NAME_TAG, 1)[0]
                         
                         # Device ids
                         device_row_sig = self.feeds[sig_row_origin_feed].metadata['device_id']
@@ -252,15 +280,22 @@ class MRTADashboard:
                         # Anomaly/attack time windows
                         row_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch1_t_start'].iloc[0])
                         row_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_row_id]['ch2_t_end'].iloc[-1])
+                        
+                        row_signature_start_window = self.feeds_signatures_set[sig_row_id]['window'].iloc[0]
+                        row_signature_end_window = self.feeds_signatures_set[sig_row_id]['window'].iloc[-1]
 
                         col_signature_start_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch1_t_start'].iloc[0])
                         col_signature_end_time = datetime.fromtimestamp(self.feeds_signatures_set[sig_col_id]['ch2_t_end'].iloc[-1])
 
+                        col_signature_start_window = self.feeds_signatures_set[sig_col_id]['window'].iloc[0]
+                        col_signature_end_window = self.feeds_signatures_set[sig_col_id]['window'].iloc[-1]
+
+                        device_pairs_anomaly_pinpointer[sig_row_origin_feed + FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK + sig_col_origin_feed].append((row_signature_start_window, row_signature_end_window, col_signature_start_window, col_signature_end_window))
                         # Rerport entry
                         report_entry = f'\n\n[{corr_counter}] Similar anomalous activity was recorded for the following devices at these times:\n \
-        * {device_row_sig} - between: {row_signature_start_time} and {row_signature_end_time} \n \
-        * {device_col_sig} - between: {col_signature_start_time} and {col_signature_end_time} \n \
-    Average correlation of watchlist features: {signatures_correlation} ) \n\n \
+        * {device_row_sig} - between: {row_signature_start_time} and {row_signature_end_time} \t --- \t time windows [ {row_signature_start_window} , {row_signature_end_window} ]\n \
+        * {device_col_sig} - between: {col_signature_start_time} and {col_signature_end_time} \t --- \t time windows [ {col_signature_start_window} , {col_signature_end_window} ]\n \
+    Max correlation of watchlist features: {signatures_correlation} ) \n\n \
     Features and correlation: {features_correlation_list}. \n\n'
 
                         self.signatures_correlation_report.append(report_entry)
@@ -268,12 +303,104 @@ class MRTADashboard:
         
         self.signatures_correlation_report.append(f'Total of windows with similar anomalies observed: {corr_counter}.\n\n')
 
+        # To take the margins of continuously-matching consecutive sliding windows
+        device_pairs_agglomerated_match_windows = {}
+        for devices_key, matches in device_pairs_anomaly_pinpointer.items():
+            aggl_windows = {}
+            device_pairs_agglomerated_match_windows[devices_key] = aggl_windows
+            last_s1 = -1
+            last_e1 = -1
+            last_s2 = -1
+            last_e2 = -1
+            agglomerated = None
+            ongoing = False
+
+            aggregations = 0
+            for windows in matches:
+                s1 = windows[0]
+                e1 = windows[1]
+                s2 = windows[2]
+                e2 = windows[3]
+                
+                #print(f'NEW ITERATION, ongoing = {ongoing}')
+                if not ongoing:
+                    agglomerated = [s1, e1, s2, e2]
+
+                    last_s1 = s1
+                    last_e1 = e1
+                    last_s2 = s2
+                    last_e2 = e2
+
+                    #print(f'NOT ONGOING: agglomerated = {agglomerated}')
+                    aggl_windows[aggregations] = agglomerated
+                    ongoing = True
+
+                elif ongoing:
+                    single_slide_dev1 = bool(s1 == last_s1 + 1 and e1 == last_e1 + 1)
+                    single_slide_dev2 = bool(s2 == last_s2 + 1 and e2 == last_e2 + 1)            
+                    #print(f'ONGOING: agglomerated = {agglomerated}')
+                    #print(f'ITERATION, ONGOING AGGL WINDOWS, single_slide_dev1 = {single_slide_dev1}')
+                    #print(f'ITERATION, ONGOING AGGL WINDOWS, single_slide_dev2 = {single_slide_dev2}')
+                    #print(f'ITERATION, ONGOING AGGL WINDOWS, s1, e1, s2, e2 = {s1}, {e1}, {s2}, {e2}')
+                    
+                    if single_slide_dev1 and single_slide_dev2:
+                        agglomerated[1] = e1
+                        agglomerated[3] = e2
+                        
+                        last_s1 = s1
+                        last_e1 = e1
+                        last_s2 = s2
+                        last_e2 = e2
+                        #print(f'ONGOING AND SINGLE SLID: agglomerated = {agglomerated}')
+                        # Update windows, overwrite last
+                        aggl_windows[aggregations] = agglomerated
+                    else:
+                        #print(f'DONE ONGOING. AGGL WINDOWS: {aggl_windows}')
+                        ongoing = False
+                        aggregations = aggregations + 1
+
+            device_pairs_agglomerated_match_windows[devices_key] = aggl_windows
+        
+        self.signatures_correlation_report.append('\n\n*~*~*~*~*~*~*~* COMPACT COMMON ANOMALIES VIEW *~*~*~*~*~*~*~*\n\n')
+
+        total_common_aggl_anomalies_counter = 0
+        # Iterate over agglomerated windows. Get data from dictionary keys pointing to feeds rows, print entries
+        for feeds_key, anomalies_windows in device_pairs_agglomerated_match_windows.items():
+            
+            feed1, feed2 = self.get_feeds_ids_from_pair_feeds_dict_key(feeds_key)
+            device1_id = self.feeds[feed1].metadata['device_id']
+            device2_id = self.feeds[feed2].metadata['device_id']
+
+            for windows in anomalies_windows.values():
+                # Get feed entry via iloc using the window values, get timings data
+                if windows is not None:
+                    sig1_row_start = windows[0]
+                    sig1_row_end = windows[1]
+                    sig2_row_start = windows[2]
+                    sig2_row_end = windows[3]
+
+
+                    feed1_row_start_time = datetime.fromtimestamp(self.feeds[feed1].data['ch1_t_start'].iloc[sig1_row_start])
+                    feed1_row_end_time = datetime.fromtimestamp(self.feeds[feed1].data['ch2_t_end'].iloc[sig1_row_end])
+
+                    feed2_row_start_time = datetime.fromtimestamp(self.feeds[feed2].data['ch1_t_start'].iloc[sig2_row_start])
+                    feed2_row_end_time = datetime.fromtimestamp(self.feeds[feed2].data['ch2_t_end'].iloc[sig2_row_end])
+
+                    report_entry_1 = f'\t[{total_common_aggl_anomalies_counter}] \n\t{device1_id : <32} : {feed1_row_start_time} - {feed1_row_end_time} \t --- \t [{sig1_row_start} - {sig1_row_end}] '
+                    report_entry_2 = f'\t{device2_id : <32} : {feed2_row_start_time} - {feed2_row_end_time} \t --- \t [{sig2_row_start} - {sig2_row_end}]\n'
+
+                    self.signatures_correlation_report.append(report_entry_1)
+                    self.signatures_correlation_report.append(report_entry_2)
+                    total_common_aggl_anomalies_counter = total_common_aggl_anomalies_counter + 1
+
+        self.signatures_correlation_report.append(f'\nTotal of agglomerated windows with similar anomalies observed: {total_common_aggl_anomalies_counter}.\n\n')
+
         for entry in self.signatures_correlation_report:
             print(entry)
-        
+
         # Output plots
         for feature in list(features_correlation_list.keys()):
-            self.plot_monodim_metric(feature)
+            self.plot_monodim_metric2(feature)
 
 
     
@@ -302,22 +429,6 @@ class MRTADashboard:
         *****************************************************************************************************
         MONO-DIMENSIONAL FEATURES:
             For each MRT feed, plot the pd series of the feature in one line graph. There will be as many lines as MRT feeds
-        HIGHER-DIMENSIONAL FEATURES:
-            Option 1: PCA to 2 or 3 dimensions:
-                X, Y, Z axes are value ranges of PCA-ed N-dimensional cell value
-                Colours of points indicate the MRT feed
-        CHOSEN OPTION >>> Option 2: Parallel coordinates chart
-                Y axis is value range of coordinates
-                X axis is the N-dimensions
-                Colours of lines indicate the MRT feed
-            Option 3: Radar plot
-                Quadrant dividers are the N cooridnates of points
-                Each polygon represents one entry cell point (must be very thin!)
-                Colour of polygon indicates the MRT feed
-            Some references:
-                - https://stackoverflow.com/questions/27930413/how-to-plot-a-multi-dimensional-data-point-in-python
-                - https://www.python-graph-gallery.com/parallel-plot/
-                - https://pandas.pydata.org/docs/getting_started/intro_tutorials/04_plotting.html
     """
 
     def plot_monodim_metric(self, metric, save_dir=MY_SAVE_PATH_DEFAULT, show=False):
@@ -337,7 +448,7 @@ class MRTADashboard:
         #fig.suptitle(f'All feeds, monodimensonal metric: {metric}')
         for i, feed in enumerate(list(self.feeds.values())):
             f, = axs[0].plot(feed.data[metric], color=palette[i], label=feed.id) # https://stackoverflow.com/questions/11983024/matplotlib-legends-not-working
-            l_plt.append(feed.id.split('_')[-1])
+            l_plt.append(anonymise_string(feed.id.split('_')[LABEL_OFFSET]))
             f_plt.append(f)
 
         axs[0].legend(f_plt, l_plt, loc='upper left')
@@ -355,45 +466,40 @@ class MRTADashboard:
         
         print(f'>>> Output saved to {save_dir}.')
 
-    
-    def plot_multidim_metric(self, metric, save_dir=MY_SAVE_PATH_DEFAULT, show=False):
+    def plot_monodim_metric2(self, metric, save_dir=MY_SAVE_PATH_DEFAULT, show=False):
         if not self.metric_exists(metric):
             raise ValueError(f'>>> ERROR: Invalid metric queried on MRT feeds: [ {metric} ].')
-        self.check_metric_multidim(metric)
-
-        fig, axs = plt.subplots(len(self.feeds) + 1, 1, constrained_layout=True) # One axis per MRTFeed + axis for correlation heatmap
-        fig.set_figheight(8)
-        fig.set_figwidth(16)
-
-        fig.suptitle(f'All feeds, multidimensional metric: {metric}')
-
-        for i, feed in enumerate(self.feeds):
-
-            #Select all deciles columns if metric is a decile
-            if 'decile' in metric:
-                #TODO: PLOT ALL DECILES FOR mutual/fwd/bwd IN ONE GRAPH (BASICALLY A MERGE OF ALL GRAPHS PER DECILE NUMBER!?)
-                pass
-            
-            # Generation of numeric dataframe from multidimensional metric, ready to be processed
-            df_T = self.get_df_of_multidim_metric(feed, metric)
-            df_T['Index'] = df_T.index # Adding explicit index column for plotting labels
-
-            ######################################################################################## PARALLEL COORDINATES
-            palette = sns.color_palette(None, len(df_T.index)) # On index are the metric's dimensions
-            axs[i].set_title(f'{feed.id} : {metric}')
-            axs[i].set(xlabel='Transition entry #')
-            parallel_coordinates(df_T, 'Index', ax=axs[i], color=palette).legend_.remove()
+        self.check_metric_monodim(metric)
+        palette = sns.color_palette(None, len(list(self.feeds.items())))
+        f_plt = []
+        l_plt = []
         
-        handles, labels = axs[0].get_legend_handles_labels()
-        fig.legend(handles, labels, loc='upper right')
+        n_lines = len(list(self.feeds.values()))
+
+        # TODO: Remove corr matrix sns plot
+        fig, axs = plt.subplots(n_lines,1, constrained_layout=True, sharex=True, sharey=True)
+        fig.set_figheight(6)
+        fig.set_figwidth(12)
         
-        cor_avgs, _ = self.corr_multidim_metric(metric)
-        sns.heatmap(cor_avgs, ax=axs[-1] ,annot=True, fmt='.3f', cmap=plt.cm.Blues, vmin=-1, vmax=1)
-        plt.savefig(MY_SAVE_PATH_DEFAULT + metric + '.png')
+        #plt.figure(figsize=(12, 7))
+        #fig.suptitle(f'All feeds, monodimensonal metric: {metric}')
+        for i, feed in enumerate(list(self.feeds.values())):
+            f, = axs[i].plot(feed.data[metric], color=palette[i], label=feed.id) # https://stackoverflow.com/questions/11983024/matplotlib-legends-not-working
+            tag = anonymise_string(feed.id.split('_')[LABEL_OFFSET])
+            axs[i].legend([f], [tag], loc='upper left')
+            axs[i].spines['top'].set_visible(False)
+            axs[i].spines['right'].set_visible(False)
+            axs[i].spines['left'].set_visible(False)
+            axs[i].grid(axis='y')
+        #plt.set_xlabel('Transition entry')
+        #plt.tick_params(axis='y', labelrotation=45)
+        #plt.set_ylabel(metric)
+        plt.box(False)
+        plt.savefig(MY_SAVE_PATH_DEFAULT + metric + '.pdf')
         
         if show:
             plt.show()
-
+        
         print(f'>>> Output saved to {save_dir}.')
 
 
@@ -438,7 +544,7 @@ class MRTADashboard:
         self.check_metric_monodim(metric)
         #NOTE: REAL CONSTRUCTOR: {feed.id : feed.data[metric].values.tolist() for feed in self.feeds}
         #      Used to test: {feed.id + str(i) : feed.data[metric].values.tolist() for i, feed in enumerate(self.feeds)}
-        per_metric_dict = {feed.id.split('_')[-1] : feed.data[metric].values.tolist() for feed in list(self.feeds.values())}
+        per_metric_dict = {anonymise_string(feed.id.split('_')[LABEL_OFFSET]) : feed.data[metric].values.tolist() for feed in list(self.feeds.values())}
         per_metric_feeds_df = pd.DataFrame.from_dict(per_metric_dict)
         cor = per_metric_feeds_df.corr().fillna(0)
         return cor
@@ -458,7 +564,7 @@ class MRTADashboard:
 
         self.check_metric_multidim(metric)
                                         # Feed-specific dataframe of multidim metric 
-        metric_dfs_dict = {feed.id.split('_')[-1] : self.get_df_of_multidim_metric(feed, metric) for feed in self.feeds}
+        metric_dfs_dict = {anonymise_string(feed.id.split('_')[LABEL_OFFSET]) : self.get_df_of_multidim_metric(feed, metric) for feed in self.feeds}
         #print(metric_dfs_dict)
 
         # Records lists each correlation value per dimension of the metric, over pairwise MRT feeds
@@ -564,6 +670,12 @@ class MRTADashboard:
     ##################################################################################################
     # UTILITY
     ##################################################################################################
+
+    def get_feeds_ids_from_pair_feeds_dict_key(self, key):
+        feed1 = key.split(FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK)[0]
+        feed2 = key.split(FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK)[1]
+
+        return feed1, feed2
 
     def metric_exists(self, metric):
         try:
@@ -741,219 +853,3 @@ if __name__ == '__main__':
             mrta_d.plot_monodim_metric(feature)
         
         sys.exit(1)
-
-
-    """
-    ezviz_metadata_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_data_ezviz.json'
-    ezviz_mrt_feed_csv_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211028_13-56-55_ezviz-pf-SAME-ORDER.csv'
-    ezviz_mrt_feed_csv_path_diff = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ezviz-pf/ezviz-pf_mrt_transitions_dfs/clusters_evols_20211104_11-41-20_ezviz-pf-RAND-ORDER.csv'
-
-    nugu_metadata_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_data_nugu.json'
-    nugu_mrt_feed_csv_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/nugu-pf/nugu-pf_mrt_transitions_dfs/clusters_evols_20211028_13-56-40_nugu-pf-SAME-ORDER.csv'
-    nugu_mrt_feed_csv_path_diff = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/nugu-pf/nugu-pf_mrt_transitions_dfs/clusters_evols_20211104_11-43-21_nugu-pf-RAND-ORDER.csv'
-
-    mrt_ezviz_pf_ord = MRTFeed(ezviz_metadata_path, ezviz_mrt_feed_csv_path)
-    mrt_ezviz_pf_diff = MRTFeed(ezviz_metadata_path, ezviz_mrt_feed_csv_path_diff)
-    
-    mrt_nugu_pf_ord = MRTFeed(nugu_metadata_path, nugu_mrt_feed_csv_path)
-    mrt_nugu_pf_diff = MRTFeed(nugu_metadata_path, nugu_mrt_feed_csv_path_diff)
-
-    #air_quality = pd.read_csv("src/tests/air_quality_no2.csv", index_col=0, parse_dates=True)
-
-    dim = sys.argv[1]
-
-    ########################## METADATAS
-    ut_tplink_plug_metadata = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_ut_tplink.json'
-    ut_wansview_cam_metadata = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_ut_wansview.json'
-    tue_tplink_plug_metadata = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_tue_tplink.json'
-    tue_foscam_cam_metadata = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/configs/characterization_datas/ch_fedlab_tue_foscam.json'
-
-
-    ########################## DEMO
-    from os import walk
-
-    ut_df_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-demo/ut-tplink-demo_mrt_transitions_dfs/'
-    ut_demo_df = [x[2] for x in walk(ut_df_path)][0][0]
-    ut_tplink_plug_mrt_feed_demo = ut_df_path + ut_demo_df
-    print(ut_tplink_plug_mrt_feed_demo)
-    
-    tue_df_path = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs/'
-    tue_demo_df = [x[2] for x in walk(tue_df_path)][0][0]
-    tue_tplink_plug_mrt_feed_demo = tue_df_path + tue_demo_df
-    print(tue_tplink_plug_mrt_feed_demo)
-
-    mrt_f_ut_tplink_demo = MRTFeed(ut_tplink_plug_metadata, ut_tplink_plug_mrt_feed_demo)
-    mrt_f_tue_tplink_demo = MRTFeed(tue_tplink_plug_metadata, tue_tplink_plug_mrt_feed_demo)
-
-    ########################## Experiment 1
-    ut_tplink_plug_mrt_feed_exp1 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug/ut-tplink-plug_mrt_transitions_dfs/clusters_evols_20211119_14-14-38_ut-tplink-plug.csv'
-    tue_tplink_plug_mrt_feed_exp1 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-tplink-plug/tue-tplink-plug_mrt_transitions_dfs/clusters_evols_20211119_14-15-57_tue-tplink-plug.csv'
-    ut_wansview_mrt_feed_exp1 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-wansview-cam-exp1/ut-wansview-cam-exp1_mrt_transitions_dfs/clusters_evols_20211120_12-40-51_ut-wansview-cam-exp1.csv'
-    tue_foscam_mrt_feed_exp1 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-foscam-cam-exp1/tue-foscam-cam-exp1_mrt_transitions_dfs/clusters_evols_20211120_12-41-41_tue-foscam-cam-exp1.csv'
-
-    # Feeds
-    mrt_f_ut_tplink_1 = MRTFeed(ut_tplink_plug_metadata, ut_tplink_plug_mrt_feed_exp1)
-    mrt_f_tue_tplink_1 = MRTFeed(tue_tplink_plug_metadata, tue_tplink_plug_mrt_feed_exp1)
-    mrt_f_ut_wansview_1 = MRTFeed(ut_wansview_cam_metadata, ut_wansview_mrt_feed_exp1)
-    mrt_f_tue_foscam_1 = MRTFeed(tue_foscam_cam_metadata, tue_foscam_mrt_feed_exp1)
-
-    ########################## Experiment 2
-    ut_wansview_mrt_feed_exp2 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-wansview-cam-exp2/ut-wansview-cam-exp2_mrt_transitions_dfs/clusters_evols_20211119_17-30-00_ut-wansview-cam-exp2.csv'
-    # NOTE: *trimmed*
-    tue_tplink_plug_mrt_feed_exp2 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-tplink-plug-exp2/tue-tplink-plug-exp2_mrt_transitions_dfs/clusters_evols_20211119_17-30-49_tue-tplink-plug-exp2.csv'
-    # NOTE: *trimmed*
-    tue_foscam_cam_mrt_feed_exp2 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-foscam-cam-exp2/tue-foscam-cam-exp2_mrt_transitions_dfs/clusters_evols_20211122_10-54-51_tue-foscam-cam-exp2.csv'
-    ut_tplink_plug_mrt_feed_exp2 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug-exp2/ut-tplink-plug-exp2_mrt_transitions_dfs/clusters_evols_20211122_11-12-40_ut-tplink-plug-exp2.csv'
-    
-    # Feeds
-    mrt_f_ut_wansview_2 = MRTFeed(ut_wansview_cam_metadata, ut_wansview_mrt_feed_exp2)
-    mrt_f_tue_tplink_2 = MRTFeed(tue_tplink_plug_metadata, tue_tplink_plug_mrt_feed_exp2)
-    mrt_f_ut_tplink_2 = MRTFeed(ut_tplink_plug_metadata, ut_tplink_plug_mrt_feed_exp2)
-    mrt_f_tue_foscam_2 = MRTFeed(tue_foscam_cam_metadata, tue_foscam_cam_mrt_feed_exp2)
-
-    ########################## Experiment 2b
-    ut_wansview_mrt_feed_exp2b = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-wansview-cam-exp2b/ut-wansview-cam-exp2b_mrt_transitions_dfs/clusters_evols_20211124_10-05-51_ut-wansview-cam-exp2.csv'
-    tue_tplink_plug_mrt_feed_exp2b = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-tplink-plug-exp2b/tue-tplink-plug-exp2b_mrt_transitions_dfs/clusters_evols_20211123_17-31-19_tue-tplink-plug-exp2.csv'
-    #tue_foscam_cam_mrt_feed_exp2b = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-foscam-cam-exp2b/tue-foscam-cam-exp2b_mrt_transitions_dfs/'
-    #ut_tplink_plug_mrt_feed_exp2b = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug-exp2b/ut-tplink-plug-exp2b_mrt_transitions_dfs/'
-    
-    # Feeds
-    mrt_f_ut_wansview_2b = MRTFeed(ut_wansview_cam_metadata, ut_wansview_mrt_feed_exp2b)
-    mrt_f_tue_tplink_2b = MRTFeed(tue_tplink_plug_metadata, tue_tplink_plug_mrt_feed_exp2b)
-    #mrt_f_ut_tplink_2b = MRTFeed(ut_tplink_plug_metadata, ut_tplink_plug_mrt_feed_exp2b)
-    #mrt_f_tue_foscam_2b = MRTFeed(tue_foscam_cam_metadata, tue_foscam_cam_mrt_feed_exp2b)
-
-
-
-    ########################## Experiment 3 (UT wansview and TUe foscam attacked)
-    ut_wansview_mrt_feed_exp3 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-wansview-cam-exp3/ut-wansview-cam-exp3_mrt_transitions_dfs/clusters_evols_20211124_11-33-24_ut-wansview-cam-exp3.csv'
-    tue_foscam_mrt_feed_exp3 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-foscam-cam-exp3/tue-foscam-cam-exp3_mrt_transitions_dfs/clusters_evols_20211124_11-33-56_tue-foscam-cam-exp3.csv'
-    ut_tplink_mrt_feed_exp3 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug-exp3/ut-tplink-plug-exp3_mrt_transitions_dfs/clusters_evols_20211124_11-58-33_ut-tplink-plug-exp3.csv'
-    tue_tplink_mrt_feed_exp3 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/tue-tplink-plug-exp3/tue-tplink-plug-exp3_mrt_transitions_dfs/clusters_evols_20211124_11-58-55_tue-tplink-plug-exp3.csv'
-
-    mrt_f_ut_wansview_3 = MRTFeed(ut_wansview_cam_metadata, ut_wansview_mrt_feed_exp3)
-    mrt_f_tue_foscam_3 = MRTFeed(tue_foscam_cam_metadata, tue_foscam_mrt_feed_exp3)
-    mrt_f_ut_tplink_3 = MRTFeed(ut_tplink_plug_metadata, ut_tplink_mrt_feed_exp3)
-    mrt_f_tue_tplink_3 = MRTFeed(tue_tplink_plug_metadata, tue_tplink_mrt_feed_exp3)
-
-    ########################## Experiment 4 (Only UT attacked)
-    ut_wansview_mrt_feed_exp4 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-wansview-cam-exp4/ut-wansview-cam-exp4_mrt_transitions_dfs/clusters_evols_20211124_12-25-08_ut-wansview-cam-exp4.csv'
-    ut_tplink_mrt_feed_exp4 = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug-exp4/ut-tplink-plug-exp4_mrt_transitions_dfs/clusters_evols_20211124_12-33-14_ut-tplink-plug-exp4.csv'
-
-    mrt_f_ut_wansview_4 = MRTFeed(ut_wansview_cam_metadata, ut_wansview_mrt_feed_exp4)
-    mrt_f_ut_tplink_4 = MRTFeed(ut_tplink_plug_metadata, ut_tplink_mrt_feed_exp4)
-
-    ########################## Experiment 4bis (no attacks to UT) TODO RERUN
-    ut_tplink_mrt_feed_exp4bis = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-tplink-plug-exp4bis/ut-tplink-plug-exp4bis_mrt_transitions_dfs/clusters_evols_20211124_12-47-36_ut-tplink-plug-exp4bis.csv'
-    ut_wansview_mrt_feed_exp4bis = '/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/outputs/ut-wansview-cam-exp4bis/ut-wansview-cam-exp4bis_mrt_transitions_dfs/clusters_evols_20211124_12-35-04_ut-wansview-cam-exp4bis.csv'
-
-    mrt_f_ut_tplink_4bis = MRTFeed(ut_tplink_plug_metadata, ut_tplink_mrt_feed_exp4bis)
-    mrt_f_ut_wansview_4bis = MRTFeed(ut_wansview_cam_metadata, ut_wansview_mrt_feed_exp4bis)
-
-
-
-
-
-    ########################## RESULTS RUNS
-    mrta_d = MRTADashboard()
-    
-    # DEMO
-    #mrta_d.setup([mrt_f_ut_tplink_demo, mrt_f_tue_tplink_demo])
-
-    # PRE-FINAL Experiments
-    #mrta_d.setup([mrt_ezviz_pf_ord, mrt_nugu_pf_ord])
-    #mrta_d.setup([mrt_ezviz_pf_diff, mrt_nugu_pf_diff])
-
-    # Experiment 1
-    #mrta_d.setup([mrt_f_ut_tplink_1, mrt_f_tue_tplink_1])
-    #mrta_d.setup([mrt_f_ut_wansview_1, mrt_f_tue_foscam_1])
-    #mrta_d.setup([mrt_f_ut_tplink_1, mrt_f_tue_tplink_1, mrt_f_ut_wansview_1, mrt_f_tue_foscam_1])
-
-    # Experiment 2
-    #mrta_d.setup([mrt_f_ut_wansview_2, mrt_f_tue_tplink_2]) # attacked
-    #mrta_d.setup([mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # non-attacked
-    #mrta_d.setup([mrt_f_ut_wansview_2, mrt_f_tue_tplink_2, mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # all
-    # Experiment 2b
-    #mrta_d.setup([mrt_f_ut_wansview_2b, mrt_f_tue_tplink_2b]) # attacked
-    #mrta_d.setup([mrt_f_ut_tplink_2b, mrt_f_tue_foscam_2b]) # non-attacked
-    #mrta_d.setup([mrt_f_ut_wansview_2b, mrt_f_tue_tplink_2b, mrt_f_ut_tplink_2, mrt_f_tue_foscam_2]) # all
-    
-    # Experiment 3
-    #mrta_d.setup([mrt_f_ut_wansview_3, mrt_f_tue_foscam_3])
-    #mrta_d.setup([mrt_f_ut_tplink_3, mrt_f_tue_tplink_3])
-    #mrta_d.setup([mrt_f_ut_wansview_3, mrt_f_tue_foscam_3, mrt_f_ut_tplink_3, mrt_f_tue_tplink_3])
-
-    # Experiment 4
-    #mrta_d.setup([mrt_f_ut_tplink_4, mrt_f_ut_wansview_4])
-    # Experiment 4bis
-    #mrta_d.setup([mrt_f_ut_tplink_4bis, mrt_f_ut_wansview_4bis])
-    mrta_d.setup([mrt_f_ut_tplink_4, mrt_f_ut_wansview_4, mrt_f_ut_tplink_4bis, mrt_f_ut_wansview_4bis])
-
-    
-
-    mrta_d.total_avg_corr()
-
-    if dim == 'mono':
-        mrta_d.plot_monodim_metric('clusters_balance')
-        mrta_d.plot_monodim_metric('noise_balance')
-        mrta_d.plot_monodim_metric('all_dists_avg')
-        mrta_d.plot_monodim_metric('all_dists_std')
-
-        mrta_d.plot_monodim_metric('mutual_matches_n')
-        mrta_d.plot_monodim_metric('mutual_matches_percentage')
-        
-        mrta_d.plot_monodim_metric('fwd_matches_n')
-        mrta_d.plot_monodim_metric('fwd_matches_percentage')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_avg')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_std')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_max')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_max_percentage')
-        
-        mrta_d.plot_monodim_metric('bwd_matches_n')
-        mrta_d.plot_monodim_metric('bwd_matches_percentage')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_avg')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_std')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_max')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_max_percentage')
-    
-    elif dim == 'monodim':
-        mrta_d.plot_monodim_metric('clusters_balance')
-
-        mrta_d.plot_monodim_metric('mutual_matches_n')
-        mrta_d.plot_monodim_metric('mutual_matches_percentage')
-        
-        mrta_d.plot_monodim_metric('fwd_matches_n')
-        mrta_d.plot_monodim_metric('fwd_matches_percentage')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_avg')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_std')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_max')
-        mrta_d.plot_monodim_metric('fwd_matches_agglomeration_max_percentage')
-        
-        mrta_d.plot_monodim_metric('bwd_matches_n')
-        mrta_d.plot_monodim_metric('bwd_matches_percentage')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_avg')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_std')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_max')
-        mrta_d.plot_monodim_metric('bwd_matches_agglomeration_max_percentage')
-
-    elif dim == 'multi':
-
-        mrta_d.plot_multidim_metric('all_dists_deciles')
-        mrta_d.plot_multidim_metric('mutual_vects_decile_5')
-        
-        mrta_d.plot_multidim_metric('mutual_vects_avg')
-        mrta_d.plot_multidim_metric('mutual_vects_std')
-
-        mrta_d.plot_multidim_metric('fwd_vects_avg')
-        mrta_d.plot_multidim_metric('fwd_vects_std')
-
-        mrta_d.plot_multidim_metric('bwd_vects_avg')
-        mrta_d.plot_multidim_metric('bwd_vects_std')
-
-        for i in range(1, 10):
-            mrta_d.plot_multidim_metric('mutual_vects_decile_' + str(i))
-            mrta_d.plot_multidim_metric('fwd_vects_decile_' + str(i))
-            mrta_d.plot_multidim_metric('bwd_vects_decile_' + str(i))
-    else:
-        raise ValueError(f'>>> ERROR: Check dim parameter when directly calling this script.')
-    """

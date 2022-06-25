@@ -1,5 +1,5 @@
 
-- Devices, IPs, macs, name, ch_file
+- Devices, IPs, macs, name, ch_file, status
 UT:
     wansview-cam:   192.168.32.132      e0:09:bf:5f:0e:c1       ut-wansview-cam         ch_fedlab_ut_wansview.json
     kasa-k105:      192.168.32.186      00:31:92:e1:7b:17       ut-kasa-plug-k105       ch_fedlab_ut_tplink-k105.json
@@ -12,14 +12,14 @@ TUe:
 	
 		NOTE: THE EUFY DEVICE IS ACTUALLY A HOME HUB
 
-	eufy-doorbell:  192.168.10.198		8c:85:80:98:b0:45       tue-eufy-doorbell           ch_fedlab_tue_eufy.json
-    honeywell-tms:  192.168.10.208     	b8:2c:a0:1b:03:30       tue-honeywell-termostat     ch_fedlab_tue_honeywell.json
-    hombli-plug1:   192.168.10.20      	d8:f1:5b:e6:85:5c       tue-hombli-plug1            ch_fedlab_tue_hombli1.json
-    hombli-plug2:   192.168.10.42      	d8:f1:5b:e6:9a:05       tue-hombli-plug2			ch_fedlab_tue_hombli2.json
-	foscam-cam2 	192.168.10.201 		00:62:6e:ef:bf:1d		tue-foscam-cam2 			ch_fedlab_tue_foscam2.json
+	eufy-doorbell:  192.168.10.198		8c:85:80:98:b0:45       tue-eufy-doorbell           ch_fedlab_tue_eufy.json			PROCESSED: s1, 
+    honeywell-tms:  192.168.10.208     	b8:2c:a0:1b:03:30       tue-honeywell-termostat     ch_fedlab_tue_honeywell.json	PROCESSED: s1, 	
+    hombli-plug1:   192.168.10.20      	d8:f1:5b:e6:85:5c       tue-hombli-plug1            ch_fedlab_tue_hombli1.json		PROCESSED: s1, 
+    hombli-plug2:   192.168.10.42      	d8:f1:5b:e6:9a:05       tue-hombli-plug2			ch_fedlab_tue_hombli2.json		PROCESSED: s1,
+	foscam-cam2 	192.168.10.201 		00:62:6e:ef:bf:1d		tue-foscam-cam2 			ch_fedlab_tue_foscam2.json		PROCESSED: s1,
     
-	imou-cam:       192.168.5.28        24:52:6a:1c:3e:5e 		tue-imou-cam                ch_fedlab_tue_imou.json
-    foscam-cam:     192.168.5.126      	00:62:6e:93:41:75		tue-foscam-cam              ch_fedlab_tue_foscam.json
+	imou-cam:       192.168.5.28        24:52:6a:1c:3e:5e 		tue-imou-cam                ch_fedlab_tue_imou.json			PROCESSED: s1 [TOO MANY PKTS REJECTED]
+    foscam-cam:     192.168.5.126      	00:62:6e:93:41:75		tue-foscam-cam              ch_fedlab_tue_foscam.json		PROCESSED: s1,
 
 	ring-doorbell:  192.168.5.110		c0:39:5a:71:cc:8e		tue-ring-doorbel 			ch_fedlab_tue_ring.json
 
