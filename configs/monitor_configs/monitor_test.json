@@ -11,6 +11,6 @@
             "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs/clusters_evols_20220526_10-48-24_tue-tplink-demo.csv"
         }
     ],
-    "transition_window" : 3,
+    "transition_window" : 8,
     "features_watch" : ["clusters_balance","mutual_matches_n","mutual_matches_percentage","fwd_matches_n","fwd_matches_percentage", "fwd_matches_agglomeration_avg", "fwd_matches_agglomeration_max_percentage", "bwd_matches_n","bwd_matches_percentage", "bwd_matches_agglomeration_avg", "bwd_matches_agglomeration_max_percentage"]
 }

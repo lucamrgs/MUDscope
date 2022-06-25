@@ -27,6 +27,11 @@
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_eufy.json",
             "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-eufy-doorbell/tue-eufy-doorbell_mrt_transitions_dfs/clusters_evols_tue-eufy-doorbell_acsac-session1.csv"
         },
+        {   
+            "name" : "tue-ring-doorbell",
+            "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_ring.json",
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-ring-doorbell/tue-ring-doorbell_mrt_transitions_dfs/clusters_evols_tue-ring-doorbell_acsac-session1.csv"
+        },
        {   
             "name" : "tue-honeywell-termostat",
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_honeywell.json",

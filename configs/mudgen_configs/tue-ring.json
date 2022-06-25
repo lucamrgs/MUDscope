@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:ac:05:14",
+        "ipAddress": "192.168.5.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "38:81:d7:1f:71:0a",
+        "deviceName": "tue-ring-doorbell"
+    },
+    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/TBD.pcap"
+}

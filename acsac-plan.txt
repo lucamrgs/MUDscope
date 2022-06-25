@@ -1,26 +1,45 @@
 
-- Devices, IPs, macs, name
+- Devices, IPs, macs, name, ch_file
 UT:
-    wansview-cam:   192.168.32.213      e0:09:bf:5f:0e:c1       ut-wansview-cam         ch_fedlab_ut_wansview.json
-    kasa-k105:      192.168.32.201      00:31:92:e1:7b:17       ut-kasa-plug-k105       ch_fedlab_ut_tplink-k105.json
-    ring-doorbell:  192.168.32.125      34:3e:a4:71:a0:1f       ut-ring-doorbell        ch_fedlab_ut_ring-doorbell.json
-    kasa-hs110:     192.168.32.184      74:da:88:5d:4c:3d       ut-kasa-plug-hs110      ch_fedlab_ut_tplink-hs110.json
+    wansview-cam:   192.168.32.132      e0:09:bf:5f:0e:c1       ut-wansview-cam         ch_fedlab_ut_wansview.json
+    kasa-k105:      192.168.32.186      00:31:92:e1:7b:17       ut-kasa-plug-k105       ch_fedlab_ut_tplink-k105.json
+    ring-doorbell:  192.168.32.235      34:3e:a4:71:a0:1f       ut-ring-doorbell        ch_fedlab_ut_ring-doorbell.json
+    kasa-hs110:     192.168.32.135      74:da:88:5d:4c:3d       ut-kasa-plug-hs110      ch_fedlab_ut_tplink-hs110.json
 
     gateway:        192.168.32.1        08:00:27:07:a5:c2
 
 TUe:
-    eufy-doorbell:  192.168.5.221       tue-eufy-doorbell           ch_fedlab_tue_eufy.json
-    honeywell-tms:  192.168.5.163       tue-honeywell-termostat     ch_fedlab_tue_honeywell.json
-    foscam-cam:     192.168.5.229       tue-foscam-cam              ch_fedlab_tue_foscam.json
-    hombli-plug1:   192.168.5.103       tue-hombli-plug1            ch_fedlab_tue_hombli1.json
-    hombli-plug2:   192.168.5.156       tue-hombli-plug2            ch_fedlab_tue_hombli2.json
-    imou-cam:       192.168.5.34        tue-imou-cam                ch_fedlab_tue_imou.json
+	
+		NOTE: THE EUFY DEVICE IS ACTUALLY A HOME HUB
+
+	eufy-doorbell:  192.168.10.198		8c:85:80:98:b0:45       tue-eufy-doorbell           ch_fedlab_tue_eufy.json
+    honeywell-tms:  192.168.10.208     	b8:2c:a0:1b:03:30       tue-honeywell-termostat     ch_fedlab_tue_honeywell.json
+    hombli-plug1:   192.168.10.20      	d8:f1:5b:e6:85:5c       tue-hombli-plug1            ch_fedlab_tue_hombli1.json
+    hombli-plug2:   192.168.10.42      	d8:f1:5b:e6:9a:05       tue-hombli-plug2			ch_fedlab_tue_hombli2.json
+	foscam-cam2 	192.168.10.201 		00:62:6e:ef:bf:1d		tue-foscam-cam2 			ch_fedlab_tue_foscam2.json
+    
+	imou-cam:       192.168.5.28        24:52:6a:1c:3e:5e 		tue-imou-cam                ch_fedlab_tue_imou.json
+    foscam-cam:     192.168.5.126      	00:62:6e:93:41:75		tue-foscam-cam              ch_fedlab_tue_foscam.json
+
+	ring-doorbell:  192.168.5.110		c0:39:5a:71:cc:8e		tue-ring-doorbel 			ch_fedlab_tue_ring.json
+
+
+	gateway5 		192.168.5.1			08:00:27:ed:6b:f6
+	gateway10 		192.168.10.1		08:00:27:01:2c:99
+
+- MUDgee config
+Finish creating the mudgee config files for TUe devices: get their macs first.
+
+
 
 - Filepaths to benign traffic for MUD generation
 UT:     /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/fedlab-acsac-ut-benign-17-06-2022.pcap
 TUe:    /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/TBD.pcap
 
 - Filepaths to folders for reject configs
+
+NOTE: editcap -i 60 input.pcap output.pcap
+
 UT:
     /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
     /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session2/splitted/
@@ -28,11 +47,17 @@ UT:
     /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session4/splitted/
 
 TUe:
-    /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
-    /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session2/splitted/
-    /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session3/splitted/
-    /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session4/splitted/
+    /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted5/
+	/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10/
 
+	/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session2/splitted5/
+	/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session2/splitted10/
+	
+	/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session3/splitted5/
+	/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session3/splitted10/
+	
+	/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session4/splitted5/
+	/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session4/splitted10/
 
 TEMPORARY SCALING REFERENCE DATAFRAME:
     TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
@@ -47,52 +72,79 @@ MUD profile generation
         ut-wansview.json
         ut-ring.json
 
-        tue-honeywell.json
-        tue-eufy.json
-        tue-foscam.json
-        tue-hombli1.json
-        tue-hombli2.json
-        tue-imou.json
+        tue-honeywell.json 		DONE - GOOD
+		tue-foscam2.json 		DONE - GOOD
+        tue-eufy.json			DONE - WEIRD IPv6 IN. TO SEE HOW GOES
+        tue-hombli1.json		DONE - SEEMS TOO SIMPLE - ADDEDD RULE MANUALLY
+        tue-hombli2.json		DONE - SEEMS TOO SIMPLE - ADDDED RULE MANUALLY
+        
+		tue-foscam.json 		DONE - GOOD
+        tue-imou.json 			DONE - WEIRD IPv6 IN. TO SEE HOW GOES
+
+		tue-ring.json
+
 
 Reject config creation
 
     Session 1
 
     UT
-    python3 generate_rjt_configs.py --devname ut-wansview-cam --dev_mac e0:09:bf:5f:0e:c1 --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname ut-kasa-plug-k105 --dev_mac 00:31:92:e1:7b:17 --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname ut-ring-doorbell --dev_mac 34:3e:a4:71:a0:1f --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname ut-kasa-plug-hs110 --dev_mac 74:da:88:5d:4c:3d --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
+    python3 src/generate_rjt_configs.py --devname ut-wansview-cam --dev_mac e0:09:bf:5f:0e:c1 --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
+    python3 src/generate_rjt_configs.py --devname ut-kasa-plug-k105 --dev_mac 00:31:92:e1:7b:17 --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
+    python3 src/generate_rjt_configs.py --devname ut-ring-doorbell --dev_mac 34:3e:a4:71:a0:1f --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
+    python3 src/generate_rjt_configs.py --devname ut-kasa-plug-hs110 --dev_mac 74:da:88:5d:4c:3d --gw_mac 08:00:27:07:a5:c2  --gw_ip4 192.168.32.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session1/splitted/
 
     TUe
-    python3 generate_rjt_configs.py --devname tue-eufy-doorbell --dev_mac [] --gw_mac []  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname tue-honeywell-termostat --dev_mac [] --gw_mac []  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname tue-foscam-cam --dev_mac [] --gw_mac []  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname tue-hombli-plug1 --dev_mac [] --gw_mac []  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname tue-hombli-plug2 --dev_mac [] --gw_mac []  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
-    python3 generate_rjt_configs.py --devname tue-imou-cam --dev_mac [] --gw_mac []  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
 
-    Save outputs to folder in reject_configs/device/acsac-session1
+	.10.
+    python3 src/generate_rjt_configs.py --devname tue-eufy-doorbell --dev_mac 8c:85:80:98:b0:45 --gw_mac 08:00:27:01:2c:99  --gw_ip4 192.168.10.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10/
+    python3 src/generate_rjt_configs.py --devname tue-honeywell-termostat --dev_mac b8:2c:a0:1b:03:30 --gw_mac 08:00:27:01:2c:99  --gw_ip4 192.168.10.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10/
+    python3 src/generate_rjt_configs.py --devname tue-hombli-plug1 --dev_mac d8:f1:5b:e6:85:5c --gw_mac 08:00:27:01:2c:99  --gw_ip4 192.168.10.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10/
+    python3 src/generate_rjt_configs.py --devname tue-hombli-plug2 --dev_mac d8:f1:5b:e6:9a:05 --gw_mac 08:00:27:01:2c:99  --gw_ip4 192.168.10.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10/
+	python3 src/generate_rjt_configs.py --devname tue-foscam-cam2 --dev_mac 00:62:6e:ef:bf:1d --gw_mac 08:00:27:01:2c:99  --gw_ip4 192.168.10.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10/
+	
+	.5.
+    python3 src/generate_rjt_configs.py --devname tue-foscam-cam --dev_mac 00:62:6e:93:41:75 --gw_mac 08:00:27:ed:6b:f6  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted5/
+	python3 src/generate_rjt_configs.py --devname tue-imou-cam --dev_mac 24:52:6a:1c:3e:5e --gw_mac 08:00:27:ed:6b:f6  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted5/
+	
+    python3 src/generate_rjt_configs.py --devname tue-ring-doorbell --dev_mac [] --gw_mac 08:00:27:ed:6b:f6  --gw_ip4 192.168.5.1 --gw_ip6 "-" --tgt_dir /Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted/
+
+    >>>>>>>> MOVE outputs to folder in 
+			reject_configs/device/acsac-session1
     
     Do for session 2, 3 and 4 once with the macs
 
-MACROS reject, generate flows, create characterisation, generate MRT csv dataset
+
+	>>>>>> NOTE NOTE NOTE: Scan attacks show IP of gateway, not of attacker. Could it be due to stealthiness params of nmap scan?
+
+MACROS reject -> generate flows -> create characterisation -> generate MRT csv dataset
     python3 MACRO_rjt_to_ch.py --devname ut-wansview-cam --analysis_capture_metadata ch_fedlab_ut_wansview.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
     python3 MACRO_rjt_to_ch.py --devname ut-kasa-plug-k105 --analysis_capture_metadata ch_fedlab_ut_tplink-k105.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
     python3 MACRO_rjt_to_ch.py --devname ut-ring-doorbell --analysis_capture_metadata ch_fedlab_ut_ring-doorbell.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
     python3 MACRO_rjt_to_ch.py --devname ut-kasa-plug-hs110 --analysis_capture_metadata ch_fedlab_ut_tplink-hs110.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
 
     python3 MACRO_rjt_to_ch.py --devname tue-eufy-doorbell --analysis_capture_metadata ch_fedlab_tue_eufy.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname tue-honeywell-termostat --analysis_capture_metadata ch_fedlab_tue_honeywell.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname tue-foscam-cam --analysis_capture_metadata ch_fedlab_tue_foscam.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+	python3 MACRO_rjt_to_ch.py --devname tue-honeywell-termostat --analysis_capture_metadata ch_fedlab_tue_honeywell.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
     python3 MACRO_rjt_to_ch.py --devname tue-hombli-plug1 --analysis_capture_metadata ch_fedlab_tue_hombli1.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
     python3 MACRO_rjt_to_ch.py --devname tue-hombli-plug2 --analysis_capture_metadata ch_fedlab_tue_hombli2.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname tue-imou-cam --analysis_capture_metadata ch_fedlab_tue_imou.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+    python3 MACRO_rjt_to_ch.py --devname tue-foscam-cam2 --analysis_capture_metadata ch_fedlab_tue_foscam2.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+
+    python3 MACRO_rjt_to_ch.py --devname tue-foscam-cam --analysis_capture_metadata ch_fedlab_tue_foscam.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+	python3 MACRO_rjt_to_ch.py --devname tue-imou-cam --analysis_capture_metadata ch_fedlab_tue_imou.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
     
+    python3 MACRO_rjt_to_ch.py --devname tue-ring-doorbell --analysis_capture_metadata ch_fedlab_tue_ring.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
 
 - Final analysis
 
-    python3 run.py --mode monitor --mrtfeeds_config ./configs/monitor_configs/<ANALYSIS_CONFIGURATION>.json
+    python3 run.py --mode monitor --mrtfeeds_config ./configs/monitor_configs/acsac-session1.json
+    python3 run.py --mode monitor --mrtfeeds_config ./configs/monitor_configs/acsac-session2.json
+    python3 run.py --mode monitor --mrtfeeds_config ./configs/monitor_configs/acsac-session3.json
+    python3 run.py --mode monitor --mrtfeeds_config ./configs/monitor_configs/acsac-session4.json
+
+
+
+
+
 
 
 

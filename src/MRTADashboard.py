@@ -29,8 +29,14 @@ MY_SAVE_PATH_DEFAULT = MONITOR_OUTPUTS_FOLDER
 
 from MRTFeed import MRTFeed
 
-
 MRTFEEDS_TIME_OFFSET_TOLERANCE = 0.1
+
+
+def anonymise_string(string: str) -> str:
+    ret = string.replace('tue-', 'l1-')
+    ret = string.replace('ut-', 'l2-')
+    return ret
+
 
 class MRTADashboard:
     """
@@ -60,9 +66,13 @@ class MRTADashboard:
             if not isinstance(mrt_feed, MRTFeed):
                 raise ValueError(f">>> ERROR: feeds_list contain non MRTFeed-type values.")
 
-        self.feeds = {feed.id : feed for feed in feeds_list}
-        self.devices_anomalies = {feed.id : [] for feed in feeds_list}
+        self.feeds = {anonymise_string(feed.id) : feed for feed in feeds_list}
+        self.devices_anomalies = {anonymise_string(feed.id) : [] for feed in feeds_list}
         self.signature_transitions_window_size = signature_transitions_window_size
+
+        for feed, data in self.feeds.items():
+            data.metadata['device_id'] = anonymise_string(data.metadata['device_id'])
+            data.id = anonymise_string(data.id)
 
         #print(self.feeds[0].data.head())
         print(f'rolling window: {signature_transitions_window_size}')
@@ -81,12 +91,12 @@ class MRTADashboard:
             The markers for the period are two transitions where clusters_balance = 0, ch_2_clusters_n = 1
         """
         for feed in self.feeds.values():
-            
             clusters_balances = feed.data['clusters_balance']
             clusters_numbers = feed.data['ch2_clusters_n']
             time_markers = feed.data['ch1_t_start']
+            entry_windows = feed.data.index.tolist()
             
-            anomaly_markers = zip(clusters_balances, clusters_numbers, time_markers)
+            anomaly_markers = zip(clusters_balances, clusters_numbers, time_markers, entry_windows)
             anomalies_windows = {}
             anomaly_count = 0
             in_anomaly = False
@@ -97,12 +107,13 @@ class MRTADashboard:
                     # If not recording ongoing anomaly
                     if not in_anomaly:
                         # Log begin time of anomaly
-                        anomalies_windows[anomaly_count] = {'start' : marker[2], 'end' : 0}
+                        anomalies_windows[anomaly_count] = {'start' : marker[2], 'end' : 0, 'window_start': marker[3], 'window_end' : -1}
                         in_anomaly = True
                 # If in baseline behaviour, we're not recording an anomaly
                 elif marker[0] == 0 and marker[1] == 1:
                     if in_anomaly: # We were logging an anomaly, which stopped. Hence we log the end time
                         anomalies_windows[anomaly_count]['end'] = marker[2]
+                        anomalies_windows[anomaly_count]['window_end'] = marker[3]
                         anomaly_count = anomaly_count + 1
                     in_anomaly = False
 
@@ -201,14 +212,17 @@ class MRTADashboard:
         self.anomalies_report.append('\n\n*~*~*~*~*~*~*~* Anomalies recorded for each MRT feed submitted *~*~*~*~*~*~*~*\n\n')
         for entry, val in self.devices_anomalies.items():
             print(f'ENTRY: {entry}')
+            print(val)
             feed_id = entry
             report_entry = f'{feed_id} :\n'
             # Iterate over time windows of anomalies
             for k, e in val.items():
                 start = datetime.fromtimestamp(e['start']).time()
                 end = datetime.fromtimestamp(e['end']).time()
+                wstart = e['window_start']
+                wend = e['window_end']
                 date = datetime.fromtimestamp(e['end']).date()
-                report_entry = report_entry + f'\t between: {start} and {end} on the {date}\n'
+                report_entry = report_entry + f'\t between: {start} and {end} on the {date} \t --- \t time windows [ {wstart} , {wend} ]\n'
             report_entry = report_entry + '\n'
             print(report_entry)
             self.anomalies_report.append(report_entry)
@@ -314,6 +328,7 @@ class MRTADashboard:
         f_plt = []
         l_plt = []
         
+        # TODO: Remove corr matrix sns plot
         fig, axs = plt.subplots(2,1, gridspec_kw={'height_ratios': [3, 1]}, constrained_layout=True)
         fig.set_figheight(5)
         fig.set_figwidth(12)

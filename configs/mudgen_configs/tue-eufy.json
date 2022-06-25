@@ -1,12 +1,12 @@
 {
     "defaultGatewayConfig": {
-        "macAddress": "",
-        "ipAddress": "192.168.5.1",
+        "macAddress": "08:00:27:01:2c:99",
+        "ipAddress": "192.168.10.1",
         "ipv6Address": "-"
     },
     "deviceConfig": {
-        "device": "",
+        "device": "8c:85:80:98:b0:45",
         "deviceName": "tue-eufy-doorbell"
     },
-    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/TBD.pcap"
+    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/Benign/tue_sn10_benign.pcap"
 }

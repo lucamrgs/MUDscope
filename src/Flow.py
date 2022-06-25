@@ -1,5 +1,6 @@
 
 import json
+from mimetypes import knownfiles
 import socket
 import re
 import binascii
@@ -16,9 +17,11 @@ debug = False
 """
 
 # WORKAROUND
-KNOWN_BACKEND_NETWORKS_STRINGS = ['159.65.0.0/16', '52.64.0.0/12', '52.0.0.0/10', '44.192.0.0/10', '3.0.0.0/9', '8.208.0.0/12', '52.192.0.0/12', '52.208.0.0/13', '52.223.128.0/18', '52.220.0.0/15', '52.216.0.0/14', '52.222.0.0/16', '52.223.0.0/17', '192.168.32.0/24']
+LOCAL_NETWORKS_STRINGS = ['255.255.255.0/24', '192.168.5.0/24', '192.168.10.0/24', '192.168.32.0/24']
+KNOWN_BACKEND_NETWORKS_STRINGS = ['255.255.255.0/24', '159.65.0.0/16', '52.64.0.0/12', '52.0.0.0/10', '44.192.0.0/10', '3.0.0.0/9', '8.208.0.0/12', '52.192.0.0/12', '52.208.0.0/13', '52.223.128.0/18', '52.220.0.0/15', '52.216.0.0/14', '52.222.0.0/16', '52.223.0.0/17', '192.168.32.0/24', '18.32.0.0/11', '18.64.0.0/10', '18.128.0.0/9', '34.192.0.0/10', '192.168.10.0/24']
 KNOWN_BACKEND_NETWORKS = [ip_network(network) for network in KNOWN_BACKEND_NETWORKS_STRINGS]
-KNOWN_BACKEND_PORTS = ['50443']
+LOCAL_NETWORKS = [ip_network(network) for network in LOCAL_NETWORKS_STRINGS]
+KNOWN_BACKEND_PORTS = ['50443', '58458', '6667', '49154']
 
 class Flow:
 
@@ -53,9 +56,9 @@ class Flow:
     #   > https://stackoverflow.com/questions/819355/how-can-i-check-if-an-ip-is-in-a-network-in-python
     ##################################################################################################
     @staticmethod
-    def address_in_known_backend(ip_addr):
+    def address_in_known_backend(ip_addr, networks=KNOWN_BACKEND_NETWORKS):
         a = int(ip_address(ip_addr))
-        for n in KNOWN_BACKEND_NETWORKS:
+        for n in networks:
             netw = int(n.network_address)
             mask = int(n.netmask)
             is_in = (a & mask) == netw
@@ -378,7 +381,9 @@ class Flow:
 
         ip_proto_match = bool(rule_flow.ip_proto == pkt_flow.ip_proto or rule_flow.ip_proto == '*')
 
-        match_condition = smac_match and dmac_match and eth_type_match and sip_match and dip_match and sport_match and dport_match and ip_proto_match
+        local_broadcast = Flow.address_in_known_backend(pkt_flow.sip, networks=LOCAL_NETWORKS) and pkt_flow.dip == '255.255.255.255'
+
+        match_condition = (smac_match and dmac_match and eth_type_match and sip_match and dip_match and sport_match and dport_match and ip_proto_match) or local_broadcast
 
         if (match_condition):
             return True

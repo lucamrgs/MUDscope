@@ -397,6 +397,8 @@ def main(arguments=None):
 						characterization_name = 'ch_' + dt_string + '_' + analysis_devname + data_name + '.json'
 
 						output_path = output_folder + analysis_devname + '_mrt_characterizations/'
+						if session_name is not None:
+							output_path = f'{output_folder}{analysis_devname}_{session_name}/{analysis_devname}_{session_name}_mrt_characterizations/'
 						Path(output_path).mkdir(parents=True, exist_ok=True)
 						mrta_characterizator.save_characterization(output_path + characterization_name)
 			else:

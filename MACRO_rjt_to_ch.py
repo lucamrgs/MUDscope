@@ -81,15 +81,15 @@ def module_main(arguments=None):
     print('\n#################################################################################')
     print('############# ~~~~~~~~~~~~* RUNNING REJECT OPERATIONS *~~~~~~~~~~~~ #############')
     print('#################################################################################\n')
-    #run.main(['--mode', 'reject', '--reject_config', reject_config, '--reject_mud_rules', reject_mud_rules, '--reject_to_named_dir', reject_to_named_dir])
+    run.main(['--mode', 'reject', '--reject_config', reject_config, '--reject_mud_rules', reject_mud_rules, '--reject_to_named_dir', reject_to_named_dir])
 
     print('\n################################################################################')
     print('############ ~~~~~~~~~~~~* RUNNING FLOWGEN OPERATIONS *~~~~~~~~~~~~ ############')
     print('################################################################################\n')
     time.sleep(2)
-    #flowsgen_tgt_dir = f'{OUTPUTS_FOLDER}{devname}_{experiment}/'
+    flowsgen_tgt_dir = f'{OUTPUTS_FOLDER}/{devname}/{devname}_{experiment}/'
     print(flowsgen_tgt_dir)
-    #run.main(['--mode', 'flows_gen', '--flowsgen_tgt_dir', flowsgen_tgt_dir])
+    run.main(['--mode', 'flows_gen', '--flowsgen_tgt_dir', flowsgen_tgt_dir])
     time.sleep(2)
 
     print('\n################################################################################')
@@ -98,7 +98,7 @@ def module_main(arguments=None):
     analysis_tgt = f'{flowsgen_tgt_dir}{devname}_{experiment}-all-flows-csv/'
     print(analysis_tgt)
     #analysis_tgt = analysis_tgt_dir + devname + 'all-flows-csv' + '-custom-fromat-CLN.csv'
-    #run.main(['--mode', 'analyze', '--analysis_action', ANALYSIS_ACTION_MRTA_CHARACTERIZE, '--session_name', experiment, '--analysis_tgt', analysis_tgt, '--analysis_devname', devname, '--analysis_capture_metadata', analysis_capture_metadata, '--dsr_path', dsr_path])
+    run.main(['--mode', 'analyze', '--analysis_action', ANALYSIS_ACTION_MRTA_CHARACTERIZE, '--session_name', experiment, '--analysis_tgt', analysis_tgt, '--analysis_devname', devname, '--analysis_capture_metadata', analysis_capture_metadata, '--dsr_path', dsr_path])
 
     print('\n################################################################################')
     print('############# ~~~~~~~~~~~~~~~* GENERATING MRT FEED *~~~~~~~~~~~~~~~ #############')
