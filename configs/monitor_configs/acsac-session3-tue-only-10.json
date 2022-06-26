@@ -4,35 +4,30 @@
         {   
             "name" : "tue-eufy-doorbell",
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_eufy.json",
-            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-eufy-doorbell/tue-eufy-doorbell_mrt_transitions_dfs/clusters_evols_acsac-session1_tue-eufy-doorbell.csv"
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-eufy-doorbell/tue-eufy-doorbell_mrt_transitions_dfs/clusters_evols_acsac-session3_tue-eufy-doorbell.csv"
         },
        {   
             "name" : "tue-honeywell-termostat",
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_honeywell.json",
-            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-honeywell-termostat/tue-honeywell-termostat_mrt_transitions_dfs/clusters_evols_acsac-session1_tue-honeywell-termostat.csv"
-        },
-        {   
-            "name" : "tue-foscam-cam",
-            "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_foscam.json",
-            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-foscam-cam/tue-foscam-cam_mrt_transitions_dfs/clusters_evols_acsac-session1_tue-foscam-cam.csv"
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-honeywell-termostat/tue-honeywell-termostat_mrt_transitions_dfs/clusters_evols_acsac-session3_tue-honeywell-termostat.csv"
         },
         {   
             "name" : "tue-foscam-cam2",
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_foscam2.json",
-            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-foscam-cam2/tue-foscam-cam2_mrt_transitions_dfs/clusters_evols_acsac-session1_tue-foscam-cam2.csv"
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-foscam-cam2/tue-foscam-cam2_mrt_transitions_dfs/clusters_evols_acsac-session3_tue-foscam-cam2.csv"
         },
        {   
             "name" : "tue-hombli-plug1",
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_hombli1.json",
-            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-hombli-plug1/tue-hombli-plug1_mrt_transitions_dfs/clusters_evols_acsac-session1_tue-hombli-plug1.csv"
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-hombli-plug1/tue-hombli-plug1_mrt_transitions_dfs/clusters_evols_acsac-session3_tue-hombli-plug1.csv"
         },
         {   
             "name" : "tue-hombli-plug2",
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_hombli2.json",
-            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-hombli-plug2/tue-hombli-plug2_mrt_transitions_dfs/clusters_evols_acsac-session1_tue-hombli-plug2.csv"
+            "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-hombli-plug2/tue-hombli-plug2_mrt_transitions_dfs/clusters_evols_acsac-session3_tue-hombli-plug2.csv"
         }
     ],
 
-    "transition_window" : 5,
+    "transition_window" : 9,
     "features_watch" : ["clusters_balance","mutual_matches_n","mutual_matches_percentage","fwd_matches_n","fwd_matches_percentage", "fwd_matches_agglomeration_avg", "fwd_matches_agglomeration_max_percentage", "bwd_matches_n","bwd_matches_percentage", "bwd_matches_agglomeration_avg", "bwd_matches_agglomeration_max_percentage"]
 }

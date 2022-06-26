@@ -152,7 +152,7 @@ class MRTADashboard:
             if len(anomalies_windows.keys()) > 0:
                 self.feeds_anomalies[feed.id] = anomalies_windows
 
-        print(self.feeds_unpacked_anomalies)
+        #print(self.feeds_unpacked_anomalies)
 
 
     def find_matching_anomalies(self):
@@ -162,6 +162,10 @@ class MRTADashboard:
         for anomaly1 in self.feeds_unpacked_anomalies.keys():
             for anomaly2 in self.feeds_unpacked_anomalies.keys():
                 
+                print(f'Processing anomaly 1: {anomaly1}')
+                print(f'Processing anomaly 2: {anomaly2}')
+                print('')
+
                 check_entry = sorted([anomaly1, anomaly2])
                 check_already_processed_key = '---'.join(check_entry)
                 if check_already_processed_key in processed_anomalies_pairs:
@@ -185,9 +189,9 @@ class MRTADashboard:
                     signature1_metric_values = self.feeds_unpacked_anomalies[anomaly1]['signature'][metric].values.tolist()
                     signature2_metric_values = self.feeds_unpacked_anomalies[anomaly2]['signature'][metric].values.tolist()
                     
-                    print(f'METRIC : {metric}')
+                    #print(f'METRIC : {metric}')
                     corr_over_metric = self.correlate_lists_pair(signature1_metric_values, signature2_metric_values)
-                    print(corr_over_metric)
+                    #print(corr_over_metric)
                     corr_features_dict[metric] = corr_over_metric
                 
                 #print(corr_features_dict)
@@ -209,14 +213,14 @@ class MRTADashboard:
                 #print(f'Anomaly 1 : {anomaly1}')
                 #print(f'Anomaly 2 : {anomaly2}')
         
-        print(f'Correlation log : {len(self.pair_anomalies_correlation_log.values())}')
+        #print(f'Correlation log : {len(self.pair_anomalies_correlation_log.values())}')
 
 
     def correlate_lists_pair(self, list1, list2):
         
-        print(f'LIST 1: {list1}')
-        print(f'LIST 2: {list2}')
-        print('')
+        #print(f'LIST 1: {list1}')
+        #print(f'LIST 2: {list2}')
+        #print('')
         
         equal_size = False
         if len(list1) > len(list2):
@@ -267,8 +271,8 @@ class MRTADashboard:
             corr_max = entry['corr_max']
             corr_avg = entry['corr_avg']
 
-            print(f'CORR AVG : {corr_avg}')
-            print(f'CORR MAX : {corr_max}')
+            #print(f'CORR AVG : {corr_avg}')
+            #print(f'CORR MAX : {corr_max}')
 
             combined_threshold_test = np.mean([corr_max, corr_avg])
             if not combined_threshold_test >= MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD:
@@ -416,8 +420,8 @@ class MRTADashboard:
     def generate_detected_anomalies_report(self, save_dir=MY_SAVE_PATH_DEFAULT, report_name='recorded_anomalies.txt'):
         self.anomalies_report.append('\n\n*~*~*~*~*~*~*~* Anomalies recorded for each MRT feed submitted *~*~*~*~*~*~*~*\n\n')
         for entry, val in self.feeds_anomalies.items():
-            print(f'ENTRY: {entry}')
-            print(val)
+            #print(f'ENTRY: {entry}')
+            #print(val)
             feed_id = entry
             report_entry = f'{feed_id} :\n'
             # Iterate over time windows of anomalies

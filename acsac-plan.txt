@@ -132,21 +132,21 @@ Reject config creation
 	>>>>>> NOTE NOTE NOTE: Scan attacks show IP of gateway, not of attacker. Could it be due to stealthiness params of nmap scan?
 
 MACROS reject -> generate flows -> create characterisation -> generate MRT csv dataset
-    python3 MACRO_rjt_to_ch.py --devname ut-wansview-cam --analysis_capture_metadata ch_fedlab_ut_wansview.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname ut-kasa-plug-k105 --analysis_capture_metadata ch_fedlab_ut_tplink-k105.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname ut-ring-doorbell --analysis_capture_metadata ch_fedlab_ut_ring-doorbell.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname ut-kasa-plug-hs110 --analysis_capture_metadata ch_fedlab_ut_tplink-hs110.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+    python3 MACRO_rjt_to_ch.py --devname ut-wansview-cam --analysis_capture_metadata ch_fedlab_ut_wansview.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+    python3 MACRO_rjt_to_ch.py --devname ut-kasa-plug-k105 --analysis_capture_metadata ch_fedlab_ut_tplink-k105.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+    python3 MACRO_rjt_to_ch.py --devname ut-ring-doorbell --analysis_capture_metadata ch_fedlab_ut_ring-doorbell.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+    python3 MACRO_rjt_to_ch.py --devname ut-kasa-plug-hs110 --analysis_capture_metadata ch_fedlab_ut_tplink-hs110.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
 
-    python3 MACRO_rjt_to_ch.py --devname tue-eufy-doorbell --analysis_capture_metadata ch_fedlab_tue_eufy.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-	python3 MACRO_rjt_to_ch.py --devname tue-honeywell-termostat --analysis_capture_metadata ch_fedlab_tue_honeywell.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname tue-hombli-plug1 --analysis_capture_metadata ch_fedlab_tue_hombli1.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname tue-hombli-plug2 --analysis_capture_metadata ch_fedlab_tue_hombli2.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-    python3 MACRO_rjt_to_ch.py --devname tue-foscam-cam2 --analysis_capture_metadata ch_fedlab_tue_foscam2.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+    python3 MACRO_rjt_to_ch.py --devname tue-eufy-doorbell --analysis_capture_metadata ch_fedlab_tue_eufy.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+	python3 MACRO_rjt_to_ch.py --devname tue-honeywell-termostat --analysis_capture_metadata ch_fedlab_tue_honeywell.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+    python3 MACRO_rjt_to_ch.py --devname tue-hombli-plug1 --analysis_capture_metadata ch_fedlab_tue_hombli1.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+    python3 MACRO_rjt_to_ch.py --devname tue-hombli-plug2 --analysis_capture_metadata ch_fedlab_tue_hombli2.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+    python3 MACRO_rjt_to_ch.py --devname tue-foscam-cam2 --analysis_capture_metadata ch_fedlab_tue_foscam2.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
 
-    python3 MACRO_rjt_to_ch.py --devname tue-foscam-cam --analysis_capture_metadata ch_fedlab_tue_foscam.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
-	python3 MACRO_rjt_to_ch.py --devname tue-imou-cam --analysis_capture_metadata ch_fedlab_tue_imou.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+    python3 MACRO_rjt_to_ch.py --devname tue-foscam-cam --analysis_capture_metadata ch_fedlab_tue_foscam.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
+	python3 MACRO_rjt_to_ch.py --devname tue-imou-cam --analysis_capture_metadata ch_fedlab_tue_imou.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv --experiment acsac-session1
     
-    python3 MACRO_rjt_to_ch.py --devname tue-ring-doorbell --analysis_capture_metadata ch_fedlab_tue_ring.json --experiment acsac-session1 --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv
+    python3 MACRO_rjt_to_ch.py --devname tue-ring-doorbell --analysis_capture_metadata ch_fedlab_tue_ring.json --dsr_path TestData/FedLab/UT/ut-all-scaling-ref-flows-custom-hdr-CLN-SCALED.csv  --experiment acsac-session1
 
 - Final analysis
 

@@ -168,7 +168,7 @@ STRFTIME_READABLE_FORMAT = "%Y/%m/%d,%H:%M:%S"
 MRT_WINDOW_SIGNATURE_DF_NAME_TAG = '_signature_'
 MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER = 2.0
 MRT_SIGNATURES_CORRELATION_THRESHOLD = 0.65 # ARBITRARY
-MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD = 0.6 # Average of (maximum correlation over features, average correlation over features)
+MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD = 0.5 # Average of (maximum correlation over features, average correlation over features)
 FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK = '---'
 
 
