@@ -1,3 +1,17 @@
+STATUS LOG:
+
+> 25/06/22: 	We have all data from TU/e. I have generated all reject configs for both windows of 60 and 30 seconds.
+				I obtained the final MRT feeds for all devices up to session2, and just with 60 seconds.
+				I would try directly to re-run all processing from the configs with 30 second windows - should provide a more compelling example.
+
+				Next up then, I have to run all TU/e devices data to get the 30 sec-t MRT feeds. Then I can start at least observing the results.
+				Once with all folders of results, I should start writing them to the paper, and adjusting with the latest logical (and code) debugging.
+				
+				I changed a lot the MRT correlation methods, as it's pretty sensitive on the set of signature features, the method of alerting, and the window size.
+				For instance, if only the clusters balance correlates, and the rest of the features are shy, an average would return a very low correlation.
+
+
+
 
 - Devices, IPs, macs, name, ch_file, status
 UT:

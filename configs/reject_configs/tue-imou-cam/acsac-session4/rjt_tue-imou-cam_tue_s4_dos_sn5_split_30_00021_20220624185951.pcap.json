@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:ed:6b:f6",
+        "ipAddress": "192.168.5.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "24:52:6a:1c:3e:5e",
+        "deviceName": "tue-imou-cam"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session4/splitted5h/tue_s4_dos_sn5_split_30_00021_20220624185951.pcap"
+}

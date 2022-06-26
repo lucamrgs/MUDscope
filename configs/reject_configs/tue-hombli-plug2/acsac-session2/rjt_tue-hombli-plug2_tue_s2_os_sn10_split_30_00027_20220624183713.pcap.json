@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:01:2c:99",
+        "ipAddress": "192.168.10.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "d8:f1:5b:e6:9a:05",
+        "deviceName": "tue-hombli-plug2"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session2/splitted10h/tue_s2_os_sn10_split_30_00027_20220624183713.pcap"
+}

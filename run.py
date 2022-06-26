@@ -521,9 +521,11 @@ def main(arguments=None):
 		mrtadb = MRTADashboard()
 		mrtadb.setup(mrt_feeds_list, monitor_features, transition_window)
 		mrtadb.detect_anomalies()
-		mrtadb.generate_feeds_signatures_set()
-		mrtadb.generate_feeds_signatures_comparison_matrix()
-		mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
+		mrtadb.find_matching_anomalies()
+		#mrtadb.generate_report_from_matched_anomalies()
+		#mrtadb.generate_feeds_signatures_set()
+		#mrtadb.generate_feeds_signatures_comparison_matrix()
+		#mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
 
 		mrtadb.generate_report()
 

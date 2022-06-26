@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:01:2c:99",
+        "ipAddress": "192.168.10.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "8c:85:80:98:b0:45",
+        "deviceName": "tue-eufy-doorbell"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10h/tue_s1_telnet_sn10_split_30_00021_20220624181541.pcap"
+}

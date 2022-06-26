@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:01:2c:99",
+        "ipAddress": "192.168.10.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "00:62:6e:ef:bf:1d",
+        "deviceName": "tue-foscam-cam2"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-TUe-acsac/session1/splitted10/tue_s1_telnet_sn10_split_00006_20220624181111.pcap"
+}
