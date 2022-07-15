@@ -20,8 +20,8 @@ import pprint
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from Constants import MONITOR_OUTPUTS_FOLDER, MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, MRT_SIGNATURES_CORRELATION_THRESHOLD, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
-plt.rcParams.update({'font.size': 14})
+from Constants import MONITOR_OUTPUTS_FOLDER, MAX_DIFF_SIGNATURES_SIZE, MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD, MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
+plt.rcParams.update({'font.size': 18})
 
 import numpy as np
 import pandas as pd
@@ -40,9 +40,6 @@ LABEL_OFFSET = -1
 
 # Either 'max' or 'avg'
 ALERT_METHOD = 'max'
-
-# Max allowed difference in transitions_width of signatures to trigger their comparison.
-MAX_DIFF_SIGNATURES_SIZE = 2
 
 
 def anonymise_string(string: str) -> str:
@@ -189,12 +186,22 @@ class MRTADashboard:
                     signature1_metric_values = self.feeds_unpacked_anomalies[anomaly1]['signature'][metric].values.tolist()
                     signature2_metric_values = self.feeds_unpacked_anomalies[anomaly2]['signature'][metric].values.tolist()
                     
+
                     #print(f'METRIC : {metric}')
                     corr_over_metric = self.correlate_lists_pair(signature1_metric_values, signature2_metric_values)
                     #print(corr_over_metric)
                     corr_features_dict[metric] = corr_over_metric
                 
                 #print(corr_features_dict)
+                # If the clusters balance range more than a certain amount the other, then penalise correlation
+                penalty = 1
+                signature1_clusters_balances = self.feeds_unpacked_anomalies[anomaly1]['signature']['clusters_balance'].values.tolist()
+                signature2_clusters_balances = self.feeds_unpacked_anomalies[anomaly2]['signature']['clusters_balance'].values.tolist()
+                list1_range = (np.max(signature1_clusters_balances) - np.min(signature1_clusters_balances)).item()
+                list2_range = (np.max(signature2_clusters_balances) - np.min(signature2_clusters_balances)).item()
+                smaller_range_fraction = (np.min([list1_range, list2_range]) / np.max([list1_range, list2_range])).item()
+                if smaller_range_fraction < MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD:
+                    penalty = smaller_range_fraction
 
                 corr_tot_max = np.max(list(corr_features_dict.values()))
                 corr_tot_avg = np.mean(list(corr_features_dict.values()))
@@ -205,7 +212,7 @@ class MRTADashboard:
                 #corr_features_dict = dict(sorted(corr_features_dict.items(), key=lambda item: item[1], reverse=True))
                 anomaly1_info = {'device_id' : self.feeds_unpacked_anomalies[anomaly1]['device_id'], 'start' : self.feeds_unpacked_anomalies[anomaly1]['start'], 'end' : self.feeds_unpacked_anomalies[anomaly1]['end'], 'window_start' : self.feeds_unpacked_anomalies[anomaly1]['window_start'], 'window_end' : self.feeds_unpacked_anomalies[anomaly1]['window_end']}
                 anomaly2_info = {'device_id' : self.feeds_unpacked_anomalies[anomaly2]['device_id'], 'start' : self.feeds_unpacked_anomalies[anomaly2]['start'], 'end' : self.feeds_unpacked_anomalies[anomaly2]['end'], 'window_start' : self.feeds_unpacked_anomalies[anomaly2]['window_start'], 'window_end' : self.feeds_unpacked_anomalies[anomaly2]['window_end']}
-                self.pair_anomalies_correlation_log[num_correlated] = {'anomaly1' : anomaly1, 'anomaly1_info' : anomaly1_info, 'anomaly2' : anomaly2, 'anomaly2_info' : anomaly2_info, 'corr_max' : corr_tot_max, 'corr_avg' : corr_tot_avg, 'correlation_values' : corr_features_dict}
+                self.pair_anomalies_correlation_log[num_correlated] = {'anomaly1' : anomaly1, 'anomaly1_info' : anomaly1_info, 'anomaly2' : anomaly2, 'anomaly2_info' : anomaly2_info, 'corr_max' : corr_tot_max, 'corr_avg' : corr_tot_avg, 'penalty_for_clusters_difference' : penalty, 'correlation_values' : corr_features_dict}
 
                 #print(self.pair_anomalies_correlation_log[num_correlated])
 
@@ -231,8 +238,8 @@ class MRTADashboard:
             smaller_list = list1
         elif len(list1) == len(list2):
             equal_size = True
-        
-        
+
+
         if equal_size:
             cor = np.corrcoef(list1, list2)[0, 1]
             cor = np.nan_to_num(cor, copy=True, nan=0.0, posinf=None, neginf=None)
@@ -270,11 +277,13 @@ class MRTADashboard:
         for key, entry in self.pair_anomalies_correlation_log.items():
             corr_max = entry['corr_max']
             corr_avg = entry['corr_avg']
+            clusters_ranges_penalty = entry['penalty_for_clusters_difference']
 
-            #print(f'CORR AVG : {corr_avg}')
-            #print(f'CORR MAX : {corr_max}')
+            print(f'CORR AVG : {corr_avg}')
+            print(f'CORR MAX : {corr_max}')
 
-            combined_threshold_test = np.mean([corr_max, corr_avg])
+            combined_threshold_test = np.mean([corr_max, corr_avg]) * clusters_ranges_penalty
+            #if not comprehensive:
             if not combined_threshold_test >= MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD:
                 continue
             
@@ -294,8 +303,10 @@ class MRTADashboard:
             anomaly2_end_window = entry['anomaly2_info']['window_end']
 
             correlations = entry['correlation_values']
+
+            clusters_ranges_penalty = entry['penalty_for_clusters_difference']
             
-            report_entry_header = f'\n\n\n\n[ {tot_high_corr_matches} ]'
+            report_entry_header = f'\n\n\n\n[ {tot_high_corr_matches} ]' #if not comprehensive else f'\n\n\n\n[ ALL COMPARED ANOMALIES - {tot_high_corr_matches} ]'
             header = ["Device ID", "Signature transitions window", "Signature time window", "MRT Feed"]
             table_entry1 = [device1, f'[{anomaly1_start_window} - {anomaly1_end_window}]', f'{anomaly1_start_time} - {anomaly1_end_time}', feed1]
             table_entry2 = [device2, f'[{anomaly2_start_window} - {anomaly2_end_window}]', f'{anomaly2_start_time} - {anomaly2_end_time}', feed2]
@@ -303,17 +314,22 @@ class MRTADashboard:
             table = tabulate(entries, headers=header)
 
             note_corr = f'\nMax features correlation : {corr_max} \t --- \t Avg features correlation : {corr_avg} \t --- \t Combined score : {combined_threshold_test}\n'
-
+            note_penalty = f'Correlation penalty multiplyer for clusters difference: {clusters_ranges_penalty}\n'
             sorted_correlations = {k: v for k, v in sorted(correlations.items(), key=lambda item: item[1])}
             correlations_notes = f'\n\tCorrelation values for signature features:\n\t{sorted_correlations}'
 
             self.better_anomalies_report.append(report_entry_header)
             self.better_anomalies_report.append(table)
             self.better_anomalies_report.append(note_corr)
+            self.better_anomalies_report.append(note_penalty)
             self.better_anomalies_report.append(correlations_notes)
 
             tot_high_corr_matches = tot_high_corr_matches + 1
+        
+        if tot_high_corr_matches == 0:
+            self.better_anomalies_report.append('\n\n\tNo matching signatures were found\n')
 
+        #if print:
         for line in self.better_anomalies_report:
             print(line)
 
@@ -437,14 +453,10 @@ class MRTADashboard:
             self.anomalies_report.append(report_entry)
 
     
-    def generate_report(self, report_name='report.txt'):
+    def generate_report(self, report_name='report.txt', plots=True):
         self.generate_detected_anomalies_report()
         self.generate_report_from_matched_anomalies()
         
-        # Output plots
-        for feature in self.features_watch_list:
-            self.plot_monodim_metric2(feature)
-
         now = datetime.now()
         date = now.strftime("%Y-%m-%d-%H-%M")
         save_fullpath = MY_SAVE_PATH_DEFAULT + date + '_' + report_name
@@ -453,6 +465,10 @@ class MRTADashboard:
                 output.write(line)
             for line in self.better_anomalies_report:
                 output.write(line)
+        # Output plots
+        if plots:
+            for feature in self.features_watch_list:
+                self.plot_monodim_metric2(feature)
         print(f'>>> Report saved to {save_fullpath}.')
 
         

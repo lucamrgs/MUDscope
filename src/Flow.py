@@ -21,7 +21,7 @@ LOCAL_NETWORKS_STRINGS = ['0.0.0.0/24', '255.255.255.0/24', '192.168.5.0/24', '1
 KNOWN_BACKEND_NETWORKS_STRINGS = ['255.255.255.0/24', '128.14.0.0/16', '75.2.128.0/18', '75.2.0.0/17', '54.222.0.0/16', '159.65.0.0/16', '52.64.0.0/12', '52.0.0.0/10', '44.192.0.0/10', '3.0.0.0/9', '8.208.0.0/12', '52.192.0.0/12', '52.208.0.0/13', '52.223.128.0/18', '52.220.0.0/15', '52.216.0.0/14', '52.222.0.0/16', '52.223.0.0/17', '192.168.32.0/24', '18.192.0.0/16', '18.32.0.0/11', '18.64.0.0/10', '18.128.0.0/9', '34.192.0.0/10', '192.168.10.0/24']
 KNOWN_BACKEND_NETWORKS = [ip_network(network) for network in KNOWN_BACKEND_NETWORKS_STRINGS]
 LOCAL_NETWORKS = [ip_network(network) for network in LOCAL_NETWORKS_STRINGS]
-KNOWN_BACKEND_PORTS = ['39542', '39545', '52682', '8802', '50443', '58458', '6667', '49154', '51747', '8006', '32100', '21647', '16677', '8810', '8811', '8812', '8813', '8814', '8815', ]
+KNOWN_BACKEND_PORTS = ['39542', '39545', '52682', '8802', '50443', '58458', '6667', '49154', '51747', '8006', '32100', '21647', '16677', '8810', '8811', '8812', '8813', '8814', '8815', '60722']
 
 class Flow:
 
@@ -370,7 +370,7 @@ class Flow:
         
         # generated flows from rules have macs already parsed
         smac_match = bool(rule_flow.smac == pkt_flow.smac or rule_flow.smac == '*')
-        dmac_match = bool(rule_flow.dmac == pkt_flow.dmac or rule_flow.dmac == '*')
+        dmac_match = bool(rule_flow.dmac == pkt_flow.dmac or rule_flow.dmac == '*') #or (pkt_flow.dmac == 'ff:ff:ff:ff:ff:ff')
         eth_type_match = bool(rule_flow.eth_type == pkt_flow.eth_type or rule_flow.eth_type == '*')
 
         sip_match = bool(pkt_flow.sip in rule_flow.sip or '*' in rule_flow.sip) #or Flow.address_in_known_backend(pkt_flow.sip)

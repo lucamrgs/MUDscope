@@ -528,6 +528,7 @@ def main(arguments=None):
 		#mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
 
 		mrtadb.generate_report()
+		#mrtadb.generate_report(report_name='comprehensive_report.txt', plots=False)
 
 		
 	else:

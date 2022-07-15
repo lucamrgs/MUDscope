@@ -8,5 +8,5 @@
         "device": "e0:09:bf:5f:0e:c1",
         "deviceName": "ut-wansview-cam"
     },
-    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/fedlab-acsac-ut-benign-17-06-2022.pcap"
+    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/benign/fedlab-acsac-ut-benign-17-06-2022.pcap"
 }

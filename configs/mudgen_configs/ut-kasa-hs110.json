@@ -8,5 +8,5 @@
         "device": "74:da:88:5d:4c:3d",
         "deviceName": "ut-kasa-plug-hs110"
     },
-    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/fedlab-acsac-ut-benign-17-06-2022.pcap"
+    "pcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/benign/fedlab-acsac-ut-benign-17-06-2022.pcap"
 }

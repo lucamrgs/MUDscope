@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:62:90:dd",
+        "ipAddress": "192.168.32.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "e0:09:bf:5f:0e:c1",
+        "deviceName": "ut-wansview-cam"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session4/splitted/ut_s4_dos_split_30_00016_20220627115706.pcap"
+}

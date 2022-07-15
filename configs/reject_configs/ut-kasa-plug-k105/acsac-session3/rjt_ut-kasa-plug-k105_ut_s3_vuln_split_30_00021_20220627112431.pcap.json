@@ -1,0 +1,12 @@
+{
+    "defaultGatewayConfig": {
+        "macAddress": "08:00:27:62:90:dd",
+        "ipAddress": "192.168.32.1",
+        "ipv6Address": "-"
+    },
+    "deviceConfig": {
+        "device": "00:31:92:e1:7b:17",
+        "deviceName": "ut-kasa-plug-k105"
+    },
+    "filterPcapLocation": "/Users/lucamrgs/mudscope/inputs/FedLab-UT-acsac/session3/splitted/ut_s3_vuln_split_30_00021_20220627112431.pcap"
+}

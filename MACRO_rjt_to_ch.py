@@ -97,17 +97,17 @@ def module_main(arguments=None):
     print('################################################################################\n')
     analysis_tgt = f'{flowsgen_tgt_dir}{devname}_{experiment}-all-flows-csv/'
     print(analysis_tgt)
-    #analysis_tgt = analysis_tgt_dir + devname + 'all-flows-csv' + '-custom-fromat-CLN.csv'
+        #analysis_tgt = analysis_tgt_dir + devname + 'all-flows-csv' + '-custom-fromat-CLN.csv'
     run.main(['--mode', 'analyze', '--analysis_action', ANALYSIS_ACTION_MRTA_CHARACTERIZE, '--session_name', experiment, '--analysis_tgt', analysis_tgt, '--analysis_devname', devname, '--analysis_capture_metadata', analysis_capture_metadata, '--dsr_path', dsr_path])
 
     print('\n################################################################################')
     print('############# ~~~~~~~~~~~~~~~* GENERATING MRT FEED *~~~~~~~~~~~~~~~ #############')
     print('################################################################################\n')
-    #analysis_mrtgen_tgt = analysis_tgt_dir + devname + 'all-flows-csv' + '-custom-fromat-CLN.csv'
+        #analysis_mrtgen_tgt = analysis_tgt_dir + devname + 'all-flows-csv' + '-custom-fromat-CLN.csv'
     analysis_mrtgen_tgt = f'outputs/{devname}/{devname}_{experiment}/{devname}_{experiment}_mrt_characterizations'
     run.main(['--mode', 'analyze', '--analysis_devname', devname, '--session_name', experiment, '--analysis_action', ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN, '--analysis_tgt', analysis_mrtgen_tgt])
 
-    #python3 run.py --mode analyze --analysis_devname ut-wansview-cam --analysis_action device_mrt_evolution_datagen --analysis_tgt outputs/ut-wansview-cam/ut-wansview-cam_cd-test/ut-wansview-cam_mrt_characterizations
+        #python3 run.py --mode analyze --analysis_devname ut-wansview-cam --analysis_action device_mrt_evolution_datagen --analysis_tgt outputs/ut-wansview-cam/ut-wansview-cam_cd-test/ut-wansview-cam_mrt_characterizations
 
 
 
