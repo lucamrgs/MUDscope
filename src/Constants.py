@@ -169,7 +169,7 @@ MRT_WINDOW_SIGNATURE_DF_NAME_TAG = '_signature_'
 # Max allowed difference in transitions_width of signatures to trigger their comparison.
 MAX_DIFF_SIGNATURES_SIZE = 5
 MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER = 2.0
-MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD = 0.5 # If one feature ranges more than four times the other, then penalise correlation
+MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD = 0.5 # If one feature ranges more than N times the other, then penalise correlation
 MRT_SIGNATURES_CORRELATION_THRESHOLD = 0.65 # ARBITRARY
 MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD = 0.5 # Average of (maximum correlation over features, average correlation over features)
 FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK = '---'

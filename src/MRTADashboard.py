@@ -20,13 +20,17 @@ import pprint
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+PLOTS_FONT_SIZE = 14
+DISPLAY_FLOAT_PRECISION = 16
+COMPUTE_MAGNITUDE_PENALTY = True
+
 from Constants import MONITOR_OUTPUTS_FOLDER, MAX_DIFF_SIGNATURES_SIZE, MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD, MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
-plt.rcParams.update({'font.size': 18})
+plt.rcParams.update({'font.size': PLOTS_FONT_SIZE})
 
 import numpy as np
 import pandas as pd
 from pandas.plotting import parallel_coordinates
-pd.set_option("display.precision", 16)
+pd.set_option("display.precision", DISPLAY_FLOAT_PRECISION)
 
 MY_SAVE_PATH_DEFAULT = MONITOR_OUTPUTS_FOLDER
 #'/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/demo_results/'#pre-results-data/diff-attacks-monodim/'
@@ -195,13 +199,15 @@ class MRTADashboard:
                 #print(corr_features_dict)
                 # If the clusters balance range more than a certain amount the other, then penalise correlation
                 penalty = 1
-                signature1_clusters_balances = self.feeds_unpacked_anomalies[anomaly1]['signature']['clusters_balance'].values.tolist()
-                signature2_clusters_balances = self.feeds_unpacked_anomalies[anomaly2]['signature']['clusters_balance'].values.tolist()
-                list1_range = (np.max(signature1_clusters_balances) - np.min(signature1_clusters_balances)).item()
-                list2_range = (np.max(signature2_clusters_balances) - np.min(signature2_clusters_balances)).item()
-                smaller_range_fraction = (np.min([list1_range, list2_range]) / np.max([list1_range, list2_range])).item()
-                if smaller_range_fraction < MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD:
-                    penalty = smaller_range_fraction
+                if COMPUTE_MAGNITUDE_PENALTY:
+                    signature1_clusters_balances = self.feeds_unpacked_anomalies[anomaly1]['signature']['clusters_balance'].values.tolist()
+                    signature2_clusters_balances = self.feeds_unpacked_anomalies[anomaly2]['signature']['clusters_balance'].values.tolist()
+                    list1_range = (np.max(signature1_clusters_balances) - np.min(signature1_clusters_balances)).item()
+                    list2_range = (np.max(signature2_clusters_balances) - np.min(signature2_clusters_balances)).item()
+                    smaller_range_fraction = (np.min([list1_range, list2_range]) / np.max([list1_range, list2_range])).item()
+                    if smaller_range_fraction < MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD:
+                        # NOTE MODIFIED WITH ADDITION?
+                        penalty = smaller_range_fraction # + 0.3
 
                 corr_tot_max = np.max(list(corr_features_dict.values()))
                 corr_tot_avg = np.mean(list(corr_features_dict.values()))

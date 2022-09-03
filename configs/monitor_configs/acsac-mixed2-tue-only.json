@@ -19,7 +19,7 @@
             "name" : "tue-foscam-cam",
             "device_metadata" : "/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_foscam.json",
             "csv_mrt_feed": "/Users/lucamrgs/mudscope/outputs/tue-foscam-cam/tue-foscam-cam_mrt_transitions_dfs/clusters_evols_acsac-session4_tue-foscam-cam.csv"
-        },
+        }
         
     ],
 
