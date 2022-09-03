@@ -3,39 +3,42 @@
 
 **Description**
 
-This program generates a MUD profile using MUDgee tool, filters out packets that do not abide by MUD rules from a PCAP capture, and characterizes the rejected traffic to isolate network events, and observe their evolution, as detected by 'MUD enforcers'. The core idea of this project is to use MUD enforcers as a specification-based and consistent IDS across deployments, to provide for a distributed Network Telescope for IoT-related traffic.
+This software is of the publication [stepping out of the MUD: contextual network threat information for IoT devices from manufacturer-provided behaviour profiles, Zangrandi et al.]
 
-This project is currently MUDgee-based and PCAP-based. Each invocation is to be referred to a single device. The final outcome of the pipeline that this software implements shall instead compare outputs across two or more devices.
+This program generates a MUD profile (IETF RFC 8520: https://datatracker.ietf.org/doc/rfc8520/) using MUDgee tool (https://github.com/ayyoob/mudgee), and filters out packets that do not abide by MUD rules from a PCAP capture. It characterizes MUD-rejected traffic (MRT) to isolate network events, and observe their evolution. The core idea of this project is to use a generic MUD enforcer as a distributed Network Telescope for IoT-related traffic, starting from using MUD as specification-based and consistent IDS across deployments.
+
+This project currently is PCAP-based and operates on a device-specific basis to generate MUD-rejected traffic analyses.
 
 The pipeline works throuhg these steps:
 1. generates a MUD profile for a device, from pcap captures containing beningn traffic (uses MUDgee (Hamza et al., 2018) as of current implementation);
-2. produces MUD-rejected traffic (referred as _MRT_) from pcap captures interesting a specific device - referring to a specific time window;
+2. produces MUD-rejected traffic (referred as _MRT_) from pcap captures interesting a specific device *on a time-window basis*;
 3. produces a custom NetFlow CSV dataset file of bi-directional flows of such rejected traffic;
-4. performs hierarchical clustering (characterization) of these flows to discern the connection types of MUD-rejected traffic;
-5. produces dataset entries that describe the evolution of so-produced clusters - thus network/connection events - across pairwise comparison of MUD-rejected traffic per given time windows.
-6. compares multiple MUD-rejected traffic description datasets from two or more devices to provide insights on how anomalous activities affect the selected devices.
+4. performs hierarchical clustering (with HDBSCAN: https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) of MUD-rejected flows at each time window to discern the connection types of MUD-rejected traffic;
+5. produces dataset entries that describe the evolution of so-produced clusters - thus network/connection events across each two consecutive MUD-rejected traffic time windows. This is performed across multiple consecutive characterisation. This produces a MUD-rejected traffic feed.
+6. Compares multiple MUD-rejected traffic feeds from two or more devices to provide insights on how and what similar/dissimilar anomalous activities affect the selected devices.
 
 Below, the documentation for the executable files and usage of this software is provided.
 
 In Usage sample pipeline, the whole sequence of commands to execute the pipeline is exemplified.
 
-NOTEs:
-    - This project has been developed on the IEEE-Dataport IoT Network Intrusion Dataset (https://ieee-dataport.org/open-access/iot-network-intrusion-dataset), by Kang et al.
-    - I make use of the MUDgee project Github repository to generate MUD profiles (https://github.com/ayyoob/mudgee/tree/f63a88de84bb9d402b7b214bea2944a534c6c555) by Hamza et al.
-
 
 **Requisites**
 
-- Docker
+- TBD
 
 
 **Installation**
+
+0. TBD
 
 1. Download the repository and navigate to folder
 2. Run ``docker build -t mudscope .``
 3. Hang in there...
 
 **Running**
+
+0. TBD
+
 1. Run ``docker run -w /mudscope -v "$(pwd):/mudscope" --name mudscope mudscope``
 2. Open new terminal and shell into MUDscope with docker ``exec -it mudscope /bin/bash``
 3. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
@@ -46,19 +49,69 @@ NOTE: Place input files in the ``input`` folder in the MUDscope directory.
 4. Run ``docker rm -f mudscope`` to stop and remove the project image
 
 
+
 **Usage Documentation**
 
-NOTE: Run code in opened docker mudscope terminal
+## Main usage (suggested)
 
-``python run.py``
+``python run.py <arguments>``
 
 ``--pcap_limit``: if set to an integer, limits the number of packets processed in 'reject' mode to the one indicated.
 
-``--mode`` 
+``--mode mudgen`` : generates MUD data using MUDgee
+``--mudgen_config <json_file_name>`` : name of json file in /mudgen_configs on which MUD profile and filtering rules are created
+OUTPUT: a folder in /mudscope/result/ containing device-specific MUD profile and derived OF rules.
 
-- ``mudgen`` : generates MUD data using MUDgee
-    - ``--mudgen_config`` : name of json file in /mudgen_configs on which MUD profile and filtering rules are created
-    - OUTPUT: a folder in /mudscope/result/ containing device-specific MUD profile and derived OF rules.
+To use MUDscope meaningfully as of its current implementation, it is expected to consume a folder containing pcap files, resulting from a subdivision for a bigger capture. These pcap files will represent the *time-windows* on the basis of which traffic is characterised, and its evolution is recorded. Time-based subdivision of a pcap can be achieved with the tool and command:
+``editcap -i <60> path/to/input.pcap path/to/output.pcap``splits a pcap file into smaller files each containing traffic for ``-i`` seconds, outputting all generated files to the specified path. Refer to:
+- https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
+- https://www.wireshark.org/docs/man-pages/editcap.html
+
+After generating the MUD and related rules for a device, add reject_config files for the device, specifying network addresses and pcap capture to process with MUDscope, at: configs/reject_configs/{devname}/{session}/'. Where 'session' is used to group together reject_configs for multiple devices of which MRT traffic shall be compared. A reject_config shall be generated with the script
+``src/generate_rjt_config``.
+Use of this script is suggested as it automatically generates multiple reject_configs referred to multiple (time-window) pcap files located in a directory, for instance the one used with ``editcap``. See script code directly, or run ``python3 src/generate_rjt_config.py -h`` to consult usage.
+
+Finally, to characterise traffic, the tool translates pcaps to bi-directional flows, and scales their features. To do this, a dataset scaling reference (DSR) is needed. A DSR shall be created from a single pcap file with normal (benign) network activity. It does not need to be deployment specific, and there are no length requirements. A 1 hour-long capture obtained from sniffing the network traffic of the deployment, while using the devices present therein, should work well. Of course, the longer and more exaustive, the better.
+
+A dataset scaling references can be obtained with the following scripts, present in this project (src folder):
+
+- device_mrt_pcaps_to_csv.py: transforms a pcap file to a bi-directional flows CSV file.
+- scale_reference_df_script.py: performs some pre-processing and scaling of flow features.
+
+With the generated device MUD data, reject configurations, and DSR, the whole pipeline up to generation of the MRT Feed can be run with the following script.
+
+``mudscope.py <arguments>``
+- ``--devname <name>`` : name that was assigned to the device through mudgen_config file. This name will also be used to generate all related folders and outputs.
+- ``--analysis_capture_metadata <json_file_name>`` : name of json file (to be located in configs/characterization_datas/ directory) that contains the intended metadata information for the deployment and device. NOTE: it has to abide by a specific format, as its values are directly accessed by the code. See examples in indicated folder.
+- ``--dsr_path <path/to/file.csv>`` : Dataset Scaler Reference path. Path to a CSV bi-directional flows file that will be taken as a reference for the scaling of flows values.
+- ``--session <name>`: Used to fetch together reject_configs for a single device, and group together outputs for all devices assigned to the same analysis session.
+
+A MUD-rejected traffic evolution feed will generated for the device, on the set of (time-consecutive) pcap files indicated.
+
+To compare anomalous activities captured in MRTs for multiple devices, use again the ``run.py`` script, with the following argument:
+
+- ``--mode monitor``
+- ``--mrtfeeds_config <path/to/json_file>`` : path to json file listing the set of MRT feeds and associated device metadata to compare. In the file, also lists the features of the MRTfeeds to analyse for correlation. ``features_watch`` is the list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2. See examples in folder. Available/suggested features are:
+    clusters_balance;
+    all_dists_avg;
+    mutual_matches_n;
+    mutual_matches_percentage;
+    fwd_matches_n;
+    fwd_matches_percentage;
+    fwd_matches_agglomeration_avg;
+    fwd_matches_agglomeration_max;
+    bwd_matches_n;
+    bwd_matches_percentage;
+    bwd_matches_agglomeration_avg;
+    bwd_matches_agglomeration_max.
+    An example can be found in configs/monitor_configs/monitor_test.json.
+    The command outputs one plot per specified 'watch feature', for each of the devices specified in the mrtfeeds_config. Additionally, a log file is output where device-specific anomalies are shown, as well as pairwise matches of anomalous activities, if present.
+
+
+## Alternative usage: fine-grained invocations
+
+For a very fine-grained usage of the tool, below are listed the atomic commands that can be invoked, and related parameters, to run the pipeline.
+
 
 - ``reject`` : returns packets filtered from a pcap file by a virtual MUD enforcer
     - ``--reject_config`` : path to reject config file of reference OR folder containing a set of reject config files - config files contain device info and gateway MAC addresses related to filtering, and pcap to filter
@@ -97,10 +150,10 @@ NOTE: Run code in opened docker mudscope terminal
         - ``device_mrt_evolution_datagen`` : generates a dataframe and related CSV file listing the entries of the evolution of flow clusters over the MUD-rejected traffic concerning one device. It does so by ordering the related characterization files chronologically over the datetime of the first flow processed by each characterization file - then computes two-by-two pairwise transition entries.
     
     If analysis_action is ``mrta_characterize``, the following parameter is needed:
-    - ``--analysis_capture_metadata`` : name of json file (to be located in configs/characterization_datas/ directory) that contains the intended metadata information for the deployment and device. NOTE: it has to abide by a specific format, as its values are directly accessed by the code.
+    - ``--analysis_capture_metadata`` : name of json file (to be located in configs/characterization_datas/ directory) that contains the intended metadata information for the deployment and device. NOTE: it has to abide by a specific format, as its values are directly accessed by the code. See example in indicated directory.
 
 - ``monitor``
-    - ``--mrtfeeds_config`` : path to json file listing the set of MRT feeds and associated device metadata to compare. It also lists the features of the MRTfeeds to analyse for correlation, and the ``transition_window``, which allows to specify the number of transition entries to check for correlation. In other words, it's the size of the signatures, which depends in turn on the size of the base time windows. ``features_watch`` is the list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2.Available/suggested features are:
+    - ``--mrtfeeds_config`` : path to json file listing the set of MRT feeds and associated device metadata to compare. In the file, also lists the features of the MRTfeeds to analyse for correlation. ``features_watch`` is the list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2. See examples in folder. Available/suggested features are:
     clusters_balance;
     all_dists_avg;
     mutual_matches_n;
@@ -114,6 +167,7 @@ NOTE: Run code in opened docker mudscope terminal
     bwd_matches_agglomeration_avg;
     bwd_matches_agglomeration_max.
     An example can be found in configs/monitor_configs/monitor_test.json.
+    The command outputs one plot per specified 'watch feature', for each of the devices specified in the mrtfeeds_config. Additionally, a log file is output where device-specific anomalies are shown, as well as pairwise matches of anomalous activities, if present.
 
 
 **Pipeline Usage Template**
@@ -159,12 +213,3 @@ NOTE: Run code in opened docker mudscope terminal
 
 5. \> run.py --mode monitor
     --mrtfeeds_config configs/monitor_configs/<file>.json
-
-
-Additional note: ``editcap -i 60 input.pcap output.pcap`` splits a pcap file into smaller files each containing traffic for ``-i`` seconds. Refer to:
-- https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
-- https://www.wireshark.org/docs/man-pages/editcap.html
-
-Additional note: dataset scaling references to be obtained via:
-- device_mrt_pcaps_to_csv.py
-- scale_reference_df_script.py

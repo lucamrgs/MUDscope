@@ -34,7 +34,7 @@ def module_main(arguments=None):
     #   - the relative path to MUD (OpenFLow) rules in CSV
     # must be specified
     parser.add_argument('--devname', metavar='<name of device>', help='name of the device to which this MACRO applies. It is needed to reference the results of the calls and access related outputs.', required=True)    
-    parser.add_argument('--experiment', required=True)
+    parser.add_argument('--session', required=True)
     parser.add_argument('--dsr_path', help='Dataset Scaler Reference path. Must be specified to set global scaling parameters when processing MRT flows, for --analysisi_action={}'.format(ANALYSIS_ACTION_MRTA_CHARACTERIZE), required=True)
     parser.add_argument('--analysis_capture_metadata', metavar='<file path to json object/dict>', help='Metadata dictionary object describing the capture to analyse. \nIt shall contain at least "device_id" (string), and "deployment_info" (any type as of now) that describes the setting where the device is (e.g., lon, lat, industry_type, ...)', required=True)
     
@@ -51,7 +51,7 @@ def module_main(arguments=None):
     args = parser.parse_args(arguments)
 
     devname = args.devname
-    experiment = args.experiment
+    experiment = args.session
     dsr_path = args.dsr_path
     analysis_capture_metadata = args.analysis_capture_metadata
 
