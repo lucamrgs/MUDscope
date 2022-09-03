@@ -24,30 +24,26 @@ In Usage sample pipeline, the whole sequence of commands to execute the pipeline
 
 **Requisites**
 
-- TBD
+- python 3.9+
+- MUDgee requirements: at https://github.com/ayyoob/mudgee:
+    - LibPcap (install tcpdump)
+```sh
+    Linux: ``apt-get install tcpdump''
+    OSX: readily available by default.
+    Windows: follow instructions at: https://nmap.org/npcap/
+```
+    - Maven
+```sh
+    Follow instructions at: https://www.baeldung.com/install-maven-on-windows-linux-mac for installation.
+```
+- editcap (https://www.wireshark.org/docs/man-pages/editcap.html)
 
 
 **Installation**
 
-0. TBD
-
-1. Download the repository and navigate to folder
-2. Run ``docker build -t mudscope .``
-3. Hang in there...
-
-**Running**
-
-0. TBD
-
-1. Run ``docker run -w /mudscope -v "$(pwd):/mudscope" --name mudscope mudscope``
-2. Open new terminal and shell into MUDscope with docker ``exec -it mudscope /bin/bash``
-3. The functioning of the pipeline can be tested by invoking \> ``./run_demo.sh``
-    
-NOTE: Place input files in the ``input`` folder in the MUDscope directory.
-
-3. Exit the terminal with ``exit`` when done
-4. Run ``docker rm -f mudscope`` to stop and remove the project image
-
+1. Clone code to repo
+2. Make sure that BASE_DIR constant in src/Constants.py points to correct directory
+3. pip3 install -r requirements.txt
 
 
 **Usage Documentation**

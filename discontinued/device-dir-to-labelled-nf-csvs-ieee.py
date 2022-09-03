@@ -127,26 +127,26 @@ def flows_to_aggregated_csvs(pcaps_dir):
 
 
 def change_all_csv_header_to_custom(csvs_dir):
-    tgt_file_path = csvs_dir + '/' + os.path.basename(os.path.normpath(csvs_dir)) + '.csv'
-    if not tgt_file_path.endswith('.csv'):
-	    sys.exit(0)
+	tgt_file_path = csvs_dir + '/' + os.path.basename(os.path.normpath(csvs_dir)) + '.csv'
+	if not tgt_file_path.endswith('.csv'):
+		sys.exit(0)
 
-    out_path = os.path.splitext(tgt_file_path)[0] + '-custom-fromat.csv'
-    print(out_path)
+	out_path = os.path.splitext(tgt_file_path)[0] + '-custom-fromat.csv'
+	print(out_path)
 
-    with open(tgt_file_path, newline='') as inFile, open(out_path, 'w', newline='') as outfile:
-        r = csv.reader(inFile)
-        w = csv.writer(outfile)
-        new_header = ['ts','te','td','pr','sa','da','sp','dp','sas','pas','ipkt','opkt','ibyt','obyt','flg','dir','bps','pps','bpp','cl','sl','al']
-        next(r, None)  # skip the first row from the reader, the old header
-        # write new header
-        w.writerow(new_header)
+	with open(tgt_file_path, newline='') as inFile, open(out_path, 'w', newline='') as outfile:
+		r = csv.reader(inFile)
+		w = csv.writer(outfile)
+		new_header = ['ts','te','td','pr','sa','da','sp','dp','sas','pas','ipkt','opkt','ibyt','obyt','flg','dir','bps','pps','bpp','cl','sl','al']
+		next(r, None)  # skip the first row from the reader, the old header
+		# write new header
+		w.writerow(new_header)
 
-        # copy the rest
-        for row in r:
-            w.writerow(row)
+		# copy the rest
+		for row in r:
+			w.writerow(row)
 
-    return out_path
+	return out_path
 
 
 ############################################################################################################
