@@ -21,8 +21,9 @@ Below, the documentation for the executable files and usage of this software is 
 
 In Usage sample pipeline, the whole sequence of commands to execute the pipeline is exemplified.
 
+# Documentation
 
-**Requisites**
+## Requisites
 
 - python 3.9+
 - MUDgee requirements: at https://github.com/ayyoob/mudgee:
@@ -39,14 +40,12 @@ In Usage sample pipeline, the whole sequence of commands to execute the pipeline
 - editcap (https://www.wireshark.org/docs/man-pages/editcap.html)
 
 
-**Installation**
+## Installation
 
 1. Clone code to repo
 2. Make sure that BASE_DIR constant in src/Constants.py points to correct directory
 3. pip3 install -r requirements.txt
 
-
-**Usage Documentation**
 
 ## Main usage (suggested)
 
