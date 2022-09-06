@@ -1,5 +1,10 @@
 # MUDscope
+This repository contains the code for MUDscope by the authors of the ACSAC 2022 paper "Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles" [1]. Please [cite](#References) MUDscope when using it in academic publications.
 
+## Introduction
+Besides coming with unprecedented benefits, the Internet of Things (IoT) suffers deficits in security measures, leading to attacks increas- ing every year. In particular, network environments such as smart homes lack managed security capabilities to detect IoT-related at- tacks; IoT devices hosted therein are thus more easily infiltrated by threats. As such, context awareness on IoT infections is hard to achieve, preventing prompt response. In this work, we propose MUDscope, an approach to monitor malicious network activities affecting IoT in real-world consumer environments. We leverage the recent Manufacturer Usage Description (MUD) specification, which defines networking whitelists for IoT devices in MUD pro- files, to reflect consistent and necessarily-anomalous activities from smart things. Our approach characterizes this traffic and extracts signatures for given attacks. By analyzing attack signatures for multiple devices, we gather insights into emerging attack patterns. We evaluate our approach on both an existing dataset, and a new openly available dataset created for this research. We show that MUDscope detects several attacks targeting IoT devices with an F1-score of 95.77% and correctly identifies signatures for specific attacks with an F1-score of 87.72%.
+
+## Documentation
 
 **Description**
 
@@ -165,3 +170,22 @@ NOTE: Run code in opened docker mudscope terminal
 Additional note: ``editpcap -i 60 input.pcap output.pcap`` splits a pcap file into smaller files each containing traffic for ``-i`` seconds. Refer to:
 - https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
 - https://www.wireshark.org/docs/man-pages/editcap.html
+
+
+
+## Dataset
+TODO
+
+## References
+[1] `Luca Morgese Zangrandi, Thijs van Ede, Tim Booij, Savio Sciancalepore, Luca Allodi, and Andrea Continella. 2022. Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles. In Proceedings of ACSAC ’22: ACM Annual Computer Security Applications Conference (ACSAC ’22).`
+
+### Bibtex
+```
+@inproceedings{morgese2022mudscope,
+  title={{Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles}},
+  author={Morgese Zangrandi, Luca and van Ede, Thijs and Booij, Tim and Sciancalepore, Savio and Allodi, Luca and Continella, Andrea},
+  booktitle={Proceedings of ACSAC '22: ACM Annual Computer Security Applications Conference (ACSAC '22).},
+  year={2022},
+  organization={ACM}
+}
+```
