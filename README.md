@@ -1,53 +1,43 @@
 # MUDscope
+This repository contains the code for MUDscope by the authors of the ACSAC 2022 paper "Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles" [1]. Please [cite](#References) MUDscope when using it in academic publications.
 
+## Introduction
+Besides coming with unprecedented benefits, the Internet of Things (IoT) suffers deficits in security measures, leading to attacks increas- ing every year. In particular, network environments such as smart homes lack managed security capabilities to detect IoT-related at- tacks; IoT devices hosted therein are thus more easily infiltrated by threats. As such, context awareness on IoT infections is hard to achieve, preventing prompt response. In this work, we propose MUDscope, an approach to monitor malicious network activities affecting IoT in real-world consumer environments. We leverage the recent Manufacturer Usage Description (MUD) specification, which defines networking whitelists for IoT devices in MUD pro- files, to reflect consistent and necessarily-anomalous activities from smart things. Our approach characterizes this traffic and extracts signatures for given attacks. By analyzing attack signatures for multiple devices, we gather insights into emerging attack patterns. We evaluate our approach on both an existing dataset, and a new openly available dataset created for this research. We show that MUDscope detects several attacks targeting IoT devices with an F1-score of 95.77% and correctly identifies signatures for specific attacks with an F1-score of 87.72%.
 
-**Description**
-
-This software is of the publication [stepping out of the MUD: contextual network threat information for IoT devices from manufacturer-provided behaviour profiles, Zangrandi et al.]
-
-This program generates a MUD profile (IETF RFC 8520: https://datatracker.ietf.org/doc/rfc8520/) using MUDgee tool (https://github.com/ayyoob/mudgee), and filters out packets that do not abide by MUD rules from a PCAP capture. It characterizes MUD-rejected traffic (MRT) to isolate network events, and observe their evolution. The core idea of this project is to use a generic MUD enforcer as a distributed Network Telescope for IoT-related traffic, starting from using MUD as specification-based and consistent IDS across deployments.
-
-This project currently is PCAP-based and operates on a device-specific basis to generate MUD-rejected traffic analyses.
-
-The pipeline works throuhg these steps:
-1. generates a MUD profile for a device, from pcap captures containing beningn traffic (uses MUDgee (Hamza et al., 2018) as of current implementation);
-2. produces MUD-rejected traffic (referred as _MRT_) from pcap captures interesting a specific device *on a time-window basis*;
-3. produces a custom NetFlow CSV dataset file of bi-directional flows of such rejected traffic;
-4. performs hierarchical clustering (with HDBSCAN: https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) of MUD-rejected flows at each time window to discern the connection types of MUD-rejected traffic;
-5. produces dataset entries that describe the evolution of so-produced clusters - thus network/connection events across each two consecutive MUD-rejected traffic time windows. This is performed across multiple consecutive characterisation. This produces a MUD-rejected traffic feed.
-6. Compares multiple MUD-rejected traffic feeds from two or more devices to provide insights on how and what similar/dissimilar anomalous activities affect the selected devices.
-
-Below, the documentation for the executable files and usage of this software is provided.
-
-In Usage sample pipeline, the whole sequence of commands to execute the pipeline is exemplified.
-
-# Documentation
-
-## Requisites
-
-- python 3.9+
-- MUDgee requirements: at https://github.com/ayyoob/mudgee:
-    - LibPcap (install tcpdump)
-```sh
-    Linux: ``apt-get install tcpdump''
-    OSX: readily available by default.
-    Windows: follow instructions at: https://nmap.org/npcap/
-```
-    - Maven
-```sh
-    Follow instructions at: https://www.baeldung.com/install-maven-on-windows-linux-mac for installation.
-```
-- editcap (https://www.wireshark.org/docs/man-pages/editcap.html)
-
+## Overview
+The goal of MUDscope is to provide a distributed Network Telescope for IoT-related traffic that uses MUD enforcers as a specification-based IDS to consistently detect malicious network traffic across deployments.
+To this end, we take the following steps:
+1. Create MUD profiles for each monitored device. One can use MUD profiles provided by the IoT manufacturer. In this work, we automatically generate MUD profiles from benign IoT network traffic using [MUDgee](https://github.com/ayyoob/mudgee).
+2. Filter IoT network traffic (pcap files) based on MUD profile, called MUD-rejected traffic (MRT).
+3. Group filtered network traffic into NetFlows per device per time window.
+4. Cluster NetFlows using [HDBSCAN](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) to obtain groups of similar traffic (characterisations).
+5. Compare characterisations of subsequent time windows to describe the evolution of MRT over time.
+6. Compare MRT descriptions from multiple devices to provide insights on how anomalous activities affect the selected devices.
 
 ## Installation
+To install MUDscope, please take the following steps:
+1. Clone our repository
+```bash
+git clone git@github.com:lucamrgs/MUDscope.git     # Using SSH
+git clone https://github.com/lucamrgs/MUDscope.git # Using HTTPS
+```
+2. Make sure you have installed all [Dependencies](#Dependencies)
 
-1. Clone code to repo
-2. Make sure that BASE_DIR constant in src/Constants.py points to correct directory
-3. pip3 install -r requirements.txt
+### Dependencies
+Please install the following dependencies to 
 
+- [python 3.9+](https://www.python.org/downloads/release/python-390/)
+- [MUDgee](https://github.com/ayyoob/mudgee)
+  - [tcpdump](https://www.tcpdump.org/)
+  - [Maven](https://maven.apache.org/)
+- [editcap](https://www.wireshark.org/docs/man-pages/editcap.html)
 
-## Main usage (suggested)
+When all dependencies have been installed, make sure you have the correct python libraries installed by installing them from the `requirements.txt` file:
+```bash
+pip3 install -r requirements.txt
+```
+
+## Usage
 
 ``python run.py <arguments>``
 
@@ -208,3 +198,26 @@ For a very fine-grained usage of the tool, below are listed the atomic commands 
 
 5. \> run.py --mode monitor
     --mrtfeeds_config configs/monitor_configs/<file>.json
+
+
+## Dataset
+TODO
+
+NOTEs:
+    - This project has been developed on the IEEE-Dataport IoT Network Intrusion Dataset (https://ieee-dataport.org/open-access/iot-network-intrusion-dataset), by Kang et al.
+
+
+
+## References
+[1] `Luca Morgese Zangrandi, Thijs van Ede, Tim Booij, Savio Sciancalepore, Luca Allodi, and Andrea Continella. 2022. Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles. In Proceedings of ACSAC ’22: ACM Annual Computer Security Applications Conference (ACSAC ’22).`
+
+### Bibtex
+```
+@inproceedings{morgese2022mudscope,
+  title={{Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles}},
+  author={Morgese Zangrandi, Luca and van Ede, Thijs and Booij, Tim and Sciancalepore, Savio and Allodi, Luca and Continella, Andrea},
+  booktitle={Proceedings of ACSAC '22: ACM Annual Computer Security Applications Conference (ACSAC '22).},
+  year={2022},
+  organization={ACM}
+}
+```
