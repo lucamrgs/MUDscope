@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = [
+    "mudscope"
+]
+
+[project]
+name = "mudscope"
+version = "0.0.1"
+authors = [
+  { name="Luca Morgese Zangrandi", email="luca.morgese@tno.nl" },
+]
+description = "MUDscope - Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles"
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/lucamrgs/MUDscope"
+"Bug Tracker" = "https://github.com/lucamrgs/MUDscope/issues"
