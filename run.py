@@ -298,7 +298,18 @@ def mode_flow_file_gen(
 		pcap_dir: Union[str, Path],
 		outdir  : Union[str, Path],
 	) -> None:
-	"""Run MUDscope in flow_file_gen mode."""
+	"""Run MUDscope in flow_file_gen mode.
+	
+		Transforms pcap files of MUD-rejected traffic into NetFlows.
+		
+		Parameters
+		----------
+		pcap_dir : Union[str, Path]
+			Directory containing pcap files of MUD-rejected traffic.
+
+		outdir : Union[str, Path]
+			Output directory in which to store NetFlows.
+		"""
 	# Check if pcap_dir exists
 	if pcap_dir is None or not os.path.isdir(pcap_dir):
 		raise ValueError(
@@ -370,8 +381,6 @@ def main(arguments=None) -> None:
 
 	# NOTE: All parameters default to None values if not specified
 
-	flowsgen_tgt_dir = args.flowsgen_tgt_dir if args.flowsgen_tgt_dir is not None else None
-
 	analysis_action = args.analysis_action if args.analysis_action is not None else None
 	analysis_capture_metadata = CHATACTERIZATION_METADATA_FOLDER + args.analysis_capture_metadata if args.analysis_capture_metadata is not None else None
 	analysis_tgt = args.analysis_tgt if args.analysis_tgt is not None else None
@@ -411,23 +420,11 @@ def main(arguments=None) -> None:
 
 
 
-
-	################################################################################################
-	# MODE FLOWS FILE GEN
-	################################################################################################
-
-	if mode == MODE_FLOWS_GENERATION:
-		if flowsgen_tgt_dir is None or not os.path.isdir(flowsgen_tgt_dir):
-			raise ValueError(f">>> ERROR: Null or invalid --flowsgen_tgt_dir argument for mode {MODE_FLOWS_GENERATION}. Please enter a valid path to folder containing pcaps to convert to flows CSV file. Exiting.")
-
-		mrttocsv.module_each_pcap_to_complete_csv(flowsgen_tgt_dir)
-
-
 	################################################################################################
 	# MODE ANALYZE
 	################################################################################################
 
-	elif mode == MODE_ANALYZE:
+	if mode == MODE_ANALYZE:
 
 		if analysis_tgt is None or analysis_devname is None:
 			print('>>> Make sure to provide path to pcap/csv/directory to analyse, via the parameter --analysis_tgt\n>>> Also please specify device name with parameter --analysis_devname, needed to reference output folder for analysis actions.')
