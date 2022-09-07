@@ -23,18 +23,13 @@ import shutil
 import requests
 import time
 
-# I am not sure these three lines are necessary or even used
-cwd = os.getcwd()
-sys.path.insert(1, cwd + '/src/')
-sys.path.insert(2, cwd + '/src/auto-scripts')
-
 from mudscope.Constants import *
 
 debug = False
 
-BASH_AUTO_PCAP_TO_FLOWS = BASE_DIR + 'src/auto-scripts/bash/pcap_to_flows.sh'
-BASH_AUTO_FLOWS_TO_CSV = BASE_DIR + 'src/auto-scripts/bash/flows_to_csv.sh'
-BASH_AUTO_MERGE_CSVS = BASE_DIR + 'src/auto-scripts/bash/merge_csvs.sh'
+BASH_AUTO_PCAP_TO_FLOWS = BASE_DIR + 'mudscope/auto-scripts/bash/pcap_to_flows.sh'
+BASH_AUTO_FLOWS_TO_CSV = BASE_DIR + 'mudscope/auto-scripts/bash/flows_to_csv.sh'
+BASH_AUTO_MERGE_CSVS = BASE_DIR + 'mudscope/auto-scripts/bash/merge_csvs.sh'
 
 FLOWS_DIR_TAG = '-flows'
 ALL_CSV_FLOWS_DIR_TAG = '-all-flows-csv'
@@ -145,10 +140,14 @@ def pcaps_to_flows(pcaps_dir):
             print('>>> Flows generated at\n>>> {}'.format(output_path))
     
 
-def flows_to_aggregated_csvs(pcaps_dir, merge_all_csvs=False):
+def flows_to_aggregated_csvs(pcaps_dir, merge_all_csvs=False, outdir=None):
     
     # To then copy all per-pcap flow csv into one directory
-    pcaps_flows_csvs_dir = pcaps_dir + os.path.basename(os.path.normpath(pcaps_dir)) + ALL_CSV_FLOWS_DIR_TAG
+    if outdir is None:
+        pcaps_flows_csvs_dir = pcaps_dir + os.path.basename(os.path.normpath(pcaps_dir)) + ALL_CSV_FLOWS_DIR_TAG
+    else:
+        pcaps_flows_csvs_dir = outdir
+
     if os.path.isdir(pcaps_flows_csvs_dir):
         print('')
         print('>>> >>> ERROR <<<')
@@ -648,11 +647,11 @@ def module_main(pcaps_dir):
 
 # TODO: Add 'generate all complete CSVs for each pcap in folder' function
 
-def module_each_pcap_to_complete_csv(pcaps_dir):
+def module_each_pcap_to_complete_csv(pcaps_dir, outdir=None):
     dir = pcaps_dir if pcaps_dir.endswith('/') else pcaps_dir + '/'
     pcaps_to_flows(dir)
     
-    all_csvs_dir, _ = flows_to_aggregated_csvs(dir)
+    all_csvs_dir, _ = flows_to_aggregated_csvs(dir, outdir=outdir)
     print(all_csvs_dir)
 
     change_csvs_headers_to_custom(all_csvs_dir)

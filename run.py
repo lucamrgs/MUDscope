@@ -118,18 +118,35 @@ def parse_args(arguments=None) -> argparse.Namespace:
 		required = False,
 	)
 
+	########################################################################
+	#                           Mode = flows_gen                           #
+	########################################################################
+
+	group_flows_gen = parser.add_argument_group(
+		title       = 'Mode: flows_gen',
+		description = 'For transforming MRT pcap files to NetFlows. '
+		              'Required arguments when --mode flows_gen is set.',
+	)
+	group_flows_gen.add_argument(
+		'--flowsgen_tgt_dir',
+		metavar  = '<String>',
+		help     = 'Full or relative path to directory containing MUD-rejected pcap files',
+		required = False,
+	)
+	group_flows_gen.add_argument(
+		'--flowsgen_outdir',
+		metavar  = '<String>',
+		help     = 'Full or relative path to output directory in which to store NetFlows',
+		required = False,
+	)
+
 
 	########################################################################
 	#                           Generic settings                           #
 	########################################################################
 
 	# Not udsed at the moment
-	parser.add_argument('--reject_online_interface', metavar='<String>', help='Name of the local interface on which to listen to device traffic."', required=False)
-
-	
-	# Generation of custom NetFlow CSV file
-	parser.add_argument('--flowsgen_tgt_dir', metavar='<String>', help='Full or relative path to directory containing MUD-rejected pcap files', required=False)
-
+	parser.add_argument('--reject_online_interface', metavar='<String>', help='Name of the local interface on which to listen to device traffic."', required=False)	
 
 	analysis_actions_list = [ANALYSIS_ACTION_IPS_FLOWS_GRAPHS, ANALYSIS_ACTION_PORTS_FLOWS_GRAPHS, ANALYSIS_ACTION_PKTS_CSV, ANALYSIS_ACTION_IPS_MAP, ANALYSIS_ACTION_FILTER_KNOWN_PROVIDERS, ANALYSIS_ACTION_MRTA_CHARACTERIZE, ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN]
 	parser.add_argument('--analysis_action', metavar='<string to perform>', help='Indicates what action to perform in analysis, related to analysis pcap.\nSupported actions are \n{}.'.format(analysis_actions_list), required=False)
@@ -277,13 +294,30 @@ def mode_reject(
 		)
 
 
-def mode_flow_file_gen(args: argparse.Namespace) -> None:
+def mode_flow_file_gen(
+		pcap_dir: Union[str, Path],
+		outdir  : Union[str, Path],
+	) -> None:
 	"""Run MUDscope in flow_file_gen mode."""
-	# if flowsgen_tgt_dir is None or not os.path.isdir(flowsgen_tgt_dir):
-	# 		raise ValueError(f">>> ERROR: Null or invalid --flowsgen_tgt_dir argument for mode {MODE_FLOWS_GENERATION}. Please enter a valid path to folder containing pcaps to convert to flows CSV file. Exiting.")
+	# Check if pcap_dir exists
+	if pcap_dir is None or not os.path.isdir(pcap_dir):
+		raise ValueError(
+			f"Null or invalid --flowsgen_tgt_dir argument for mode "
+			f"{MODE_FLOWS_GENERATION}. Please enter a valid path to folder "
+			"containing pcaps to convert to flows CSV file."
+		)
 
-	# 	mrttocsv.module_each_pcap_to_complete_csv(flowsgen_tgt_dir)
-	...
+	# Check if outdir is valid
+	if outdir is None:
+		raise ValueError(
+			"Unspecified --flowsgen_outdir, please set parameter."
+		)
+
+	# Transform MRT to CSV files
+	mrttocsv.module_each_pcap_to_complete_csv(
+		pcaps_dir = pcap_dir,
+		outdir    = outdir,
+	)
 
 
 def mode_analyze(args: argparse.Namespace) -> None:
@@ -316,7 +350,10 @@ def main(arguments=None) -> None:
 			pcap_limit    = args.pcap_limit,
 		)
 	elif args.mode == MODE_FLOWS_GENERATION:
-		return mode_flow_file_gen(args)
+		return mode_flow_file_gen(
+			pcap_dir = args.flowsgen_tgt_dir,
+			outdir   = args.flowsgen_outdir,
+		)
 	elif args.mode == MODE_ANALYZE:
 		return mode_analyze(args)
 	elif args.mode == MODE_MONITOR:
