@@ -1,4 +1,5 @@
 
+from multiprocessing.sharedctypes import Value
 import re
 import sys
 import argparse
@@ -27,78 +28,91 @@ from MRTACharacterizator import MRTACharacterizator
 from MRTAPairClustersProcessor import MRTAPairClustersProcessor
 import device_mrt_pcaps_to_csv as mrttocsv
 
+################################################################################
+#                               Argument parsing                               #
+################################################################################
 
-"""
-	MUD Resources :) @:
-		- NIST https://www.nccoe.nist.gov/projects/building-blocks/mitigating-iot-based-ddos/securing-home-iot-devices   
-		- NIST https://github.com/usnistgov/MUD-PD 
-		- https://github.com/iot-onboarding/mud-visualizer
-		NOTE: MUD resources and interest have increased a whole lot since February 2021!
-		- NIST https://www.nccoe.nist.gov/content/mud-related-resources
-"""
-
-
-""" Project TODO's
+def parse_args(arguments=None) -> argparse.Namespace:
+	"""Parse arguments for running MUDscope.
 	
-	- TODO: (adj 26/7/21)
-			* Compact pcap-to-csv bidir flows tool, to have it scale on whatever pcap>CSV to feed MRTA
-		* DONE - Code MRTA module taking logic from colab file morgese-master-thesis-main.ipynb (https://colab.research.google.com/drive/1tLYoY6I0XJq5vSUoMhRG-UuT0J8HVe9a?usp=sharing)
+		Returns
+		-------
+		args : argparse.Namespace
+			Parsed arguments.
+		"""
+	# Create argument parser
+	parser = argparse.ArgumentParser(
+		description = "MUDscope - Stepping out of the MUD: Contextual threat "
+		              "information for IoT devices with manufacturer-provided "
+					  "behaviour profiles."
+	)
 
-	- TODO: (adj 27/7/21)
-			* Flexibilize CSV/Dataframe column names as Constant values (e.g., [TS, TE, SA] instead of ['ts', 'te', 'sa', ...])
-
-	- TODO: (adj 28/7/21)
-			* Validate HDBSCAN parameters with AMI-precision over different batches of various dimensions, report average for selected params.
-			* Implement eventualities-robust OpenFlow rules generation from MUD profile, not to rely on MUDGee
-			* INVESTIGATE MUD-PD https://github.com/usnistgov/MUD-PD (installed in ~/Software, import pcaps crashes as of now...)
-
-	- TODO TODO TODO (adj 23/9/21)
-			* Flexibilize CSV generation from single pcaps in a folder.
-	
-	- TODO TODO TODO TODO (adj 14/10/21)
-		* INSTEAD OF FILTERING PACKETS AND MATCHING AGAINST FLOWS, FIRST CONVERT PCAP TO FILTER INTO FLOWS, AND THEN FILTER IT
-		* In other words, switch the pcaps-to-flows-csv procedure one step eariler, and directly output MRT Flow CSVs
-
-
-
-Chair Andrea Continella
-Committee member: Roland and Andreas
-External: Roland
-Other: Thijs, Tim
-
-
-0031 534893250 Sanne
-
-"""
-
-
-
-
-def main(arguments=None):
-
-
-	################################################################################################
-	# Arguments definition
-	################################################################################################
-
-	parser = argparse.ArgumentParser(description='TBD')
+	########################################################################
+	#                       Chose mode of operation                        #
+	########################################################################
 
 	# Mode can be "mudgen", "reject", "analyze"
 	modes_list = [MODE_MUDGEN, MODE_REJECT, MODE_FLOWS_GENERATION, MODE_ANALYZE]
-	parser.add_argument('--mode', metavar='<mode of program execution>',
-						help=f"One of: [ {modes_list} ] .\n Consult documentation on github for detailed usage explanation!",
-						required=True)
+	parser.add_argument(
+		'--mode',
+		metavar  = '<mode of program execution>',
+		choices  = modes_list,
+		help     = f"One of: [ {modes_list} ] .\n Consult documentation on github for detailed usage explanation!",
+		required = True,
+	)
+
+	########################################################################
+	#                            Mode = mudgen                             #
+	########################################################################
 
 	# If mode is "mudgen", a MUD config file to feed MUDgee is needed
-	parser.add_argument('--mudgen_config', metavar='<JSON file for mudgee MUD generation>', help='name of JSON file for mudgee MUD generation', required=False)
+	group_mudgen = parser.add_argument_group(
+		title       = 'Mode: mudgen',
+		description = 'For creating MUD files from benign network traces. '
+		              'Required arguments when --mode mudgen is set.',
+	)
+	group_mudgen.add_argument(
+		'--mudgen_config',
+		metavar  = '<JSON file for mudgee MUD generation>',
+		help     = 'name of JSON file for mudgee MUD generation',
+		required = False,
+	)
+
+	########################################################################
+	#                            Mode = reject                             #
+	########################################################################
 
 	# If mode is "reject", 
 	#   - the config file for the referred device and gateway information, and
 	#   - the relative path to MUD (OpenFLow) rules in CSV
 	# must be specified
-	parser.add_argument('--reject_config', metavar='<JSON file of MUD config for filtering data>', help='name of MUD config JSON for specified MUD to enforce.\nRequired if mode is "reject"', required=False)
-	parser.add_argument('--reject_mud_rules', metavar='<Relative-path of CSV file of filtering rules (only OpenFlow standard supported ATM)>', help='CSV rules file generated by MUDgee, for specific device MUD to enforce.\nRequired if mode is "reject"', required=False)
-	parser.add_argument('--reject_to_named_dir', metavar='<String>', help='Name of directory that will be generated in outputs/<device>/ where the results of the "reject" operation will be stored.\nThis parameter is optional', required=False)
+	group_reject = parser.add_argument_group(
+		title       = 'Mode: reject',
+		description = 'For filtering MUD rejected traffic from pcap files. '
+		              'Required arguments when --mode reject is set.',
+	)
+	group_reject.add_argument(
+		'--reject_config',
+		metavar  = '<JSON file of MUD config for filtering data>',
+		help     = 'name of MUD config JSON for specified MUD to enforce.\nRequired if mode is "reject"',
+		required = False,
+	)
+	group_reject.add_argument(
+		'--reject_mud_rules',
+		metavar  = '<Relative-path of CSV file of filtering rules (only OpenFlow standard supported ATM)>',
+		help     = 'CSV rules file generated by MUDgee, for specific device MUD to enforce.\nRequired if mode is "reject"',
+		required = False,
+	)
+	group_reject.add_argument(
+		'--reject_to_named_dir',
+		metavar  = '<String>',
+		help     = 'Name of directory that will be generated in outputs/<device>/ where the results of the "reject" operation will be stored.\nThis parameter is optional',
+		required = False,
+	)
+
+	########################################################################
+	#                           Generic settings                           #
+	########################################################################
 
 	# Not udsed at the moment
 	parser.add_argument('--reject_online_interface', metavar='<String>', help='Name of the local interface on which to listen to device traffic."', required=False)
@@ -125,11 +139,87 @@ def main(arguments=None):
 
 	parser.add_argument('--session_name')
 
-	################################################################################################
-	# Arguments parsing
-	################################################################################################
 
-	args = parser.parse_args(arguments)
+	# Return parsed arguments
+	return parser.parse_args(arguments)
+
+################################################################################
+#                                    Modes                                     #
+################################################################################
+
+def mode_mudgen(config: Union[str, Path]) -> None:
+	"""Run MUDscope in mudgen mode.
+
+		Generates a MUD profile from a given configuration.
+		See example config files for required format.
+	
+		Parameters
+		----------
+		config : Union[str, Path]
+			Path to config file from which to generate MUD profile.
+		"""
+	# Ensure we are given a config file
+	if config is None:
+		raise ValueError("Please specify a path to a config file.")
+
+	# Get info from MUD config file
+	print('>>> MUDGEN CONFIG FILE: {}'.format(config))
+	with open(config) as mg_cf:
+		mg_data = json.load(mg_cf)
+	device_name = mg_data['deviceConfig']['deviceName']
+	# Run mudgee
+	mudgee_gen_outcome = MUDGenUtils.run_mudgee(config)
+	print(f'>>> MUD data to generate with MUDgee from info in config file {config}') 
+
+	if mudgee_gen_outcome == 0:
+		print(f'>>> MUD data output in result/{device_name}')
+	else:
+		print('>>> ERROR: Some error occurred in generating MUD data.')
+
+
+def mode_reject(args: argparse.Namespace) -> None:
+	"""Run MUDscope in reject mode."""
+	...
+
+
+def mode_flow_file_gen(args: argparse.Namespace) -> None:
+	"""Run MUDscope in flow_file_gen mode."""
+	...
+
+
+def mode_analyze(args: argparse.Namespace) -> None:
+	"""Run MUDscope in analyze mode."""
+	...
+	
+
+def mode_monitor(args: argparse.Namespace) -> None:
+	"""Run MUDscope in monitor mode."""
+	...
+
+
+
+
+def main(arguments=None) -> None:
+	"""Run MUDscope, see individual modes for usage."""
+	# Parse arguments
+	args = parse_args(arguments)
+
+	# Run in given mode
+	if args.mode == MODE_MUDGEN:
+		return mode_mudgen(args.mudgen_config)
+	elif args.mode == MODE_REJECT:
+		return mode_reject(args)
+	elif args.mode == MODE_FLOWS_GENERATION:
+		return mode_flow_file_gen(args)
+	elif args.mode == MODE_ANALYZE:
+		return mode_analyze(args)
+	elif args.mode == MODE_MONITOR:
+		return mode_monitor(args)
+	else:
+		...
+		# raise ValueError(f"Unknown mode: {args.mode}")
+
+	# Run given mode
 
 	mode = args.mode
 
