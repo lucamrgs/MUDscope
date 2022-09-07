@@ -24,10 +24,11 @@ git clone https://github.com/lucamrgs/MUDscope.git # Using HTTPS
 2. Make sure you have installed all [Dependencies](#Dependencies)
 
 ### Dependencies
-Please install the following dependencies to 
+Please install the following dependencies to run MUDscope
 
 - [python 3.9+](https://www.python.org/downloads/release/python-390/)
-- [MUDgee](https://github.com/ayyoob/mudgee)
+- [MUDgee](https://github.com/ayyoob/mudgee), additionally requires:
+  - [java](https://www.oracle.com/java/technologies/downloads/)
   - [tcpdump](https://www.tcpdump.org/)
   - [Maven](https://maven.apache.org/)
 - [editcap](https://www.wireshark.org/docs/man-pages/editcap.html)
@@ -39,7 +40,9 @@ pip3 install -r requirements.txt
 
 ## Usage
 
-``python run.py <arguments>``
+```bash
+python run.py <arguments>
+```
 
 ``--pcap_limit``: if set to an integer, limits the number of packets processed in 'reject' mode to the one indicated.
 
@@ -155,12 +158,17 @@ For a very fine-grained usage of the tool, below are listed the atomic commands 
     The command outputs one plot per specified 'watch feature', for each of the devices specified in the mrtfeeds_config. Additionally, a log file is output where device-specific anomalies are shown, as well as pairwise matches of anomalous activities, if present.
 
 
-**Pipeline Usage Template**
+**Examples**
 
 1. \> run.py --mode mudgen 
     --mudgen_config [from ./configs/mudgen/]<mudgee_config_file_path>.json
     out \>\>\>
         result/<device_name> folder w/ MUD profile, CSV OF rules
+
+```bash
+python3 run.py --mode mudgen\
+    --mudgen_config tue-eufy.json # Select any file relative to ./configs/mudgen/
+```
 
 
 2. \> run.py --mode reject 
@@ -170,7 +178,7 @@ For a very fine-grained usage of the tool, below are listed the atomic commands 
     --pcaps_limit OPTIONAL (use only if necessary. E.g., crashes...), limits the number of packets processed per-pcap. Example: <300000>
     out \>\>\> 
         outputs/<device_name>/
-            <pcap_file_basename>-rejected.pcap,
+            <pcap_file_basename>-rejected.pcap,,
             <pcap_file_basename>-rejected.json
         For each reject config file specified (either a single one, or those in the reject configs folder)
 
