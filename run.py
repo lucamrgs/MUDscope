@@ -92,6 +92,7 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	group_reject.add_argument(
 		'--reject_config',
 		metavar  = '<JSON file of MUD config for filtering data>',
+		nargs    = '+',
 		help     = 'name of MUD config JSON for specified MUD to enforce.\nRequired if mode is "reject"',
 		required = False,
 	)
@@ -116,7 +117,7 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	parser.add_argument('--reject_online_interface', metavar='<String>', help='Name of the local interface on which to listen to device traffic."', required=False)
 
 	# Optional, if set, limits the number of packets that are processed when rejecting traffic
-	parser.add_argument('--pcap_limit', metavar='<integer>', help='Number to indicate how many packets will be processed by either functionality', required=False)
+	parser.add_argument('--pcap_limit', metavar='<integer>', type=int, help='Number to indicate how many packets will be processed by either functionality', required=False)
 
 	# Generation of custom NetFlow CSV file
 	parser.add_argument('--flowsgen_tgt_dir', metavar='<String>', help='Full or relative path to directory containing MUD-rejected pcap files', required=False)
@@ -158,7 +159,10 @@ def mode_mudgen(config: Union[str, Path]) -> None:
 		"""
 	# Ensure we are given a config file
 	if config is None:
-		raise ValueError("Please specify a path to a config file.")
+		raise ValueError(
+			"Please specify a path to a config file using --mudgen_config "
+			"<path>."
+		)
 
 	# Get info from MUD config file
 	print('>>> MUDGEN CONFIG FILE: {}'.format(config))
@@ -177,7 +181,65 @@ def mode_mudgen(config: Union[str, Path]) -> None:
 
 def mode_reject(args: argparse.Namespace) -> None:
 	"""Run MUDscope in reject mode."""
-	...
+	########################################################################
+	#                                Checks                                #
+	########################################################################
+
+	# Check all parameters entered
+	if args.reject_mud_rules is None:
+		raise ValueError("Please specify --reject_mud_rules <path>")
+
+	# Check if MUD rules exist
+	if not os.path.isfile(args.reject_mud_rules):
+		raise ValueError(
+			f'MUD-derived (OpenFlow) rules CSV file <{args.reject_mud_rules}> '
+			'not found.'
+		)
+
+	# Check if filter is specified
+	if args.reject_config is None:
+		raise ValueError('Please specify --reject_config <path>')
+
+	########################################################################
+	#                                 Run                                  #
+	########################################################################
+
+	# Loop over all specified config files
+	for config in args.reject_config:
+		# Check if file exists
+		if not os.path.isfile(config):
+			raise ValueError(f"Unknown config file: '{config}'")
+
+		# Read reject configuration
+		with open(config) as mc_data:
+			data = json.load(mc_data)
+
+		# Get PCAP location
+		reject_pcap = data['filterPcapLocation']
+
+		# Check if pcap to process exists
+		if reject_pcap is not None and not os.path.isfile(reject_pcap):
+			raise ValueError(
+				f'"{reject_pcap}" does not exist. '
+				f'Check --reject_config file key-values {json.dumps(data, indent=4)}'
+				f'\n(if null: are you trying to use a MUDgee config file?)'
+			)
+
+		# Create MUD enforcer
+		v_mud_enf = Virtual_MUD_enforcer(
+			device_mac   = data['deviceConfig']['device'],
+			device_name  = data['deviceConfig']['deviceName'] ,
+			gateway_mac  = data['defaultGatewayConfig']['macAddress'],
+			filter_rules = args.reject_mud_rules,
+		)
+
+		# Run virtual MUD enforcer on pcap, for given
+		v_mud_enf.enforce_in_pcap(
+			pcap_file  = reject_pcap,
+			pcap_limit = args.pcap_limit,
+			save_json  = True,
+			named_dir  = args.reject_to_named_dir,
+		)
 
 
 def mode_flow_file_gen(args: argparse.Namespace) -> None:
@@ -275,140 +337,13 @@ def main(arguments=None) -> None:
 		sys.exit(-1)
 
 
-	# NOTE: Modes in if-elif-else as mutually exclusive
-	################################################################################################
-	# MODE MUDGEN
-	################################################################################################
-
-	# Create MUD config file to feed MUDgee
-	if mode == MODE_MUDGEN:
-		if mudgen_config is not None:
-			# Get info from MUD config file
-			print('>>> MUDGEN CONFIG FILE: {}'.format(mudgen_config))
-			with open(mudgen_config) as mg_cf:
-				mg_data = json.load(mg_cf)
-			device_name = mg_data['deviceConfig']['deviceName']
-			# Run mudgee
-			mudgee_gen_outcome = MUDGenUtils.run_mudgee(mudgen_config)
-			print('>>> MUD data to generate with MUDgee from info in config file {}'.format(mudgen_config)) 
-		else:
-			# Get info from MUD config file
-			print('>>> MUDGEN CONFIG FILE: {}'.format(MUD_DEFAULT_CONFIG_FILE))
-			with open(MUD_DEFAULT_CONFIG_FILE) as mg_cf:
-				mg_data = json.load(mg_cf)
-			device_name = mg_data['deviceConfig']['deviceName']
-			# Run mudgee
-			mudgee_gen_outcome = MUDGenUtils.run_mudgee(MUD_DEFAULT_CONFIG_FILE)
-			print('>>> MUD config file not provided for "mudgen". Defaulting on {}'.format(MUD_DEFAULT_CONFIG_FILE))
-
-		if mudgee_gen_outcome == 0:
-			print('>>> MUD data output in result/{}'.format(device_name))
-		else:
-			print('>>> ERROR: Some error occurred in generating MUD data.')
-
-
-	################################################################################################
-	# MODE REJECT
-	################################################################################################
-
-	elif mode == MODE_REJECT:
-		# Check all parameters entered
-		if  reject_mud_rules is None:
-			print('>>> Parameter missing: --reject_mud_rules.')
-			sys.exit(-1)
-		# Check if MUD rules exist
-		if not os.path.isfile(reject_mud_rules):
-			print('>>> MUD-derived (OpenFlow) rules CSV file <{}> not found.'.format(reject_mud_rules))
-			sys.exit(-1)
-		if reject_config is None and reject_online_interface is None:
-			print('>>> Filtering modality not specified. Provide either of the parameters: --reject_config, --reject_online_interface')
-			sys.exit(-1)
-
-		# Get useful data
-		if reject_config is not None: # RUN IN PCAP
-			if os.path.isfile(reject_config):
-				with open(reject_config) as mc_data:
-					data = json.load(mc_data)
-				dev_name = data['deviceConfig']['deviceName'] 
-				dev_mac = data['deviceConfig']['device']
-				gw_mac = data['defaultGatewayConfig']['macAddress']
-				reject_pcap = data['filterPcapLocation']
-
-				# Check if pcap to process exists
-				if reject_pcap is not None and not os.path.isfile(reject_pcap):
-					print('>>> "{}" does not exist. Check --reject_config file key-values {} \n>>> (if null: are you trying to use a MUDgee config file?) '.format(reject_pcap, json.dumps(data, indent=4)), file=sys.stderr)
-					sys.exit(-1)
-
-				v_mud_enf = Virtual_MUD_enforcer(dev_mac, dev_name, gw_mac, reject_mud_rules)
-				# Run virtual MUD enforcer on pcap, for given
-				v_mud_enf.enforce_in_pcap(reject_pcap, pcap_limit, save_json=True, named_dir=reject_to_named_dir)
-
-			# If --reject_config parameter is a directory, iterate over all pcaps in directory and filter according to other parameters
-			elif os.path.isdir(reject_config):
-				
-				config_folder_base = os.path.basename(os.path.normpath(reject_config))
-				print('>>> IN-CONFIG FOLDER: {}'.format(config_folder_base))
-				
-				tgt_dir = os.fsencode(reject_config)
-				for file in os.listdir(tgt_dir):
-					filename = os.fsdecode(file)
-					if filename.endswith('.json'):
-						
-						reject_config = os.fsdecode(tgt_dir) + '/' + filename
-
-						print('>>>>>>>>>>>>>>>>>')
-						print('######################## Filtering from config: \n{}'.format(reject_config))
-						print('>>>>>>>>>>>>>>>>>')
-
-						if os.path.isfile(reject_config):
-							with open(reject_config) as mc_data:
-								data = json.load(mc_data)
-							dev_name = data['deviceConfig']['deviceName'] 
-							dev_mac = data['deviceConfig']['device']
-							gw_mac = data['defaultGatewayConfig']['macAddress']
-							reject_pcap = data['filterPcapLocation']
-
-							# Check if pcap to process exists
-							if reject_pcap is not None and not os.path.isfile(reject_pcap):
-								print('>>> "{}" does not exist. Check --reject_config file key-values {} \n>>> (if null: are you trying to use a MUDgee config file?) '.format(reject_pcap, json.dumps(data, indent=4)), file=sys.stderr)
-								sys.exit(-1)
-
-							v_mud_enf = Virtual_MUD_enforcer(dev_mac, dev_name, gw_mac, reject_mud_rules)
-							# Run virtual MUD enforcer on pcap, for given
-							v_mud_enf.enforce_in_pcap(reject_pcap, pcap_limit, named_dir=reject_to_named_dir)
-
-						
-						print('<<<<<<<<<<<<<<<<<')
-						print('######################## Done filtering from config: \n{}'.format(reject_config))
-						print('<<<<<<<<<<<<<<<<<')
-
-			else:
-				print('>>> Parameter --reject_config does not seem to be a file nor directory. Specify a valid path.\n>>> Parameter given: {}'.format(reject_config))
-				sys.exit(-1)
-
-		if reject_online_interface is not None: # RUN ONLINE LOCALLY
-			print('>>> Attempt listening on interface [ {} ] to filter traffic as specified by rules at [ {} ]'.format(reject_online_interface, reject_mud_rules))
-			# Local variable to my mac
-			dev_mac = '3c:22:fb:97:59:a1'
-			dev_name = 'macbook-local-test'
-			gw_mac = '88:36:6c:d7:1c:56'
-			v_mud_enf = Virtual_MUD_enforcer(dev_mac, dev_name, gw_mac, reject_mud_rules)
-			v_mud_enf.enforce_online(reject_online_interface)
-
-		# ONLINE MODE NOTES
-		"""
-		- Listen on determined interface
-		- Listen for MAC-specific (device-specific) packets
-		- As a MUD enforcer, it should DROP>STORE non-mud packets, and forward MUD packets
-		- As a MUD listener, it should just collect the already-filtered packets
-		"""
 
 
 	################################################################################################
 	# MODE FLOWS FILE GEN
 	################################################################################################
 
-	elif mode == MODE_FLOWS_GENERATION:
+	if mode == MODE_FLOWS_GENERATION:
 		if flowsgen_tgt_dir is None or not os.path.isdir(flowsgen_tgt_dir):
 			raise ValueError(f">>> ERROR: Null or invalid --flowsgen_tgt_dir argument for mode {MODE_FLOWS_GENERATION}. Please enter a valid path to folder containing pcaps to convert to flows CSV file. Exiting.")
 

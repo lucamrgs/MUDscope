@@ -117,24 +117,25 @@ class Virtual_MUD_enforcer:
         print(f">>> DEBUG: NAMED DIR = {named_dir}")
         # Name output file and setup output location. File is named as <pcap>-<rejected-tag>.pcap
 
-        # Create device-specific directory if does not exist
-        device_dir = OUTPUTS_FOLDER + self.devname + '/'
-        if not Path(device_dir).exists():
-            Path(device_dir).mkdir(parents=True, exist_ok=True)
-        
-        output_base = device_dir + Path(pcap_file).stem + REJECTED_DATA_FILE_TAG + '.pcap'
-        if named_dir is not None:
-            device_subdir = device_dir + self.devname + '_' + named_dir + '/'
-            if not Path(device_subdir).exists():
-                Path(device_subdir).mkdir(parents=True, exist_ok=True)
-            output_base = device_subdir + Path(pcap_file).stem + REJECTED_DATA_FILE_TAG + '.pcap'
-        output_full_path = output_base
+        # Set default named_dir
+        if named_dir is None:
+            named_dir = OUTPUTS_FOLDER
+
+        # Generate output path
+        output_full_path = (
+            Path(named_dir).absolute() /
+            self.devname /
+            f"{Path(pcap_file).stem}{REJECTED_DATA_FILE_TAG}.pcap"
+        )
+
+        # Ensure directory exists
+        output_full_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write pcap to device-referred output location
         if not Path(output_full_path).is_file():
             open(output_full_path, 'w+').close()
         
-        outpcap_writer = PcapWriter(output_full_path, append=False, sync=True)
+        outpcap_writer = PcapWriter(str(output_full_path), append=False, sync=True)
 
         # TODO: support autonomous generation of register form rejected pcap
         pcap_register = PacketsRegister()
@@ -185,7 +186,7 @@ class Virtual_MUD_enforcer:
                 If 0 packets are rejected, I still say I 'reject' the first packet (with TCP or UDP layer) from the capture.
         """
         try:
-            cap = rdpcap(output_full_path)
+            cap = rdpcap(str(output_full_path))
         except scapy.error.Scapy_Exception as e:
             PACKETS_COPY = 1
             count = 0
@@ -198,11 +199,9 @@ class Virtual_MUD_enforcer:
 
         # JSON Register for utility
         if save_json:
-            pcap_reg_fullpath = output_full_path + '.json'
-            json_pcap_register = open(pcap_reg_fullpath, 'w')
-            json_pcap_register.write(pcap_register.to_json())
-            #print('\n' + pcap_register.to_json())
-            json_pcap_register.close()
+            with open(output_full_path.with_suffix('.json'), 'w') as outfile:
+                outfile.write(pcap_register.to_json())
+
             print('>>> Pcap register saved in {}'.format(self.devname + REJECTED_DATA_FILE_TAG + '.json'))
 
         
