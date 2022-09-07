@@ -5,12 +5,12 @@ import os
 import csv
 import socket
 import binascii
-from Flow import Flow
+from mudscope.Flow import Flow
 from scapy.all import *
 from pathlib import Path
 from datetime import datetime
 
-from Constants import *
+from mudscope.Constants import *
 
 debug = False
 

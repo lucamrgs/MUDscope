@@ -92,7 +92,7 @@ from pprint import pprint
 
 import pandas as pd
 
-from Constants import *
+from mudscope.Constants import *
 
 from scipy.spatial import distance_matrix
 

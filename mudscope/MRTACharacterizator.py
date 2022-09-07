@@ -36,9 +36,9 @@ import os
 
 from datetime import datetime
 from IPy import IP
-from Constants import STRFTIME_READABLE_FORMAT
+from mudscope.Constants import STRFTIME_READABLE_FORMAT
 
-from Descriptors import ClusterDescriptor, FlowsDescriptor
+from mudscope.Descriptors import ClusterDescriptor, FlowsDescriptor
 
 """
     - TODO: Move pre-processing logic to a prev module so that it only takes a CSV, checks the format, and that's it

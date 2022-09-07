@@ -28,7 +28,7 @@ cwd = os.getcwd()
 sys.path.insert(1, cwd + '/src/')
 sys.path.insert(2, cwd + '/src/auto-scripts')
 
-from Constants import *
+from mudscope.Constants import *
 
 debug = False
 

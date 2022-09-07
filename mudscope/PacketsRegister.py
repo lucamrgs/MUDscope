@@ -1,7 +1,7 @@
 
 import json
-from Flow import Flow
-from Constants import *
+from mudscope.Flow import Flow
+from mudscope.Constants import *
 from scapy.all import *
 
 debug = False

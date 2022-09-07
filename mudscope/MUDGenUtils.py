@@ -2,7 +2,7 @@
 import json
 import subprocess
 
-from Constants import *
+from mudscope.Constants import *
 
 def generate_mud_config(gw_mac, gw_ip4, gw_ip6, target_mac, target_name, srcpcap):
     mud_config = {

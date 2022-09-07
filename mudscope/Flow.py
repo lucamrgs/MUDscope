@@ -7,7 +7,7 @@ import binascii
 from ipaddress import ip_address, ip_network
 from scapy.all import *
 
-from Constants import *
+from mudscope.Constants import *
 
 debug = False
 

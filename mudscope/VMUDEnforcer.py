@@ -5,9 +5,9 @@ from scapy.all import *
 
 from pprint import pprint
 
-from Flow import Flow
-from Constants import *
-from PacketsRegister import PacketsRegister
+from mudscope.Flow import Flow
+from mudscope.Constants import *
+from mudscope.PacketsRegister import PacketsRegister
 
 # Takes as input:
 #   * pcap file

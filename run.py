@@ -15,18 +15,16 @@ from scapy.all import *
 
 import pandas as pd
 
-cwd = os.getcwd()
-sys.path.insert(1, cwd + '/src')
-import PcapUtils
-import MUDGenUtils
+from mudscope import PcapUtils
+from mudscope import MUDGenUtils
 #from Analyses import *
-from Constants import *
-from MRTFeed import MRTFeed
-from MRTADashboard import MRTADashboard
-from VMUDEnforcer import Virtual_MUD_enforcer
-from MRTACharacterizator import MRTACharacterizator
-from MRTAPairClustersProcessor import MRTAPairClustersProcessor
-import device_mrt_pcaps_to_csv as mrttocsv
+from mudscope.Constants import *
+from mudscope.MRTFeed import MRTFeed
+from mudscope.MRTADashboard import MRTADashboard
+from mudscope.VMUDEnforcer import Virtual_MUD_enforcer
+from mudscope.MRTACharacterizator import MRTACharacterizator
+from mudscope.MRTAPairClustersProcessor import MRTAPairClustersProcessor
+import mudscope.device_mrt_pcaps_to_csv as mrttocsv
 
 ################################################################################
 #                               Argument parsing                               #
