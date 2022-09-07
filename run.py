@@ -25,6 +25,7 @@ from mudscope.VMUDEnforcer import Virtual_MUD_enforcer
 from mudscope.MRTACharacterizator import MRTACharacterizator
 from mudscope.MRTAPairClustersProcessor import MRTAPairClustersProcessor
 import mudscope.device_mrt_pcaps_to_csv as mrttocsv
+from typing import Iterable, Union
 
 ################################################################################
 #                               Argument parsing                               #
@@ -108,6 +109,15 @@ def parse_args(arguments=None) -> argparse.Namespace:
 		help     = 'Name of directory that will be generated in outputs/<device>/ where the results of the "reject" operation will be stored.\nThis parameter is optional',
 		required = False,
 	)
+	# Optional, if set, limits the number of packets that are processed when rejecting traffic
+	group_reject.add_argument(
+		'--pcap_limit',
+		metavar  = '<integer>',
+		type     = int,
+		help     = 'Number to indicate how many packets will be processed by either functionality',
+		required = False,
+	)
+
 
 	########################################################################
 	#                           Generic settings                           #
@@ -116,9 +126,7 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	# Not udsed at the moment
 	parser.add_argument('--reject_online_interface', metavar='<String>', help='Name of the local interface on which to listen to device traffic."', required=False)
 
-	# Optional, if set, limits the number of packets that are processed when rejecting traffic
-	parser.add_argument('--pcap_limit', metavar='<integer>', type=int, help='Number to indicate how many packets will be processed by either functionality', required=False)
-
+	
 	# Generation of custom NetFlow CSV file
 	parser.add_argument('--flowsgen_tgt_dir', metavar='<String>', help='Full or relative path to directory containing MUD-rejected pcap files', required=False)
 
@@ -179,33 +187,60 @@ def mode_mudgen(config: Union[str, Path]) -> None:
 		print('>>> ERROR: Some error occurred in generating MUD data.')
 
 
-def mode_reject(args: argparse.Namespace) -> None:
-	"""Run MUDscope in reject mode."""
+def mode_reject(
+		mud_rules    : Union[str, Path],
+		reject_config: Iterable[Union[str, Path]],
+		outdir       : Union[str, Path],
+		pcap_limit   : Optional[int] = None,
+	) -> None:
+	"""Run MUDscope in reject mode.
+	
+		Applies MUD profile as a filter on given pcap files to create a new
+		pcap file with MUD-rejected traffic.
+		
+		Parameters
+		----------
+		mud_rules : Union[str, Path]
+			Path to csv file containing MUD rules.
+			Usually this is generated as an output of the mode_mudgen function.
+
+		reject_config : Iterable[Union[str, Path]]
+			Path to json file containing reject configuration.
+
+		outdir : Union[str, Path]
+			Path to output directory in which to store output files
+
+		pcap_limit : Optional[int], default = None
+			Optional limit on number of flows to read from given pcap file.
+		"""
 	########################################################################
 	#                                Checks                                #
 	########################################################################
 
 	# Check all parameters entered
-	if args.reject_mud_rules is None:
+	if mud_rules is None:
 		raise ValueError("Please specify --reject_mud_rules <path>")
 
 	# Check if MUD rules exist
-	if not os.path.isfile(args.reject_mud_rules):
+	if not os.path.isfile(mud_rules):
 		raise ValueError(
-			f'MUD-derived (OpenFlow) rules CSV file <{args.reject_mud_rules}> '
-			'not found.'
+			f'MUD-derived (OpenFlow) rules CSV file <{mud_rules}> not found.'
 		)
 
 	# Check if filter is specified
-	if args.reject_config is None:
+	if reject_config is None:
 		raise ValueError('Please specify --reject_config <path>')
+
+	# Check if output dir is set
+	if outdir is None:
+		raise ValueError('Please specify --reject_to_named_dir <path>')
 
 	########################################################################
 	#                                 Run                                  #
 	########################################################################
 
 	# Loop over all specified config files
-	for config in args.reject_config:
+	for config in reject_config:
 		# Check if file exists
 		if not os.path.isfile(config):
 			raise ValueError(f"Unknown config file: '{config}'")
@@ -230,20 +265,24 @@ def mode_reject(args: argparse.Namespace) -> None:
 			device_mac   = data['deviceConfig']['device'],
 			device_name  = data['deviceConfig']['deviceName'] ,
 			gateway_mac  = data['defaultGatewayConfig']['macAddress'],
-			filter_rules = args.reject_mud_rules,
+			filter_rules = mud_rules,
 		)
 
 		# Run virtual MUD enforcer on pcap, for given
 		v_mud_enf.enforce_in_pcap(
 			pcap_file  = reject_pcap,
-			pcap_limit = args.pcap_limit,
+			pcap_limit = pcap_limit,
 			save_json  = True,
-			named_dir  = args.reject_to_named_dir,
+			named_dir  = outdir,
 		)
 
 
 def mode_flow_file_gen(args: argparse.Namespace) -> None:
 	"""Run MUDscope in flow_file_gen mode."""
+	# if flowsgen_tgt_dir is None or not os.path.isdir(flowsgen_tgt_dir):
+	# 		raise ValueError(f">>> ERROR: Null or invalid --flowsgen_tgt_dir argument for mode {MODE_FLOWS_GENERATION}. Please enter a valid path to folder containing pcaps to convert to flows CSV file. Exiting.")
+
+	# 	mrttocsv.module_each_pcap_to_complete_csv(flowsgen_tgt_dir)
 	...
 
 
@@ -266,9 +305,16 @@ def main(arguments=None) -> None:
 
 	# Run in given mode
 	if args.mode == MODE_MUDGEN:
-		return mode_mudgen(args.mudgen_config)
+		return mode_mudgen(
+			config = args.mudgen_config,
+		)
 	elif args.mode == MODE_REJECT:
-		return mode_reject(args)
+		return mode_reject(
+			mud_rules     = args.reject_mud_rules,
+			reject_config = args.reject_config,
+			outdir        = args.reject_to_named_dir,
+			pcap_limit    = args.pcap_limit,
+		)
 	elif args.mode == MODE_FLOWS_GENERATION:
 		return mode_flow_file_gen(args)
 	elif args.mode == MODE_ANALYZE:
@@ -287,16 +333,6 @@ def main(arguments=None) -> None:
 
 	# NOTE: All parameters default to None values if not specified
 
-	# mudgen_config specifies gateway MAC, IPv4, IPv6; device MAC, name; PCAP file on which device MUD is generated
-	mudgen_config = MUD_CONFIGS_FOLDER + args.mudgen_config if args.mudgen_config is not None else None
-
-	# relative path to define, allows use of filtering rules from other origins than MUDgee
-	reject_config = args.reject_config if args.reject_config is not None else None
-	reject_mud_rules = args.reject_mud_rules if args.reject_mud_rules is not None else None
-	pcap_limit = int(args.pcap_limit) if (args.pcap_limit is not None and int(args.pcap_limit) > 0) else None
-	reject_to_named_dir = args.reject_to_named_dir if args.reject_to_named_dir is not None else None
-	reject_online_interface = args.reject_online_interface if args.reject_online_interface is not None else None
-
 	flowsgen_tgt_dir = args.flowsgen_tgt_dir if args.flowsgen_tgt_dir is not None else None
 
 	analysis_action = args.analysis_action if args.analysis_action is not None else None
@@ -313,28 +349,28 @@ def main(arguments=None) -> None:
 	# Preliminary files existence checks
 	################################################################################################
 
-	# Manage case if files do not exist
-	if mudgen_config is not None and not os.path.isfile(mudgen_config):
-		print('>>> ERROR: Mudgen config [ {} ] does not exist'.format(mudgen_config), file=sys.stderr)
-		sys.exit(-1)
-	if reject_config is not None and not (os.path.isfile(reject_config) or os.path.isdir(reject_config)):
-		print('>>> ERROR: Reject config [ {} ] does not exist'.format(reject_config), file=sys.stderr)
-		sys.exit(-1)
-	if analysis_capture_metadata is not None and not os.path.isfile(analysis_capture_metadata):
-		print('>>> ERROR: Analysis characterization metadata [ {} ] does not exist'.format(analysis_capture_metadata), file=sys.stderr)
-		sys.exit(-1)
-	if reject_mud_rules is not None and not os.path.isfile(reject_mud_rules):
-		print('>>> ERROR: Mud filtering rules [ {} ] does not exist'.format(reject_mud_rules), file=sys.stderr)
-		sys.exit(-1)
-	if analysis_tgt is not None and not (os.path.isfile(analysis_tgt) or os.path.isdir(analysis_tgt)):
-		print('>>> ERROR: File/directory to analyse [ {} ] does not exist'.format(analysis_tgt), file=sys.stderr)
-		sys.exit(-1)
-	if dsr_path is not None and not os.path.isfile(dsr_path):
-		print('>>> ERROR: Dataset scaler reference does not exist at [ {} ]'.format(dsr_path), file=sys.stderr)
-		sys.exit(-1)
-	if mrtfeeds_config is not None and not os.path.isfile(mrtfeeds_config):
-		print('>>> ERROR: MRT feeds config [ {} ] does not exist'.format(mrtfeeds_config), file=sys.stderr)
-		sys.exit(-1)
+	# # Manage case if files do not exist
+	# if mudgen_config is not None and not os.path.isfile(mudgen_config):
+	# 	print('>>> ERROR: Mudgen config [ {} ] does not exist'.format(mudgen_config), file=sys.stderr)
+	# 	sys.exit(-1)
+	# if reject_config is not None and not (os.path.isfile(reject_config) or os.path.isdir(reject_config)):
+	# 	print('>>> ERROR: Reject config [ {} ] does not exist'.format(reject_config), file=sys.stderr)
+	# 	sys.exit(-1)
+	# if analysis_capture_metadata is not None and not os.path.isfile(analysis_capture_metadata):
+	# 	print('>>> ERROR: Analysis characterization metadata [ {} ] does not exist'.format(analysis_capture_metadata), file=sys.stderr)
+	# 	sys.exit(-1)
+	# if reject_mud_rules is not None and not os.path.isfile(reject_mud_rules):
+	# 	print('>>> ERROR: Mud filtering rules [ {} ] does not exist'.format(reject_mud_rules), file=sys.stderr)
+	# 	sys.exit(-1)
+	# if analysis_tgt is not None and not (os.path.isfile(analysis_tgt) or os.path.isdir(analysis_tgt)):
+	# 	print('>>> ERROR: File/directory to analyse [ {} ] does not exist'.format(analysis_tgt), file=sys.stderr)
+	# 	sys.exit(-1)
+	# if dsr_path is not None and not os.path.isfile(dsr_path):
+	# 	print('>>> ERROR: Dataset scaler reference does not exist at [ {} ]'.format(dsr_path), file=sys.stderr)
+	# 	sys.exit(-1)
+	# if mrtfeeds_config is not None and not os.path.isfile(mrtfeeds_config):
+	# 	print('>>> ERROR: MRT feeds config [ {} ] does not exist'.format(mrtfeeds_config), file=sys.stderr)
+	# 	sys.exit(-1)
 
 
 
