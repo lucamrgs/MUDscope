@@ -32,6 +32,7 @@ Please install the following dependencies to run MUDscope
   - [tcpdump](https://www.tcpdump.org/)
   - [Maven](https://maven.apache.org/)
 - [editcap](https://www.wireshark.org/docs/man-pages/editcap.html)
+- [nfdump](https://github.com/phaag/nfdump)
 
 When all dependencies have been installed, make sure you have the correct python libraries installed by installing them from the `requirements.txt` file:
 ```bash
@@ -158,54 +159,6 @@ For a very fine-grained usage of the tool, below are listed the atomic commands 
     The command outputs one plot per specified 'watch feature', for each of the devices specified in the mrtfeeds_config. Additionally, a log file is output where device-specific anomalies are shown, as well as pairwise matches of anomalous activities, if present.
 
 
-**Examples**
-
-1. \> run.py --mode mudgen 
-    --mudgen_config [from ./configs/mudgen/]<mudgee_config_file_path>.json
-    out \>\>\>
-        result/<device_name> folder w/ MUD profile, CSV OF rules
-
-```bash
-python3 run.py --mode mudgen\
-    --mudgen_config tue-eufy.json # Select any file relative to ./configs/mudgen/
-```
-
-
-2. \> run.py --mode reject 
-    --reject_mud_rules <result/<device\>/<device\>rule.csv> [or any other CSV structured as OF switch rules] 
-    --reject_config <reject_config_files_path/to/directory> OR <reject_config_file/path>.json
-    [ --reject_online_interface <iface_name> [ALTERNATIVE to reject_config] - DISCONTINUED, FOR THE MOMENT ]
-    --pcaps_limit OPTIONAL (use only if necessary. E.g., crashes...), limits the number of packets processed per-pcap. Example: <300000>
-    out \>\>\> 
-        outputs/<device_name>/
-            <pcap_file_basename>-rejected.pcap,,
-            <pcap_file_basename>-rejected.json
-        For each reject config file specified (either a single one, or those in the reject configs folder)
-
-
-3. \> run.py --mode flows_gen
-    --flowsgen_tgt_dir outputs/<device_name>/ [or any directory containing MRT PCAPS obtained with ``--mode reject``]
-    out \>\>\>
-        outputs/<device_name>/<device_name>-all-flows-csv/ : contains a CSV ending with ``-CLN.csv``, which is the main NetFlow bidirectional flows CSV file of interes.
-
-
-4. \> run.py --mode analyze
-
-    --analysis_tgt [as specified in Usage > 1 > mode analyze > analysis_tgt]
-    --analysis_devname <device_name> [refers to the per-device folder where outputs are saved]
-    --analysis_action mrta_characterize [device_mrt_evolution_datagen] [one of those specified in Usage > 1 > mode analyze > analysis_action]
-    if the analysis action is ``mrta_characterize``:
-    --analysis_capture_metadata [configs/characterization_datas/]<capture-metadata-file>.json
-    out \>\>\>
-        For pcaps and json registers actions, consult Usage > 1 > analysis action above
-        For netflow csv file:
-            outputs/<device_name>/<device_name>_mrt_characterizations/<ch_[datetime-when-generated]_[device_name]>.json
-        For characterization files folder:
-            outputs/<device_name>/<device_name>_mrt_transitions_df/<clusters_evols_[datetime-when-generated]_[device_name]>.csv
-
-
-5. \> run.py --mode monitor
-    --mrtfeeds_config configs/monitor_configs/<file>.json
 
 
 ## Dataset
