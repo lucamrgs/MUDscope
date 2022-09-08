@@ -1,32 +1,25 @@
-
-from collections import OrderedDict
-from multiprocessing.sharedctypes import Value
-import re
-import sys
+# Imports
 import argparse
-import os
 import json
-from pathlib import Path
-from datetime import datetime
-
 import logging
+import os
+import pandas as pd
+import sys
 
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import *
-
-import pandas as pd
-
-from mudscope import PcapUtils
+from collections import OrderedDict
+from datetime import datetime
 from mudscope import MUDGenUtils
-#from Analyses import *
 from mudscope.Constants import *
 from mudscope.MRTFeed import MRTFeed
 from mudscope.MRTADashboard import MRTADashboard
 from mudscope.VMUDEnforcer import Virtual_MUD_enforcer
 from mudscope.MRTACharacterizator import MRTACharacterizator
 from mudscope.MRTAPairClustersProcessor import MRTAPairClustersProcessor
-import mudscope.device_mrt_pcaps_to_csv as mrttocsv
-from typing import Iterable, Literal, Union
+from mudscope import device_mrt_pcaps_to_csv as mrttocsv
+from pathlib import Path
+from scapy.all import *
+from typing import Iterable, Union
 
 ################################################################################
 #                               Argument parsing                               #
