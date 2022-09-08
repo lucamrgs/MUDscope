@@ -549,8 +549,17 @@ def mode_evolution(
 	df.to_csv(outfile)
 	
 
-def mode_monitor(args: argparse.Namespace) -> None:
-	"""Run MUDscope in monitor mode."""
+def mode_monitor(config: Union[str, Path]) -> None:
+	"""Run MUDscope in monitor mode.
+
+		Generate fluctuation graphs in MRT feeds.
+	
+		Parameters
+		----------
+		config : Union[str, Path]
+			Path to config file for generating fluctuation graphs.
+		"""
+
 	""" Generate fluctuation graphs """
 	# See MRTADashboard:
 	# 	Generate MRTFeed objects [CSV feed + metadata per device]
@@ -559,14 +568,14 @@ def mode_monitor(args: argparse.Namespace) -> None:
 	#	TODO/Future work: Specify time window section
 	
 	# MRT Feeds information and building
-	if args.mrtfeeds_config is None:
+	if config is None:
 		raise ValueError(
 			'Attempting monitor options without having specified the '
 			'mrtfeeds_config file. A valid mrtfeeds_config file must be '
 			'specified in order to compare mrt feeds.'
 		)
 
-	with open(args.mrtfeeds_config) as mrtf_conf:
+	with open(config) as mrtf_conf:
 		mrtf_data = json.load(mrtf_conf)
 	mrtf_data_list = mrtf_data['mrtfeeds']
 	monitor_features = mrtf_data['features_watch']
@@ -627,7 +636,9 @@ def main(arguments=None) -> None:
 		)
 	# --mode monitor
 	elif args.mode == MODE_MONITOR:
-		return mode_monitor(args)
+		return mode_monitor(
+			config = args.mrtfeeds_config,
+		)
 	else:
 		raise ValueError(f"Unknown mode: {args.mode}")
 
