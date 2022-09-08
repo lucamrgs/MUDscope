@@ -66,17 +66,13 @@ class MRTACharacterizator:
     def __init__(self, capture_data, csv_file, dataset_scaler_gen_reference_path):
         
         ################################################## DATASET SCALING REFERENCE SETUP
-        self.dataset_scaler_gen_reference = pd.DataFrame()
-        try:
-            self.dataset_scaler_gen_reference = pd.read_csv(dataset_scaler_gen_reference_path)        
-            print('>>> DEBUG: Dropping unsupported columns from scaling ref dataset: {}'.format([col for col in self.dataset_scaler_gen_reference.columns if col not in MRTACharacterizator.accepted_csv_format]))
-            self.dataset_scaler_gen_reference = self.dataset_scaler_gen_reference[MRTACharacterizator.accepted_csv_format]
-            self.mrt_scaler = StandardScaler().fit(self.dataset_scaler_gen_reference)
-            print(f'>>> DEBUG: Scaling ref dataset columns: {self.dataset_scaler_gen_reference.columns}')
-            print(f'>>> DEBUG: Scaling ref dataset shape: {self.dataset_scaler_gen_reference.shape}')
-        except Exception as e:
-            print(e)
-            raise ValueError(f'>>> ERROR: Something went wrong in trying to obtain the StandardScaler on dataset at [ {dataset_scaler_gen_reference_path} ]. Exiting.')
+
+        self.dataset_scaler_gen_reference = pd.read_csv(dataset_scaler_gen_reference_path)        
+        print('>>> DEBUG: Dropping unsupported columns from scaling ref dataset: {}'.format([col for col in self.dataset_scaler_gen_reference.columns if col not in MRTACharacterizator.accepted_csv_format]))
+        self.dataset_scaler_gen_reference = self.dataset_scaler_gen_reference[MRTACharacterizator.accepted_csv_format]
+        self.mrt_scaler = StandardScaler().fit(self.dataset_scaler_gen_reference)
+        print(f'>>> DEBUG: Scaling ref dataset columns: {self.dataset_scaler_gen_reference.columns}')
+        print(f'>>> DEBUG: Scaling ref dataset shape: {self.dataset_scaler_gen_reference.shape}')
 
         #print('DSGR SHAPE: ', self.dataset_scaler_gen_reference.shape)
         #print(self.dataset_scaler_gen_reference.columns)
