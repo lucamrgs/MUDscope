@@ -57,16 +57,24 @@ import asyncio
 
 
 def get_args(arguments=None):
-    parser = argparse.ArgumentParser(description='TBD')
-    parser.add_argument('--pcaps_dir', metavar='<path to directory>', help='Path to directory with only PCAPs containing MUD-rejected traffic.', required=True)
-    args = parser.parse_args(arguments)
+    parser = argparse.ArgumentParser(
+        description='Transform pcaps to Netflows'
+    )
 
-    pcaps_dir = args.pcaps_dir
-    if os.path.isdir(pcaps_dir):
-        print('>>> Starting pcaps to labelled IEEE-IoT-NIDS csvs generation from directory: {}'.format(pcaps_dir))
-        return pcaps_dir if pcaps_dir.endswith('/') else pcaps_dir + '/'
-    else:
-        raise ValueError('Directory [ {} ] does not seem to exist. Exiting.'.format(pcaps_dir))
+    parser.add_argument(
+        'pcaps_dir',
+        metavar = '<path to directory>',
+        help    = 'Path to directory with only PCAPs containing MUD-rejected traffic.',
+    )
+
+    parser.add_argument(
+        '--outdir',
+        metavar = '<path to directory>',
+        help    = 'path to output directory'
+    )
+    
+    # Return arguments
+    return parser.parse_args(arguments)
 
 
 ############################################################################################################
@@ -662,13 +670,28 @@ def module_each_pcap_to_complete_csv(pcaps_dir, outdir=None):
 
 
 if __name__ == '__main__':
-    
-    dir = get_args()
+    # Get arguments
+    args = get_args()
+
+    if os.path.isdir(args.pcaps_dir):
+        print('>>> Starting pcaps to labelled IEEE-IoT-NIDS csvs generation from directory: {}'.format(args.pcaps_dir))
+        if args.pcaps_dir.endswith('/'):
+            dir = args.pcaps_dir
+        else:
+            dir = args.pcaps_dir + '/'
+    else:
+        raise ValueError('Directory [ {} ] does not seem to exist. Exiting.'.format(args.pcaps_dir))
+
+
     print(dir)
 
     pcaps_to_flows(dir)
     
-    all_csvs_dir, all_csvs_file = flows_to_aggregated_csvs(dir)
+    all_csvs_dir, all_csvs_file = flows_to_aggregated_csvs(
+        dir,
+        merge_all_csvs = True,
+        outdir = args.outdir,
+    )
     print(all_csvs_dir)
 
     all_csvs_file = change_all_csv_header_to_custom(all_csvs_dir)
