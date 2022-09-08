@@ -1,4 +1,5 @@
 
+from collections import OrderedDict
 from multiprocessing.sharedctypes import Value
 import re
 import sys
@@ -25,7 +26,7 @@ from mudscope.VMUDEnforcer import Virtual_MUD_enforcer
 from mudscope.MRTACharacterizator import MRTACharacterizator
 from mudscope.MRTAPairClustersProcessor import MRTAPairClustersProcessor
 import mudscope.device_mrt_pcaps_to_csv as mrttocsv
-from typing import Iterable, Union
+from typing import Iterable, Literal, Union
 
 ################################################################################
 #                               Argument parsing                               #
@@ -140,23 +141,62 @@ def parse_args(arguments=None) -> argparse.Namespace:
 		required = False,
 	)
 
+	########################################################################
+	#                            Mode = analyze                            #
+	########################################################################
+
+	group_analyze = parser.add_argument_group(
+		title       = 'Mode: analyze',
+		description = 'For analyzing NetFlows, performing characterization and '
+					  'evolution analysis. '
+		              'Required arguments when --mode analyze is set.',
+	)
+	group_analyze.add_argument(
+		'--analysis_tgt',
+		nargs    = '+',
+		metavar  = '<pcap/csv file path>',
+		help     = 'path to file containing MRT-related information. Consult documentation for exhaustive explanation.',
+		required = False,
+	)
+	group_analyze.add_argument(
+		'--analysis_capture_metadata',
+		metavar  = '<file path to json object/dict>',
+		help     = 'Metadata dictionary object describing the capture to analyse. \nIt shall contain at least "device_id" (string), and "deployment_info" (any type as of now) that describes the setting where the device is (e.g., lon, lat, industry_type, ...)',
+		required = False,
+	)
+	group_analyze.add_argument(
+		'--analysis_devname',
+		metavar  = '<name of device>',
+		help     = 'name of the device to which the filtering refers. It is needed to output the analysis results to the right folder [outputs/<devname>].',
+		required = False,
+	)
+
+	analysis_actions_list = [ANALYSIS_ACTION_IPS_FLOWS_GRAPHS, ANALYSIS_ACTION_PORTS_FLOWS_GRAPHS, ANALYSIS_ACTION_PKTS_CSV, ANALYSIS_ACTION_IPS_MAP, ANALYSIS_ACTION_FILTER_KNOWN_PROVIDERS, ANALYSIS_ACTION_MRTA_CHARACTERIZE, ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN]
+	group_analyze.add_argument(
+		'--analysis_action',
+		choices  = analysis_actions_list,
+		metavar  = '<string to perform>',
+		help     = 'Indicates what action to perform in analysis, related to analysis pcap.\nSupported actions are \n{}.'.format(analysis_actions_list),
+		required = False,
+	)
+	group_analyze.add_argument(
+		'--dsr_path',
+		help     = f'Dataset Scaler Reference path. Must be specified to set global scaling parameters when processing MRT flows, for --analysisi_action={ANALYSIS_ACTION_MRTA_CHARACTERIZE}',
+		required = False,
+	)
+	group_analyze.add_argument(
+		'--analysis_output',
+		help     = "Output directory/file for analyzed file(s).",
+		required = False,
+	)
+
 
 	########################################################################
 	#                           Generic settings                           #
 	########################################################################
 
-	# Not udsed at the moment
-	parser.add_argument('--reject_online_interface', metavar='<String>', help='Name of the local interface on which to listen to device traffic."', required=False)	
-
-	analysis_actions_list = [ANALYSIS_ACTION_IPS_FLOWS_GRAPHS, ANALYSIS_ACTION_PORTS_FLOWS_GRAPHS, ANALYSIS_ACTION_PKTS_CSV, ANALYSIS_ACTION_IPS_MAP, ANALYSIS_ACTION_FILTER_KNOWN_PROVIDERS, ANALYSIS_ACTION_MRTA_CHARACTERIZE, ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN]
-	parser.add_argument('--analysis_action', metavar='<string to perform>', help='Indicates what action to perform in analysis, related to analysis pcap.\nSupported actions are \n{}.'.format(analysis_actions_list), required=False)
-
-	parser.add_argument('--analysis_tgt', metavar='<pcap/csv file path>', help='path to file containing MRT-related information. Consult documentation for exhaustive explanation.', required=False)
-	parser.add_argument('--analysis_capture_metadata', metavar='<file path to json object/dict>', help='Metadata dictionary object describing the capture to analyse. \nIt shall contain at least "device_id" (string), and "deployment_info" (any type as of now) that describes the setting where the device is (e.g., lon, lat, industry_type, ...)', required=False)
-	parser.add_argument('--analysis_devname', metavar='<name of device>', help='name of the device to which the filtering refers. It is needed to output the analysis results to the right folder [outputs/<devname>].', required=False)
 	
-	parser.add_argument('--dsr_path', help='Dataset Scaler Reference path. Must be specified to set global scaling parameters when processing MRT flows, for --analysisi_action={}'.format(ANALYSIS_ACTION_MRTA_CHARACTERIZE), required=False)
-
+	
 	parser.add_argument('--mrtfeeds_config', metavar='file path', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the configuration monitor file from which mrt feeds to compare (JSON list of dev_metadata + csv feed) are taken.', required=False)
 	parser.add_argument('--monitor_features', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the MRT feed features to cross-compare on the MRT feeds list specified in --mrtfeeds_config.\nUse format feature1,feature2,... See documentation for the list of supported MRT feed features.', required=False)
 	#parser.add_argument('--monitor_output', help=f'To use with --mode {MODE_MONITOR}.\nSpecify the path to which the monitor plots output will be exported.', required=False)
@@ -331,9 +371,189 @@ def mode_flow_file_gen(
 	)
 
 
-def mode_analyze(args: argparse.Namespace) -> None:
-	"""Run MUDscope in analyze mode."""
-	...
+def mode_analyze(
+		mode   : str,
+		targets: Iterable[Union[str, Path]],
+		config : Union[str, Path],
+		dsr    : Union[str, Path],
+		output : Union[str, Path],
+	) -> None:
+	"""Run MUDscope in analyze mode.
+	
+		TODO
+		"""
+	# Check if target is given
+	if targets is None:
+		raise ValueError(
+			"Unspecified parameter --analysis_tgt, please set parameter."
+		)
+
+	# Operate in 
+	if mode == ANALYSIS_ACTION_MRTA_CHARACTERIZE:
+		return mode_characterize(
+			targets = targets,
+			config  = config,
+			dsr     = dsr,
+			outdir  = output,
+		)
+	elif mode == ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN:
+		return mode_evolution(
+			characterizations = targets,
+			outfile           = output,
+		)
+	else:
+		raise ValueError(
+			f"Unknown --analysis_action: '{mode}'"
+			f" . Should be one of '{ANALYSIS_ACTION_MRTA_CHARACTERIZE}', "
+			f"'{ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN}'."
+		)
+
+
+def mode_characterize(
+		targets: Iterable[Union[str, Path]],
+		config : Union[str, Path],
+		dsr    : Union[str, Path],
+		outdir : Union[str, Path],
+	) -> None:
+	"""Run MUDscope in characterize mode.
+
+		Creates characterization files for given NetFlow files.
+
+		Parameters
+		----------
+		targets : Iterable[Union[str, Path]]
+			Paths to NetFlow files from which to generate characterization
+			files.
+
+		config : Union[str, Path]
+			Path to characterization configuration file.
+
+		dsr : Union[str, Path]
+			Path to dataset scaling reference (DSR) file.
+
+		outdir : Union[str, Path]
+			Path to output directory in which to store processed
+			characterization files.
+		"""
+	###### Checks
+	if config is None:
+		raise ValueError('analysis_capture_metadata parameter unspecified.')
+	if dsr is None:
+		raise ValueError('Dataset Scaler_generator Reference is unspecified.')
+
+	# Load metadata
+	with open(config) as md:
+		metadata = json.load(md)
+
+	# Check if metadata is set
+	if metadata.get('device_id') is None or metadata.get('deployment_info') is None:
+		raise ValueError(
+			f"device_id or deployment_info entries missing in "
+			f"analysis_capture_metadata [ {config} ]"
+		)
+
+	# Loop over all given targets
+	for target in targets:
+		# Initialise characterization constructor
+		mrta_characterizator = MRTACharacterizator(
+			capture_data = metadata,
+			csv_file = target,
+			dataset_scaler_gen_reference_path = dsr,
+		)
+		# Perform characterization
+		mrta_characterizator.input_to_characterization_data()
+
+		# Prepare output file
+		outfile = Path(outdir) / (Path(target).stem + '.json')
+		# Make directory
+		outfile.parent.mkdir(parents=True, exist_ok=True)
+		# Save to outfile
+		mrta_characterizator.save_characterization(outfile)
+
+
+def mode_evolution(
+		characterizations: Iterable[Union[str, Path]],
+		outfile: Union[str, Path],
+	) -> None:
+	"""Run MUDscope in evolution mode.
+	
+		Generates MRT feeds from given characterization files.
+
+		Parameters
+		----------
+		characterizations : Iterable[Union[str, Path]]
+			Paths to characterization files from which to generate MRT feeds.
+
+		outfile : Union[str, Path]
+			Path to output file in which to store MRT feed.
+		"""
+	# Initialise characterizations
+	ordered_characterizations = {}
+
+	# Loop over all files
+	for filename in characterizations:
+		# Load file as json
+		with open(filename, 'r') as file:
+			data = json.load(file)
+		# Extract timestamp
+		start_timestamp = data.get('metadata', {}).get('time_window', [None])[0]
+
+		# Print error if any
+		if start_timestamp is None:
+			raise ValueError(
+				f"Unable to fetch time information from characterization file "
+				f"{filename}. Is the JSON format valid?."
+			)
+
+		# Convert date to timestamp and store
+		ordered_characterizations[filename] = float(
+			datetime.timestamp(
+			datetime.strptime(start_timestamp, STRFTIME_READABLE_FORMAT)
+		))
+	
+	# Sort dictionary
+	ordered_characterizations = OrderedDict(
+		sorted(ordered_characterizations.items(), key=lambda item: item[1])
+	)
+	
+	"""
+		FEDLAB
+		NOTE : LEGIT ORDER : chrono_ch_files = [k for k in ordered_characterizations.keys()]
+
+		NOTE - CURRENTLY TESTING WITH ALPHABETICAL ORDER : `same attacks' scenario
+			[k for k in sorted(ordered_characterizations.keys(), key=lambda s:s.rsplit('_')[-1])]
+		NOTE - CURRENTLY TESTING WITH SHUFFLED ORDER : `different attacks' scenario
+			[k for k in random.sample(ordered_characterizations.keys(), len(ordered_characterizations.keys()))]
+	"""
+	chrono_ch_files = [k for k in ordered_characterizations.keys()]
+	#chrono_ch_files = [k for k in random.sample(ordered_characterizations.keys(), len(ordered_characterizations.keys()))]
+	for f in chrono_ch_files:
+		print(f)
+	
+	#print(chrono_ch_files)
+	# Produce two-by-two MRT clusters transition data entries
+	entries_list = []
+	
+	for ch1, ch2 in zip(chrono_ch_files, chrono_ch_files[1:]):
+		mrta_pcp = MRTAPairClustersProcessor(ch1, ch2)
+		mrta_pcp.populate_clusters_shifts_data()
+		mrta_pcp.set_transition_characterization_data()
+
+		transition_df = mrta_pcp.get_transition_characterization_data_df_entry()
+		mrta_pcp.print_distance_matrix(readable_only=False)
+		entries_list.append(transition_df)
+	
+	df = pd.concat(entries_list, ignore_index=True)
+
+	#print('CREATED DATASET')
+	#print(df)
+
+	# Prepare output file
+	outfile = Path(outfile)
+	# Make directory
+	outfile.parent.mkdir(parents=True, exist_ok=True)
+	# Save to outfile
+	df.to_csv(outfile)
 	
 
 def mode_monitor(args: argparse.Namespace) -> None:
@@ -349,10 +569,12 @@ def main(arguments=None) -> None:
 	args = parse_args(arguments)
 
 	# Run in given mode
+	# --mode mudgen
 	if args.mode == MODE_MUDGEN:
 		return mode_mudgen(
 			config = args.mudgen_config,
 		)
+	# --mode reject
 	elif args.mode == MODE_REJECT:
 		return mode_reject(
 			mud_rules     = args.reject_mud_rules,
@@ -360,13 +582,22 @@ def main(arguments=None) -> None:
 			outdir        = args.reject_to_named_dir,
 			pcap_limit    = args.pcap_limit,
 		)
+	# --mode flows_gen
 	elif args.mode == MODE_FLOWS_GENERATION:
 		return mode_flow_file_gen(
 			pcap_dir = args.flowsgen_tgt_dir,
 			outdir   = args.flowsgen_outdir,
 		)
+	# --mode analyze
 	elif args.mode == MODE_ANALYZE:
-		return mode_analyze(args)
+		return mode_analyze(
+			mode    = args.analysis_action,
+			targets = args.analysis_tgt,
+			config  = args.analysis_capture_metadata,
+			dsr     = args.dsr_path,
+			output  = args.analysis_output,
+		)
+	# --mode monitor
 	elif args.mode == MODE_MONITOR:
 		return mode_monitor(args)
 	else:
@@ -376,18 +607,7 @@ def main(arguments=None) -> None:
 	# Run given mode
 
 	mode = args.mode
-
-	session_name = args.session_name if args.session_name is not None else None
-
 	# NOTE: All parameters default to None values if not specified
-
-	analysis_action = args.analysis_action if args.analysis_action is not None else None
-	analysis_capture_metadata = CHATACTERIZATION_METADATA_FOLDER + args.analysis_capture_metadata if args.analysis_capture_metadata is not None else None
-	analysis_tgt = args.analysis_tgt if args.analysis_tgt is not None else None
-	analysis_devname = args.analysis_devname if args.analysis_devname is not None else None
-	
-	dsr_path = args.dsr_path if args.dsr_path is not None else None
-
 	mrtfeeds_config = args.mrtfeeds_config if args.mrtfeeds_config is not None else None
 
 
@@ -417,179 +637,12 @@ def main(arguments=None) -> None:
 	# if mrtfeeds_config is not None and not os.path.isfile(mrtfeeds_config):
 	# 	print('>>> ERROR: MRT feeds config [ {} ] does not exist'.format(mrtfeeds_config), file=sys.stderr)
 	# 	sys.exit(-1)
-
-
-
-	################################################################################################
-	# MODE ANALYZE
-	################################################################################################
-
-	if mode == MODE_ANALYZE:
-
-		if analysis_tgt is None or analysis_devname is None:
-			print('>>> Make sure to provide path to pcap/csv/directory to analyse, via the parameter --analysis_tgt\n>>> Also please specify device name with parameter --analysis_devname, needed to reference output folder for analysis actions.')
-			sys.exit(-1)
-		
-		output_folder = OUTPUTS_FOLDER + analysis_devname + '/'
-
-		"""
-		NOTE: Discontinued
-		if analysis_action == ANALYSIS_ACTION_PKTS_CSV:
-			csv_gen_res = PcapUtils.get_pcap_csv(analysis_tgt, analysis_devname)
-			if csv_gen_res != -1:
-				print('>>> {} has been generated. Please analyse it on Kibana'.format(csv_gen_res))
-			else:
-				print('>>> An error occurred trying to generate CSV from pcap file {}'.format(analysis_tgt))
-				sys.exit(-1)
-		if analysis_action == ANALYSIS_ACTION_IPS_FLOWS_GRAPHS:
-			# Analyses functions
-			display_flows_ips_description_info_graph(analysis_tgt)
-		if analysis_action == ANALYSIS_ACTION_PORTS_FLOWS_GRAPHS:
-			display_flows_ports_description_info_graph(analysis_tgt)
-		if analysis_action == ANALYSIS_ACTION_IPS_MAP:
-			folium_map(analysis_tgt, analysis_devname)
-		if analysis_action == ANALYSIS_ACTION_FILTER_KNOWN_PROVIDERS:
-			ti_register = TIRegister(analysis_tgt, analysis_devname)
-			ti_register.filter_out_known_backends_pkts_from_pcap()
-		"""
-		############################################################################### MRTA CHARACTERIZE
-		if analysis_action == ANALYSIS_ACTION_MRTA_CHARACTERIZE:
-			###### Checks
-			if analysis_capture_metadata is None:
-				raise ValueError('>>> ERROR: analysis_capture_metadata parameter unspecified. Exiting'.format(mode))
-			if dsr_path is None:
-				raise ValueError('>>> ERROR: Dataset Scaler_generator Reference is unspecified. Exiting'.format(mode))
-
-			metadata = {}
-			try:
-				with open(analysis_capture_metadata) as md:
-					metadata = json.load(md)
-			except Exception as e:
-				print(e)
-				print('>>> Unable to get analysis capture metadata. A JSON-consistency issue?')
-				sys.exit(-1)
-			if metadata['device_id'] is None or metadata['deployment_info'] is None:
-				print('>>> device_id or deployment_info entries missing in analysis_capture_metadata [ {} ]. Exiting.'.format(analysis_capture_metadata))
-				sys.exit(-1)
-
-			##### Operations
-			if os.path.isdir(analysis_tgt):
-				dir = os.fsencode(analysis_tgt)
-				for data in os.listdir(dir):
-					data_name = os.fsdecode(data)
-					if data_name.endswith(CSV_CLEAN_LABEL): # RUNS ON ALL PER-PCAP CSVs, OUTPUTS CORRESPONDING AMOUNT OF CHARACTERIZATION FILES
-
-						path_to_file = analysis_tgt + '/' + data_name
-
-						mrta_characterizator = MRTACharacterizator(metadata, path_to_file, dsr_path)
-						mrta_characterizator.input_to_characterization_data()
-
-						# Output name, default or specified
-						now = datetime.now()
-						dt_string = now.strftime("%Y%m%d_%H-%M-%S")
-						characterization_name = 'ch_' + dt_string + '_' + analysis_devname + data_name + '.json'
-
-						output_path = output_folder + analysis_devname + '_mrt_characterizations/'
-						if session_name is not None:
-							output_path = f'{output_folder}{analysis_devname}_{session_name}/{analysis_devname}_{session_name}_mrt_characterizations/'
-						Path(output_path).mkdir(parents=True, exist_ok=True)
-						mrta_characterizator.save_characterization(output_path + characterization_name)
-			else:
-				mrta_characterizator = MRTACharacterizator(metadata, analysis_tgt, dsr_path)
-				mrta_characterizator.input_to_characterization_data()
-
-				# Output name, default or specified
-				now = datetime.now()
-				dt_string = now.strftime("%Y%m%d_%H-%M-%S")
-				characterization_name = 'ch_' + dt_string + '_' + analysis_devname + os.path.splitext(analysis_tgt)[0] + '.json'
-
-				output_path = output_folder + analysis_devname + '_mrt_characterizations/'
-				if session_name is not None:
-					output_path = f'{output_folder}{analysis_devname}_{session_name}/{analysis_devname}_{session_name}_mrt_characterizations/'
-				Path(output_path).mkdir(parents=True, exist_ok=True)
-				mrta_characterizator.save_characterization(output_path + characterization_name)
-
-
-		############################################################################### MRT EVOLUTION DATAGEN
-
-		# Given array of characterization file paths, compute two-by-two sequences of transition characterization, and output (produced dataset) to specific folder
-		if analysis_action == ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN:
-
-			if not os.path.isdir(analysis_tgt):
-				raise ValueError(f">>> ERROR: In order to run action [ {ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN} ] --analysis_tgt must be a directory, containing characterization files for a specific device. Exiting.")
-			analysis_tgt = os.path.abspath(analysis_tgt)
-
-			"""
-			*****************************************************************************************************
-        	* TODO: Move to deticated class/file function
-        	*****************************************************************************************************
-			"""
-			# Order files chronologically wrt start date of each characterization, to be then analyzed two-by-two
-			ordered_characterizations = {}
-			tgt_dir = os.fsencode(analysis_tgt)
-			for file in os.listdir(tgt_dir):
-				filename = os.fsdecode(file)
-				filename = os.fsdecode(tgt_dir) + filename if os.fsdecode(tgt_dir).endswith('/') else os.fsdecode(tgt_dir) + '/' + filename
-				if filename.endswith('.json'):
-					with open(filename, 'r') as file:
-						try:
-							f = json.load(file)
-							start_timestamp = f['metadata']['time_window'][0]
-						except KeyError as e:
-							raise ValueError(f">>> ERROR: Unable to fetch time information from characterization file {filename}. Is the JSON format valid?. Exiting.")
-
-					start_timestamp = float(datetime.timestamp(datetime.strptime(start_timestamp, STRFTIME_READABLE_FORMAT)))
-					ordered_characterizations[filename] = start_timestamp
-			
-			ordered_characterizations = dict(sorted(ordered_characterizations.items(), key=lambda item: item[1]))
-			#print(ordered_characterizations)
-			
-			"""
-				FEDLAB
-				NOTE : LEGIT ORDER : chrono_ch_files = [k for k in ordered_characterizations.keys()]
-
-				NOTE - CURRENTLY TESTING WITH ALPHABETICAL ORDER : `same attacks' scenario
-					[k for k in sorted(ordered_characterizations.keys(), key=lambda s:s.rsplit('_')[-1])]
-				NOTE - CURRENTLY TESTING WITH SHUFFLED ORDER : `different attacks' scenario
-					[k for k in random.sample(ordered_characterizations.keys(), len(ordered_characterizations.keys()))]
-			"""
-			chrono_ch_files = [k for k in ordered_characterizations.keys()]
-			#chrono_ch_files = [k for k in random.sample(ordered_characterizations.keys(), len(ordered_characterizations.keys()))]
-			for f in chrono_ch_files:
-				print(f)
-			
-			#print(chrono_ch_files)
-			# Produce two-by-two MRT clusters transition data entries
-			entries_list = []
-			
-			for ch1, ch2 in zip(chrono_ch_files, chrono_ch_files[1:]):
-				mrta_pcp = MRTAPairClustersProcessor(ch1, ch2)
-				mrta_pcp.populate_clusters_shifts_data()
-				mrta_pcp.set_transition_characterization_data()
-
-				transition_df = mrta_pcp.get_transition_characterization_data_df_entry()
-				mrta_pcp.print_distance_matrix(readable_only=False)
-				entries_list.append(transition_df)
-			
-			df = pd.concat(entries_list, ignore_index=True)
-			#print('CREATED DATASET')
-			#print(df)
-
-			now = datetime.now()
-			dt_string = now.strftime("%Y%m%d_%H-%M-%S")
-			clusters_evol_df_name = 'clusters_evols_' + dt_string + '_' + analysis_devname + '.csv'
-			if session_name is not None:
-					clusters_evol_df_name = f'clusters_evols_{session_name}_{analysis_devname}.csv'
-
-			output_path = output_folder + analysis_devname + '_mrt_transitions_dfs/'
-			Path(output_path).mkdir(parents=True, exist_ok=True)
-			df.to_csv(output_path + clusters_evol_df_name)
 			
 	################################################################################################
 	# MODE MONITOR
 	################################################################################################
 
-	elif mode == MODE_MONITOR:
+	if mode == MODE_MONITOR:
 		""" Generate fluctuation graphs """
 		# See MRTADashboard:
 		# 	Generate MRTFeed objects [CSV feed + metadata per device]
