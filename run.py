@@ -558,7 +558,42 @@ def mode_evolution(
 
 def mode_monitor(args: argparse.Namespace) -> None:
 	"""Run MUDscope in monitor mode."""
-	...
+	""" Generate fluctuation graphs """
+	# See MRTADashboard:
+	# 	Generate MRTFeed objects [CSV feed + metadata per device]
+	#	MRTFeed metric(s) to display
+	#	Save location for graphs and overall data
+	#	TODO/Future work: Specify time window section
+	
+	# MRT Feeds information and building
+	if args.mrtfeeds_config is None:
+		raise ValueError(
+			'Attempting monitor options without having specified the '
+			'mrtfeeds_config file. A valid mrtfeeds_config file must be '
+			'specified in order to compare mrt feeds.'
+		)
+
+	with open(args.mrtfeeds_config) as mrtf_conf:
+		mrtf_data = json.load(mrtf_conf)
+	mrtf_data_list = mrtf_data['mrtfeeds']
+	monitor_features = mrtf_data['features_watch']
+	transition_window = mrtf_data['transition_window']
+	
+	mrt_feeds_list = []
+	for l in mrtf_data_list:
+		mrt_feeds_list.append(MRTFeed(l['device_metadata'], l['csv_mrt_feed']))
+
+	mrtadb = MRTADashboard()
+	mrtadb.setup(mrt_feeds_list, monitor_features, transition_window)
+	mrtadb.detect_anomalies()
+	mrtadb.find_matching_anomalies()
+	#mrtadb.generate_report_from_matched_anomalies()
+	#mrtadb.generate_feeds_signatures_set()
+	#mrtadb.generate_feeds_signatures_comparison_matrix()
+	#mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
+
+	mrtadb.generate_report()
+	#mrtadb.generate_report(report_name='comprehensive_report.txt', plots=False)
 
 
 
@@ -601,16 +636,9 @@ def main(arguments=None) -> None:
 	elif args.mode == MODE_MONITOR:
 		return mode_monitor(args)
 	else:
-		...
-		# raise ValueError(f"Unknown mode: {args.mode}")
+		raise ValueError(f"Unknown mode: {args.mode}")
 
-	# Run given mode
-
-	mode = args.mode
-	# NOTE: All parameters default to None values if not specified
-	mrtfeeds_config = args.mrtfeeds_config if args.mrtfeeds_config is not None else None
-
-
+	
 	################################################################################################
 	# Preliminary files existence checks
 	################################################################################################
@@ -637,49 +665,6 @@ def main(arguments=None) -> None:
 	# if mrtfeeds_config is not None and not os.path.isfile(mrtfeeds_config):
 	# 	print('>>> ERROR: MRT feeds config [ {} ] does not exist'.format(mrtfeeds_config), file=sys.stderr)
 	# 	sys.exit(-1)
-			
-	################################################################################################
-	# MODE MONITOR
-	################################################################################################
-
-	if mode == MODE_MONITOR:
-		""" Generate fluctuation graphs """
-		# See MRTADashboard:
-		# 	Generate MRTFeed objects [CSV feed + metadata per device]
-		#	MRTFeed metric(s) to display
-		#	Save location for graphs and overall data
-		#	TODO/Future work: Specify time window section
-		
-		# MRT Feeds information and building
-		if mrtfeeds_config is None:
-			raise ValueError(f'>>> ERROR: Attempting monitor options without having specified the mrtfeeds_config file. A valid mrtfeeds_config file must be specified in order to compare mrt feeds. Exiting.')
-
-		with open(mrtfeeds_config) as mrtf_conf:
-			mrtf_data = json.load(mrtf_conf)
-		mrtf_data_list = mrtf_data['mrtfeeds']
-		monitor_features = mrtf_data['features_watch']
-		transition_window = mrtf_data['transition_window']
-		
-		mrt_feeds_list = []
-		for l in mrtf_data_list:
-			mrt_feeds_list.append(MRTFeed(l['device_metadata'], l['csv_mrt_feed']))
-
-		mrtadb = MRTADashboard()
-		mrtadb.setup(mrt_feeds_list, monitor_features, transition_window)
-		mrtadb.detect_anomalies()
-		mrtadb.find_matching_anomalies()
-		#mrtadb.generate_report_from_matched_anomalies()
-		#mrtadb.generate_feeds_signatures_set()
-		#mrtadb.generate_feeds_signatures_comparison_matrix()
-		#mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
-
-		mrtadb.generate_report()
-		#mrtadb.generate_report(report_name='comprehensive_report.txt', plots=False)
-
-		
-	else:
-		print('>>> --mode argument "{}" is invalid. Exiting.'.format(mode))
-		sys.exit(-1)
 
 """
 python run.py --mode analyze --analysis_tgt ./outputs/ieee-ezviz-complete/mirai-httpflooding-all-ezviz-rejected.json --analysis_action ips_flows_graphs --analysis_devname ieee-ezviz
