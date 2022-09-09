@@ -1,5 +1,5 @@
 # MUDscope example
-This directory provides the example script `example.sh` on how to use mudscope.
+This directory provides the example script `example.sh` on how to use mudscope together with sample configuration files (`config/`) and a small sample dataset (`data/`).
 Here, we explain the different steps taken in the example script and how they correspond to the inner workings of MUDscope. When running `example.sh` all resulting files will be stored in a new `result/` directory.
 
 ## Generate MUD profiles
