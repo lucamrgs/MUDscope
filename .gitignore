@@ -199,3 +199,6 @@ Temporary Items
 */*/__pycache__/
 
 */__pycache__/
+
+# Ignore produced results in examples
+examples/result/
