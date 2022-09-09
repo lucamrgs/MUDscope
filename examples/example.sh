@@ -69,7 +69,6 @@ python3 -m mudscope.scale_reference_df_script \
 python3 -m mudscope --mode analyze \
     --analysis_action mrta_characterize \
     --analysis_tgt result/netflows/rejected/ut-tplink/*-CLN.csv \
-    --analysis_devname ut-tplink \
     --analysis_capture_metadata config/characterization/ut_tplink.json \
     --dsr_path result/netflows/benign/benign-custom-format-CLN-SCALED.csv \
     --analysis_output result/characterization/ut-tplink/
@@ -78,7 +77,6 @@ python3 -m mudscope --mode analyze \
 python3 -m mudscope --mode analyze \
     --analysis_action mrta_characterize \
     --analysis_tgt result/netflows/rejected/tue-tplink/*-CLN.csv \
-    --analysis_devname tue-tplink \
     --analysis_capture_metadata config/characterization/tue_tplink.json \
     --dsr_path result/netflows/benign/benign-custom-format-CLN-SCALED.csv \
     --analysis_output result/characterization/tue-tplink/
@@ -88,13 +86,11 @@ python3 -m mudscope --mode analyze \
 python3 -m mudscope --mode analyze \
     --analysis_action device_mrt_evolution_datagen \
     --analysis_tgt result/characterization/ut-tplink/*.json \
-    --analysis_devname ut-tplink \
     --analysis_output result/evolution/ut-tplink.csv
 
 python3 -m mudscope --mode analyze \
     --analysis_action device_mrt_evolution_datagen \
     --analysis_tgt result/characterization/tue-tplink/*.json \
-    --analysis_devname tue-tplink \
     --analysis_output result/evolution/tue-tplink.csv
 
 # python3 -m mudscope.MRTADashboard \
