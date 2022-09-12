@@ -25,7 +25,7 @@ docker container run -it <image> bash               # Run bash from within the b
 ```
 
 ### Manual installation
-To install MUDscope, please take the following steps:
+Alternatively, you can install MUDscope manually:
 1. Clone our repository
 ```bash
 git clone git@github.com:lucamrgs/MUDscope.git     # Using SSH
@@ -34,13 +34,13 @@ git clone https://github.com/lucamrgs/MUDscope.git # Using HTTPS
 2. Make sure you have installed all [Dependencies](#Dependencies)
 3. Install MUDscope as python tool:
 ```bash
-pip3 install -e /path/to/directory/containing/mudscope/pyproject.toml/file
+pip3 install -e /path/to/directory/containing/mudscope/pyproject.toml/
 ```
 
 ### Dependencies
 Please install the following dependencies to run MUDscope
 
-- [python 3.9+](https://www.python.org/downloads/release/python-390/)
+- [python 3.8+](https://www.python.org/downloads/release/python-380/)
 - [MUDgee](https://github.com/ayyoob/mudgee), additionally requires:
   - [java](https://www.oracle.com/java/technologies/downloads/)
   - [tcpdump](https://www.tcpdump.org/)
