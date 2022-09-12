@@ -202,3 +202,5 @@ Temporary Items
 
 # Ignore produced results in examples
 examples/result/
+mudgee/
+nfdump/
