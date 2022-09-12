@@ -15,6 +15,16 @@ To this end, we take the following steps:
 6. Compare MRT descriptions from multiple devices to provide insights on how anomalous activities affect the selected devices.
 
 ## Installation
+The easiest way of installing MUDscope including all its dependencies is using our [Docker](https://www.docker.com/) container:
+
+```bash
+git clone https://github.com/lucamrgs/MUDscope.git  # Clone repository
+cd MUDscope                                         # Change into MUDscope directory
+docker build .                                      # Build docker container
+docker container run -it <image> bash               # Run bash from within the built docker container, see Usage/examples for using MUDscope
+```
+
+### Manual installation
 To install MUDscope, please take the following steps:
 1. Clone our repository
 ```bash
@@ -22,6 +32,10 @@ git clone git@github.com:lucamrgs/MUDscope.git     # Using SSH
 git clone https://github.com/lucamrgs/MUDscope.git # Using HTTPS
 ```
 2. Make sure you have installed all [Dependencies](#Dependencies)
+3. Install MUDscope as python tool:
+```bash
+pip3 install -e /path/to/directory/containing/mudscope/pyproject.toml/file
+```
 
 ### Dependencies
 Please install the following dependencies to run MUDscope
