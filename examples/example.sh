@@ -16,11 +16,11 @@ mkdir result
 
 # 1. Create MUD profile from benign data traces
 # UT trace
-python3 -m mudscope --mode mudgen \
+python3 -m mudscope mudgen \
     --mudgen_config config/mudgen/ut-tplink.json
 
 # TUe trace
-python3 -m mudscope --mode mudgen \
+python3 -m mudscope mudgen \
     --mudgen_config config/mudgen/tue-tplink.json
 
 # MUDgee stores its profiles in the result/ directory by default.
@@ -32,25 +32,25 @@ mv result/ut-tplink-plug result/mud_profiles/
 
 # 2. Filter rejected traffic from malign pcap files
 # UT traces
-python3 -m mudscope --mode reject \
+python3 -m mudscope reject \
     --reject_mud_rules result/mud_profiles/ut-tplink-plug/ut-tplink-plugrule.csv \
     --reject_config config/reject/ut-tplink/*.json \
     --reject_to_named_dir result/rejected/
 
 # TUe traces
-python3 -m mudscope --mode reject \
+python3 -m mudscope reject \
     --reject_mud_rules result/mud_profiles/tue-tplink-plug/tue-tplink-plugrule.csv \
     --reject_config config/reject/tue-tplink/*.json \
     --reject_to_named_dir result/rejected/
 
 # 3. Transform MUD-rejected traffic (MRT) pcaps into netflows
 # UT traces
-python3 -m mudscope --mode flows_gen \
+python3 -m mudscope flows_gen \
     --flowsgen_tgt_dir result/rejected/ut-tplink/ \
     --flowsgen_outdir result/netflows/rejected/ut-tplink/
 
 # TUe traces
-python3 -m mudscope --mode flows_gen \
+python3 -m mudscope flows_gen \
     --flowsgen_tgt_dir result/rejected/tue-tplink/ \
     --flowsgen_outdir result/netflows/rejected/tue-tplink/
 
@@ -66,7 +66,7 @@ python3 -m mudscope.scale_reference_df_script \
 
 # 4. Analyze NetFlows to perform clustering
 # UT traces
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action mrta_characterize \
     --analysis_tgt result/netflows/rejected/ut-tplink/*-CLN.csv \
     --analysis_capture_metadata config/characterization/ut_tplink.json \
@@ -74,7 +74,7 @@ python3 -m mudscope --mode analyze \
     --analysis_output result/characterization/ut-tplink/
 
 # TUe traces
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action mrta_characterize \
     --analysis_tgt result/netflows/rejected/tue-tplink/*-CLN.csv \
     --analysis_capture_metadata config/characterization/tue_tplink.json \
@@ -83,12 +83,12 @@ python3 -m mudscope --mode analyze \
 
 
 # 5. Analyze characterizations to generate MRT feeds
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action device_mrt_evolution_datagen \
     --analysis_tgt result/characterization/ut-tplink/*.json \
     --analysis_output result/evolution/ut-tplink.csv
 
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action device_mrt_evolution_datagen \
     --analysis_tgt result/characterization/tue-tplink/*.json \
     --analysis_output result/evolution/tue-tplink.csv

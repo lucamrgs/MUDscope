@@ -7,11 +7,11 @@ MUDscope requires MUD profiles to detect disallowed traffic in pcap files. There
 
 ```bash
 # UT trace
-python3 -m mudscope --mode mudgen \
+python3 -m mudscope mudgen \
     --mudgen_config config/mudgen/ut-tplink.json
 
 # TUe trace
-python3 -m mudscope --mode mudgen \
+python3 -m mudscope mudgen \
     --mudgen_config config/mudgen/tue-tplink.json
 ```
 Where:
@@ -22,13 +22,13 @@ Next, we use the MUD profiles generated in the previous step to filter traffic f
 
 ```bash
 # UT traces
-python3 -m mudscope --mode reject \
+python3 -m mudscope reject \
     --reject_mud_rules result/mud_profiles/ut-tplink-plug/ut-tplink-plugrule.csv \
     --reject_config config/reject/ut-tplink/*.json \
     --reject_to_named_dir result/rejected/
 
 # TUe traces
-python3 -m mudscope --mode reject \
+python3 -m mudscope reject \
     --reject_mud_rules result/mud_profiles/tue-tplink-plug/tue-tplink-plugrule.csv \
     --reject_config config/reject/tue-tplink/*.json \
     --reject_to_named_dir result/rejected/
@@ -43,12 +43,12 @@ After filtering out the rejected traffic, this traffic is still in `.pcap` forma
 
 ```bash
 # UT traces
-python3 -m mudscope --mode flows_gen \
+python3 -m mudscope flows_gen \
     --flowsgen_tgt_dir result/rejected/ut-tplink/ \
     --flowsgen_outdir result/netflows/rejected/ut-tplink/
 
 # TUe traces
-python3 -m mudscope --mode flows_gen \
+python3 -m mudscope flows_gen \
     --flowsgen_tgt_dir result/rejected/tue-tplink/ \
     --flowsgen_outdir result/netflows/rejected/tue-tplink/
 ```
@@ -77,7 +77,7 @@ Next we create characterization files describing the different traffic clusters 
 
 ```bash
 # UT traces
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action mrta_characterize \
     --analysis_tgt result/netflows/rejected/ut-tplink/*-CLN.csv \
     --analysis_capture_metadata config/characterization/ut_tplink.json \
@@ -85,7 +85,7 @@ python3 -m mudscope --mode analyze \
     --analysis_output result/characterization/ut-tplink/
 
 # TUe traces
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action mrta_characterize \
     --analysis_tgt result/netflows/rejected/tue-tplink/*-CLN.csv \
     --analysis_capture_metadata config/characterization/tue_tplink.json \
@@ -103,12 +103,12 @@ Where:
 After generating the characterization files, we can produce MRT feeds by comparing differences between subsequent files. For this, we use MUDscope's `analyze` mode in combination with the `device_mrt_evolution_datagen` action:
 
 ```bash
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action device_mrt_evolution_datagen \
     --analysis_tgt result/characterization/ut-tplink/*.json \
     --analysis_output result/evolution/ut-tplink.csv
 
-python3 -m mudscope --mode analyze \
+python3 -m mudscope analyze \
     --analysis_action device_mrt_evolution_datagen \
     --analysis_tgt result/characterization/tue-tplink/*.json \
     --analysis_output result/evolution/tue-tplink.csv
