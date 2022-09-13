@@ -3,7 +3,6 @@ This repository contains the code for MUDscope by the authors of the ACSAC 2022 
 
 ## Table of Contents
 
- * [Table of Contents](#table-of-contents)
  * [Introduction](#introduction)
  * [Overview](#overview)
  * [Installation](#installation)
@@ -156,6 +155,20 @@ optional arguments:
 ### netflows
 The `pcap` files containing MUD-rejected traffic (MRT) must be transformed into NetFlows which are used by the remainder of MUDscope. To transform MRT pcap files into NetFlow files, we use MUDscope's `netflows` mode that takes as `input` a directory containing all MRT pcap files, transforms them into NetFlow files that will be stored in the `output` directory.
 
+---
+**NOTE**
+
+MUDscope expects that input pcaps are already into separate *time-windows*, i.e. each pcap represents a new time-window. These separate pcaps are required during the `netflows`, `characterize`, and `evolution` modes. Therefore, as input for this step, make sure that your `malicious` pcap files are split into time-windows. You can divide pcap files spanning multiple time-windows into smaller pcaps using `editcap`:
+
+```bash
+editcap -i <60> path/to/input.pcap path/to/output.pcap
+```
+
+This splits a pcap file into smaller files each containing traffic for `-i` seconds, outputting all generated files to the specified path. See [editcap doc](https://www.wireshark.org/docs/man-pages/editcap.html) for more information.
+
+In our running [example](examples/), this split has already been performed.
+---
+
 ```
 usage: __main__.py netflows [-h] --input <path> --output <path>
 
@@ -200,12 +213,12 @@ optional arguments:
   --output <path>       output file in which to store MRT feed
 ```
 
+## Examples
+We provide a running example in the [examples/](examples/) directory.
 
 
-To use MUDscope meaningfully as of its current implementation, it is expected to consume a folder containing pcap files, resulting from a subdivision for a bigger capture. These pcap files will represent the *time-windows* on the basis of which traffic is characterised, and its evolution is recorded. Time-based subdivision of a pcap can be achieved with the tool and command:
-``editcap -i <60> path/to/input.pcap path/to/output.pcap``splits a pcap file into smaller files each containing traffic for ``-i`` seconds, outputting all generated files to the specified path. Refer to:
-- https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
-- https://www.wireshark.org/docs/man-pages/editcap.html
+
+
 
 
 After generating the MUD and related rules for a device, add reject_config files for the device, specifying network addresses and pcap capture to process with MUDscope, at: configs/reject_configs/{devname}/{session}/'. Where 'session' is used to group together reject_configs for multiple devices of which MRT traffic shall be compared. A reject_config shall be generated with the script
