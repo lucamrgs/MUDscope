@@ -135,7 +135,20 @@ optional arguments:
 ```
 
 ### reject
-MUDscope enforces MUD profiles by taking `config`s specifying `pcap` files for which to filter given MUD `rules`. When enforcing MUD profiles, traffic that does not conform to the MUD specification will be **rejected** and stored as a separate `pcap` file in the specified `output` directory. See our [examples](examples/) for the format of accepted `config` files.
+MUDscope enforces MUD profiles by taking `config`s specifying `pcap` files for which to filter given MUD `rules`. When enforcing MUD profiles, traffic that does not conform to the MUD specification will be **rejected** and stored as a separate `pcap` file in the specified `output` directory.
+
+---
+**NOTE**
+
+We provide an [example](examples/) for the format of accepted `config` files.
+However, to create these reject `config` files manually, you can use the script:
+```bash
+python3 -m mudscope.generate_rjt_config
+```
+
+We recommend using this script instead of manual configuration as it automatically generates multiple reject `config` files referred to multiple (time-window) pcap files located in a directory, for instance the one used with ``editcap``. See script code directly, or run ``python3 -m mudscope.generate_rjt_config -h`` to consult usage.
+
+---
 
 ```
 usage: __main__.py reject [-h] --config <path> [<path> ...] --rules <path> --output <path>
@@ -184,6 +197,26 @@ optional arguments:
 ### characterize
 Using the generated NetFlows, MUDscope clusters the traffic for multiple time windows and creates characterization files describing these clusters. In our paper, we show that these clusters often correspond to different types of attacks. To generate these characterization files, MUDscope takes as `input` the paths to the CSV files containing MRT netflows generated in the previous step. It also requires `metadata` containing information about the device we are characterizing (see our [examples](examples/) for the format), and it requires a `dsr` (Dataset Scaler Reference CSV file, see [examples](examples/)) to perform correct feature scaling. Using these inputs, MUDscope outputs characterization files in the given `output` directory.
 
+---
+**NOTE**
+
+When characterizing traffic, MUDscope translates pcaps to bi-directional flows, and scales their features. To do this, a dataset scaling reference (DSR) is required. A DSR file can be created from a single pcap file with normal (benign) network activity. It does not need to be deployment specific, and there are no length requirements. A 1 hour-long capture obtained from sniffing the network traffic of the deployment containing your IoT devices should work well. Here, longer and more exaustive captures will provide a better scaling reference.
+
+To generate a DSR yourself, you can use the following scripts, also see [example](examples/):
+
+```bash
+# Transform benign pcaps into netflows
+python3 -m mudscope.device_mrt_pcaps_to_csv \
+    <path/to/directory/containing/benign/pcap/files/> \
+    --outdir <path/to/output/directory/>
+
+# Create dataset scaling reference (DSR)
+python3 -m mudscope.scale_reference_df_script \
+    <path/to/output/csv/of/previous/step.csv>
+```
+
+---
+
 ```
 usage: __main__.py characterize [-h] --input <path> [<path> ...] --metadata <path> --dsr <path>
                                 --output <path>
@@ -214,35 +247,10 @@ optional arguments:
   --output <path>       output file in which to store MRT feed
 ```
 
-## Examples
-We provide a running example in the [examples/](examples/) directory.
+### monitor
+TODO check
 
-
-
-
-
-
-After generating the MUD and related rules for a device, add reject_config files for the device, specifying network addresses and pcap capture to process with MUDscope, at: configs/reject_configs/{devname}/{session}/'. Where 'session' is used to group together reject_configs for multiple devices of which MRT traffic shall be compared. A reject_config shall be generated with the script
-``src/generate_rjt_config``.
-Use of this script is suggested as it automatically generates multiple reject_configs referred to multiple (time-window) pcap files located in a directory, for instance the one used with ``editcap``. See script code directly, or run ``python3 src/generate_rjt_config.py -h`` to consult usage.
-
-Finally, to characterise traffic, the tool translates pcaps to bi-directional flows, and scales their features. To do this, a dataset scaling reference (DSR) is needed. A DSR shall be created from a single pcap file with normal (benign) network activity. It does not need to be deployment specific, and there are no length requirements. A 1 hour-long capture obtained from sniffing the network traffic of the deployment, while using the devices present therein, should work well. Of course, the longer and more exaustive, the better.
-
-A dataset scaling references can be obtained with the following scripts, present in this project (src folder):
-
-- device_mrt_pcaps_to_csv.py: transforms a pcap file to a bi-directional flows CSV file.
-- scale_reference_df_script.py: performs some pre-processing and scaling of flow features.
-
-With the generated device MUD data, reject configurations, and DSR, the whole pipeline up to generation of the MRT Feed can be run with the following script.
-
-``mudscope.py <arguments>``
-- ``--devname <name>`` : name that was assigned to the device through mudgen_config file. This name will also be used to generate all related folders and outputs.
-- ``--analysis_capture_metadata <json_file_name>`` : name of json file (to be located in configs/characterization_datas/ directory) that contains the intended metadata information for the deployment and device. NOTE: it has to abide by a specific format, as its values are directly accessed by the code. See examples in indicated folder.
-- ``--dsr_path <path/to/file.csv>`` : Dataset Scaler Reference path. Path to a CSV bi-directional flows file that will be taken as a reference for the scaling of flows values.
-- ``--session <name>`: Used to fetch together reject_configs for a single device, and group together outputs for all devices assigned to the same analysis session.
-
-A MUD-rejected traffic evolution feed will generated for the device, on the set of (time-consecutive) pcap files indicated.
-
+```
 To compare anomalous activities captured in MRTs for multiple devices, use again the ``run.py`` script, with the following argument:
 
 - ``--mode monitor``
@@ -261,6 +269,10 @@ To compare anomalous activities captured in MRTs for multiple devices, use again
     bwd_matches_agglomeration_max.
     An example can be found in configs/monitor_configs/monitor_test.json.
     The command outputs one plot per specified 'watch feature', for each of the devices specified in the mrtfeeds_config. Additionally, a log file is output where device-specific anomalies are shown, as well as pairwise matches of anomalous activities, if present.
+```
+
+## Examples
+We provide a running example in the [examples/](examples/) directory.
 
 
 ## Dataset
