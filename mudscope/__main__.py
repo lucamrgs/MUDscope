@@ -110,8 +110,8 @@ def parse_args(arguments=None) -> argparse.Namespace:
 
 	parser_netflows = subparsers.add_parser(
 		MODE_FLOWS_GENERATION,
-		description = 'Transforms MRT pcap files to NetFlows.',
-		help        = 'Transforms MRT pcap files to NetFlows.',
+		description = 'Transform MRT pcap files to NetFlows.',
+		help        = 'Transform MRT pcap files to NetFlows.',
 	)
 	parser_netflows.add_argument(
 		'--input',
