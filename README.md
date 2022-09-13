@@ -122,8 +122,6 @@ mode:
 ### mudgen
 MUDscope enforces MUD profiles in pcap files to filter malicious traffic from these files. However, manufacturers often do not specify MUD profiles for their IoT devices. Therefore, we provide an easy interface to learn MUD profiles from a trace of benign network traffic of a device using the tool [MUDgee](https://github.com/ayyoob/mudgee). This mode takes a MUDgee `config` file as input and produces MUD profiles for network traces specified in this `config` file. See [MUDgee](https://github.com/ayyoob/mudgee) or one of our [examples](examples/) for the format of these `config` files.
 
-**Note:** by default the MUD profiles will be stored in a (newly created) `result` directory, which is the default behaviour of [MUDgee](https://github.com/ayyoob/mudgee).
-
 ```
 usage: __main__.py mudgen [-h] --config <path>
 
@@ -134,16 +132,10 @@ optional arguments:
   --config <path>  path to JSON config file for mudgee MUD generation
 ```
 
+**Note:** by default the MUD profiles will be stored in a (newly created) `result` directory, which is the default behaviour of [MUDgee](https://github.com/ayyoob/mudgee).
+
 ### reject
 MUDscope enforces MUD profiles by taking `config`s specifying `pcap` files for which to filter given MUD `rules`. When enforcing MUD profiles, traffic that does not conform to the MUD specification will be **rejected** and stored as a separate `pcap` file in the specified `output` directory.
-
-**Note:** We provide an [example](examples/) for the format of accepted `config` files. However, to create these reject `config` files manually, you can use the script:
-```bash
-python3 -m mudscope.generate_rjt_config
-```
-
-We recommend using this script instead of manual configuration as it automatically generates multiple reject `config` files referred to multiple (time-window) pcap files located in a directory, for instance the one used with ``editcap``. See script code directly, or run ``python3 -m mudscope.generate_rjt_config -h`` to consult usage.
-
 
 ```
 usage: __main__.py reject [-h] --config <path> [<path> ...] --rules <path> --output <path>
@@ -160,18 +152,16 @@ optional arguments:
   --limit <int>         optional, limits the number of packets processed when rejecting traffic
 ```
 
-### netflows
-The `pcap` files containing MUD-rejected traffic (MRT) must be transformed into NetFlows which are used by the remainder of MUDscope. To transform MRT pcap files into NetFlow files, we use MUDscope's `netflows` mode that takes as `input` a directory containing all MRT pcap files, transforms them into NetFlow files that will be stored in the `output` directory.
-
-**Note:** MUDscope expects that input pcaps are already into separate *time-windows*, i.e. each pcap represents a new time-window. These separate pcaps are required during the `netflows`, `characterize`, and `evolution` modes. Therefore, as input for this step, make sure that your `malicious` pcap files are split into time-windows. You can divide pcap files spanning multiple time-windows into smaller pcaps using `editcap`:
-
+**Note:** We provide an [example](examples/) for the format of accepted `config` files. However, to create these reject `config` files manually, you can use the script:
 ```bash
-editcap -i <60> path/to/input.pcap path/to/output.pcap
+python3 -m mudscope.generate_rjt_config
 ```
 
-This splits a pcap file into smaller files each containing traffic for `-i` seconds, outputting all generated files to the specified path. See [editcap doc](https://www.wireshark.org/docs/man-pages/editcap.html) for more information.
+We recommend using this script instead of manual configuration as it automatically generates multiple reject `config` files referred to multiple (time-window) pcap files located in a directory, for instance the one used with ``editcap``. See script code directly, or run ``python3 -m mudscope.generate_rjt_config -h`` to consult usage.
 
-In our running [example](examples/), this split has already been performed.
+
+### netflows
+The `pcap` files containing MUD-rejected traffic (MRT) must be transformed into NetFlows which are used by the remainder of MUDscope. To transform MRT pcap files into NetFlow files, we use MUDscope's `netflows` mode that takes as `input` a directory containing all MRT pcap files, transforms them into NetFlow files that will be stored in the `output` directory.
 
 ```
 usage: __main__.py netflows [-h] --input <path> --output <path>
@@ -184,23 +174,18 @@ optional arguments:
   --output <path>  path to output directory in which to store NetFlows
 ```
 
-### characterize
-Using the generated NetFlows, MUDscope clusters the traffic for multiple time windows and creates characterization files describing these clusters. In our paper, we show that these clusters often correspond to different types of attacks. To generate these characterization files, MUDscope takes as `input` the paths to the CSV files containing MRT netflows generated in the previous step. It also requires `metadata` containing information about the device we are characterizing (see our [examples](examples/) for the format), and it requires a `dsr` (Dataset Scaler Reference CSV file, see [examples](examples/)) to perform correct feature scaling. Using these inputs, MUDscope outputs characterization files in the given `output` directory.
-
-**Note:** When characterizing traffic, MUDscope translates pcaps to bi-directional flows, and scales their features. To do this, a dataset scaling reference (DSR) is required. A DSR file can be created from a single pcap file with normal (benign) network activity. It does not need to be deployment specific, and there are no length requirements. A 1 hour-long capture obtained from sniffing the network traffic of the deployment containing your IoT devices should work well. Here, longer and more exaustive captures will provide a better scaling reference.
-
-To generate a DSR yourself, you can use the following scripts, also see [example](examples/):
+**Note:** MUDscope expects that input pcaps are already into separate *time-windows*, i.e. each pcap represents a new time-window. These separate pcaps are required during the `netflows`, `characterize`, and `evolution` modes. Therefore, as input for this step, make sure that your `malicious` pcap files are split into time-windows. You can divide pcap files spanning multiple time-windows into smaller pcaps using `editcap`:
 
 ```bash
-# Transform benign pcaps into netflows
-python3 -m mudscope.device_mrt_pcaps_to_csv \
-    <path/to/directory/containing/benign/pcap/files/> \
-    --outdir <path/to/output/directory/>
-
-# Create dataset scaling reference (DSR)
-python3 -m mudscope.scale_reference_df_script \
-    <path/to/output/csv/of/previous/step.csv>
+editcap -i <60> path/to/input.pcap path/to/output.pcap
 ```
+
+This splits a pcap file into smaller files each containing traffic for `-i` seconds, outputting all generated files to the specified path. See [editcap doc](https://www.wireshark.org/docs/man-pages/editcap.html) for more information.
+
+In our running [example](examples/), this split has already been performed.
+
+### characterize
+Using the generated NetFlows, MUDscope clusters the traffic for multiple time windows and creates characterization files describing these clusters. In our paper, we show that these clusters often correspond to different types of attacks. To generate these characterization files, MUDscope takes as `input` the paths to the CSV files containing MRT netflows generated in the previous step. It also requires `metadata` containing information about the device we are characterizing (see our [examples](examples/) for the format), and it requires a `dsr` (Dataset Scaler Reference CSV file, see [examples](examples/)) to perform correct feature scaling. Using these inputs, MUDscope outputs characterization files in the given `output` directory.
 
 ```
 usage: __main__.py characterize [-h] --input <path> [<path> ...] --metadata <path> --dsr <path>
@@ -215,6 +200,21 @@ optional arguments:
   --metadata <path>     path to JSON file describing the capture to analyse
   --dsr <path>          path to Dataset Scaler Reference (DSR) CSV file
   --output <path>       output directory in which to store analyzed file(s)
+```
+
+**Note:** When characterizing traffic, MUDscope translates pcaps to bi-directional flows, and scales their features. To do this, a dataset scaling reference (DSR) is required. A DSR file can be created from a single pcap file with normal (benign) network activity. It does not need to be deployment specific, and there are no length requirements. A 1 hour-long capture obtained from sniffing the network traffic of the deployment containing your IoT devices should work well. Here, longer and more exaustive captures will provide a better scaling reference.
+
+To generate a DSR yourself, you can use the following scripts, also see [example](examples/):
+
+```bash
+# Transform benign pcaps into netflows
+python3 -m mudscope.device_mrt_pcaps_to_csv \
+    <path/to/directory/containing/benign/pcap/files/> \
+    --outdir <path/to/output/directory/>
+
+# Create dataset scaling reference (DSR)
+python3 -m mudscope.scale_reference_df_script \
+    <path/to/output/csv/of/previous/step.csv>
 ```
 
 ### evolution
