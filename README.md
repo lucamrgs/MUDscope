@@ -14,6 +14,7 @@ This repository contains the code for MUDscope by the authors of the ACSAC 2022 
    * [netflows](#netflows)
    * [characterize](#characterize)
    * [evolution](#evolution)
+   * [monitor](#monitor)
  * [Dataset](#dataset)
  * [References](#references)
  
