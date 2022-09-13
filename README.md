@@ -1,6 +1,24 @@
 # MUDscope
 This repository contains the code for MUDscope by the authors of the ACSAC 2022 paper "Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles" [PDF](https://vm-thijs.ewi.utwente.nl/static/homepage/papers/mudscope.pdf) [1]. Please [cite](#References) MUDscope when using it in academic publications.
 
+## Table of Contents
+
+ * [Table of Contents](#table-of-contents)
+ * [Introduction](#introduction)
+ * [Overview](#overview)
+ * [Installation](#installation)
+   * [Manual](#manual-installation)
+   * [Dependencies](#dependencies)
+ * [Usage](#usage)
+   * [mudgen](#mudgen)
+   * [reject](#reject)
+   * [netflows](#netflows)
+   * [characterize](#characterize)
+   * [evolution](#evolution)
+ * [Dataset](#dataset)
+ * [References](#references)
+ 
+
 ## Introduction
 Besides coming with unprecedented benefits, the Internet of Things (IoT) suffers deficits in security measures, leading to attacks increas- ing every year. In particular, network environments such as smart homes lack managed security capabilities to detect IoT-related at- tacks; IoT devices hosted therein are thus more easily infiltrated by threats. As such, context awareness on IoT infections is hard to achieve, preventing prompt response. In this work, we propose MUDscope, an approach to monitor malicious network activities affecting IoT in real-world consumer environments. We leverage the recent Manufacturer Usage Description (MUD) specification, which defines networking whitelists for IoT devices in MUD pro- files, to reflect consistent and necessarily-anomalous activities from smart things. Our approach characterizes this traffic and extracts signatures for given attacks. By analyzing attack signatures for multiple devices, we gather insights into emerging attack patterns. We evaluate our approach on both an existing dataset, and a new openly available dataset created for this research. We show that MUDscope detects several attacks targeting IoT devices with an F1-score of 95.77% and correctly identifies signatures for specific attacks with an F1-score of 87.72%.
 
