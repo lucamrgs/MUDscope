@@ -45,9 +45,10 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	########################################################################
 
 	subparsers = parser.add_subparsers(
-		title = 'mode',
+		title       = 'mode',
 		description = 'Mode in which to run MUDscope.',
-		dest = 'mode',
+		dest        = 'mode',
+		required    = True,
 	)
 
 	########################################################################
