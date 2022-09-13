@@ -105,6 +105,8 @@ mode:
 ### mudgen
 MUDscope enforces MUD profiles in pcap files to filter malicious traffic from these files. However, manufacturers often do not specify MUD profiles for their IoT devices. Therefore, we provide an easy interface to learn MUD profiles from a trace of benign network traffic of a device using the tool [MUDgee](https://github.com/ayyoob/mudgee). This mode takes a MUDgee `config` file as input and produces MUD profiles for network traces specified in this `config` file. See [MUDgee](https://github.com/ayyoob/mudgee) or one of our [examples](examples/) for the format of these `config` files.
 
+**Note:** by default the MUD profiles will be stored in a (newly created) `result` directory, which is the default behaviour of [MUDgee](https://github.com/ayyoob/mudgee).
+
 ```
 usage: __main__.py mudgen [-h] --config <path>
 
@@ -148,7 +150,7 @@ optional arguments:
 ```
 
 ### characterize
-TODO
+Using the generated NetFlows, MUDscope clusters the traffic for multiple time windows and creates characterization files describing these clusters. In our paper, we show that these clusters often correspond to different types of attacks. To generate these characterization files, MUDscope takes as `input` the paths to the CSV files containing MRT netflows generated in the previous step. It also requires `metadata` containing information about the device we are characterizing (see our [examples](examples/) for the format), and it requires a `dsr` (Dataset Scaler Reference CSV file, see [examples](examples/)) to perform correct feature scaling. Using these inputs, MUDscope outputs characterization files in the given `output` directory.
 
 ```
 usage: __main__.py characterize [-h] --input <path> [<path> ...] --metadata <path> --dsr <path>
@@ -166,7 +168,7 @@ optional arguments:
 ```
 
 ### evolution
-TODO
+We now have produced MUDscope characterizations of malicious traffic for each time window. However, we would also like to analyze how these characterizations evolve over time in order to produce MRT feeds. MUDscope's `evolution` mode takes as `input` the paths to JSON characterization files, analyzes the evolution of these characterizations and stores them in the MRT feed format in the specified `output` file.
 
 ```
 usage: __main__.py evolution [-h] --input <path> [<path> ...] --output <path>
@@ -181,35 +183,12 @@ optional arguments:
 ```
 
 
-:
-```bash
-python3 -m mudscope <arguments>
-```
-
-We note that MUDscope has five different modes in which it can run, corresponding to the different steps in the [paper](https://vm-thijs.ewi.utwente.nl/static/homepage/papers/mudscope.pdf) (Figures 1 and 2):
-1. `--mode mudgen`, to create a MUD profile.
-2. `--mode reject`, to filter traffic by enforcing a given MUD profile.
-3. `--mode netflows`, to generate netflows of MUD-rejected traffic (MRT).
-4. `--mode analyze`, to perform various analyses:
-  4.1. `--mode analyze --analysis_action mrta_characterize`, to create MRT characterizations.
-  4.2. `--mode analyze --analysis_action device_mrt_evolution_datagen`, to create MRT characterizations.
-
-### 
-
-```bash
-python run.py <arguments>
-```
-
-``--pcap_limit``: if set to an integer, limits the number of packets processed in 'reject' mode to the one indicated.
-
-``--mode mudgen`` : generates MUD data using MUDgee
-``--mudgen_config <json_file_name>`` : name of json file in /mudgen_configs on which MUD profile and filtering rules are created
-OUTPUT: a folder in /mudscope/result/ containing device-specific MUD profile and derived OF rules.
 
 To use MUDscope meaningfully as of its current implementation, it is expected to consume a folder containing pcap files, resulting from a subdivision for a bigger capture. These pcap files will represent the *time-windows* on the basis of which traffic is characterised, and its evolution is recorded. Time-based subdivision of a pcap can be achieved with the tool and command:
 ``editcap -i <60> path/to/input.pcap path/to/output.pcap``splits a pcap file into smaller files each containing traffic for ``-i`` seconds, outputting all generated files to the specified path. Refer to:
 - https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
 - https://www.wireshark.org/docs/man-pages/editcap.html
+
 
 After generating the MUD and related rules for a device, add reject_config files for the device, specifying network addresses and pcap capture to process with MUDscope, at: configs/reject_configs/{devname}/{session}/'. Where 'session' is used to group together reject_configs for multiple devices of which MRT traffic shall be compared. A reject_config shall be generated with the script
 ``src/generate_rjt_config``.
