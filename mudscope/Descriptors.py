@@ -1,17 +1,8 @@
-
-
+# Imports
 from collections import Counter
 from datetime import datetime
-import heapq
-import pandas as pd
+from scipy.spatial.distance import pdist, squareform
 import numpy as np
-import json
-
-from scipy import spatial
-from scipy.spatial.distance import cdist, pdist, squareform
-
-from sklearn.metrics.pairwise import euclidean_distances
-
 
 class ClusterDescriptor:
     """
@@ -19,65 +10,22 @@ class ClusterDescriptor:
         Though it works with any dataframe, it shall be fed with dataframes that represent the selection of flows belonging to a cluster,
         hence why it's cluster-oriented.
     """
-    
-    """
-    TODO: Adjust constant values usage
-    
-    METADATA_LBL = 'metadata'
-    CLUSTERS_LBL = 'clusters'
-    DEPLOYMENT_DATA_LBL = 'deployment_data'
-    DEPLOYMENT_INFO_LBL = 'deployment_info'
-    DEPLOYMENT_ID_LBL = 'deployment_id'
-    TIME_WINDOW_LBL = 'time_window'
-    SPATIAL_DATA_LBL = 'spatial_data'
-    CENTROID_LBL = 'centroid'
-    META_CENTROID_LBL = 'meta_centroid'
-    DEVICE_ID_LBL = 'device_id'
-    """
-
-    # NOTE: Change in init().popluate(data).get_data() interface?
-
 
     def __init__(self, cluster_dataframe):
         
         # Remove cluster label from dataframe
-        self.cluster_df =  cluster_dataframe.reset_index(drop=True) if 'cluster' not in cluster_dataframe.columns else cluster_dataframe.drop(['cluster'], axis=1).reset_index(drop=True)
-
-        # TODO: Header consistency and usability check
-
-        # WARNING: SENSITIVENESS TO OUTLIERS IF ANY IN THE CLUSTER - for MAX DISTANCE values and width span
-        # Outliers should have been marked as noise points in clustering phase.
-        # > Careful with noise cluster
+        if 'cluster' not in cluster_dataframe.columns:
+            self.cluster_df = cluster_dataframe.reset_index(drop=True)
+        else:
+            self.cluster_df = cluster_dataframe.drop(['cluster'], axis=1).reset_index(drop=True)
 
         num_pts = self.cluster_df.shape[0]
-        
-        """
-        print()
-        print()
-        print()
-        print('num pts')
-        print(num_pts)
-        print()
-        print()
-        print()
-        """
 
         # Compute spatial distance between flow values
         # Ref @ https://stackoverflow.com/questions/60574862/calculating-pairwise-euclidean-distance-between-all-the-rows-of-a-dataframe
         c_distances = np.zeros(1)
         if num_pts > 2:
             c_distances = pdist(self.cluster_df.values, metric='euclidean') # euclidean as used by default in HDBSCAN. pdist doc @ https://docs.scipy.org/doc/scipy-0.17.1/reference/generated/scipy.spatial.distance.pdist.html#scipy.spatial.distance.pdist
-        
-        """     
-        print()
-        print()
-        print()
-        print('cdistances')
-        print(c_distances)
-        print()
-        print()
-        print()
-        """
 
         # Width of cluster, expressed as cordinate a, b, of most distant points
         c_dist_matrix = squareform(c_distances)
@@ -107,9 +55,6 @@ class ClusterDescriptor:
             'centroid' : c_centroid, # a list corresponding to the len(ami-features)-dimensional center
             'meta_centroid' : descr_list # all descriptors as higher dimensional point
         }
-
-        #for k, v in self.data.items():
-        #    print(f'{k} : {v}, type: {type(v)}')
 
     def get_data(self):
         return self.data
