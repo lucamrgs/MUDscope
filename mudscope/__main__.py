@@ -227,18 +227,17 @@ def mode_mudgen(config: Union[str, Path]) -> None:
 			Path to config file from which to generate MUD profile.
 		"""
 	# Get info from MUD config file
-	print('>>> MUDGEN CONFIG FILE: {}'.format(config))
 	with open(config) as mg_cf:
 		mg_data = json.load(mg_cf)
 	device_name = mg_data['deviceConfig']['deviceName']
 	# Run mudgee
 	mudgee_gen_outcome = MUDGenUtils.run_mudgee(config)
-	print(f'>>> MUD data to generate with MUDgee from info in config file {config}') 
+	print(f'MUD data to generate with MUDgee from info in config file {config}') 
 
 	if mudgee_gen_outcome == 0:
-		print(f'>>> MUD data output in result/{device_name}')
+		print(f'MUD data output in result/{device_name}')
 	else:
-		print('>>> ERROR: Some error occurred in generating MUD data.')
+		raise ValueError('Some error occurred in generating MUD data.')
 
 
 def mode_reject(
@@ -451,22 +450,8 @@ def mode_evolution(
 		sorted(ordered_characterizations.items(), key=lambda item: item[1])
 	)
 	
-	"""
-		FEDLAB
-		NOTE : LEGIT ORDER : chrono_ch_files = [k for k in ordered_characterizations.keys()]
-
-		NOTE - CURRENTLY TESTING WITH ALPHABETICAL ORDER : `same attacks' scenario
-			[k for k in sorted(ordered_characterizations.keys(), key=lambda s:s.rsplit('_')[-1])]
-		NOTE - CURRENTLY TESTING WITH SHUFFLED ORDER : `different attacks' scenario
-			[k for k in random.sample(ordered_characterizations.keys(), len(ordered_characterizations.keys()))]
-	"""
 	chrono_ch_files = [k for k in ordered_characterizations.keys()]
-	#chrono_ch_files = [k for k in random.sample(ordered_characterizations.keys(), len(ordered_characterizations.keys()))]
-	for f in chrono_ch_files:
-		print(f)
 	
-	#print(chrono_ch_files)
-	# Produce two-by-two MRT clusters transition data entries
 	entries_list = []
 	
 	for ch1, ch2 in zip(chrono_ch_files, chrono_ch_files[1:]):
@@ -479,9 +464,6 @@ def mode_evolution(
 		entries_list.append(transition_df)
 	
 	df = pd.concat(entries_list, ignore_index=True)
-
-	#print('CREATED DATASET')
-	#print(df)
 
 	# Prepare output file
 	outfile = Path(outfile)
@@ -509,12 +491,7 @@ def mode_monitor(
 		"""
 
 	""" Generate fluctuation graphs """
-	# See MRTADashboard:
-	# 	Generate MRTFeed objects [CSV feed + metadata per device]
-	#	MRTFeed metric(s) to display
-	#	Save location for graphs and overall data
-	#	TODO/Future work: Specify time window section
-
+	# Open configuration
 	with open(config) as mrtf_conf:
 		mrtf_data = json.load(mrtf_conf)
 	mrtf_data_list = mrtf_data['mrtfeeds']
@@ -525,19 +502,15 @@ def mode_monitor(
 	for l in mrtf_data_list:
 		mrt_feeds_list.append(MRTFeed(l['device_metadata'], l['csv_mrt_feed']))
 
+	# Perform monitoring
 	mrtadb = MRTADashboard()
 	mrtadb.setup(mrt_feeds_list, monitor_features, transition_window)
 	mrtadb.detect_anomalies()
 	mrtadb.find_matching_anomalies()
-	#mrtadb.generate_report_from_matched_anomalies()
-	#mrtadb.generate_feeds_signatures_set()
-	#mrtadb.generate_feeds_signatures_comparison_matrix()
-	#mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
 
 	mrtadb.generate_report(
 		outdir = output,
 	)
-	#mrtadb.generate_report(report_name='comprehensive_report.txt', plots=False)
 
 
 
@@ -590,106 +563,7 @@ def main(arguments=None) -> None:
 	else:
 		raise ValueError(f"Unknown mode: {args.mode}")
 
-	
-	################################################################################################
-	# Preliminary files existence checks
-	################################################################################################
-
-	# # Manage case if files do not exist
-	# if mudgen_config is not None and not os.path.isfile(mudgen_config):
-	# 	print('>>> ERROR: Mudgen config [ {} ] does not exist'.format(mudgen_config), file=sys.stderr)
-	# 	sys.exit(-1)
-	# if reject_config is not None and not (os.path.isfile(reject_config) or os.path.isdir(reject_config)):
-	# 	print('>>> ERROR: Reject config [ {} ] does not exist'.format(reject_config), file=sys.stderr)
-	# 	sys.exit(-1)
-	# if analysis_capture_metadata is not None and not os.path.isfile(analysis_capture_metadata):
-	# 	print('>>> ERROR: Analysis characterization metadata [ {} ] does not exist'.format(analysis_capture_metadata), file=sys.stderr)
-	# 	sys.exit(-1)
-	# if reject_mud_rules is not None and not os.path.isfile(reject_mud_rules):
-	# 	print('>>> ERROR: Mud filtering rules [ {} ] does not exist'.format(reject_mud_rules), file=sys.stderr)
-	# 	sys.exit(-1)
-	# if analysis_tgt is not None and not (os.path.isfile(analysis_tgt) or os.path.isdir(analysis_tgt)):
-	# 	print('>>> ERROR: File/directory to analyse [ {} ] does not exist'.format(analysis_tgt), file=sys.stderr)
-	# 	sys.exit(-1)
-	# if dsr_path is not None and not os.path.isfile(dsr_path):
-	# 	print('>>> ERROR: Dataset scaler reference does not exist at [ {} ]'.format(dsr_path), file=sys.stderr)
-	# 	sys.exit(-1)
-	# if mrtfeeds_config is not None and not os.path.isfile(mrtfeeds_config):
-	# 	print('>>> ERROR: MRT feeds config [ {} ] does not exist'.format(mrtfeeds_config), file=sys.stderr)
-	# 	sys.exit(-1)
-
-"""
-python run.py --mode analyze --analysis_tgt ./outputs/ieee-ezviz-complete/mirai-httpflooding-all-ezviz-rejected.json --analysis_action ips_flows_graphs --analysis_devname ieee-ezviz
-"""
-
 
 if __name__ == '__main__':
 	main()
 	sys.exit(0)
-
-"""
-
-
-**** DEMO COMMANDS FOR SINGLE-DEVICE FUNCTIONS ****
-
-# Generate MUD profile
-$> python3 run.py --mode mudgen --mudgen_config ieee-ezviz-demo-1.json
-
-# Generate reject configs
-$> python3 generate_rjt_configs.py --devname [] --dev_mac [] --gw_mac []  --gw_ip4 [] --gw_ip6 [] --tgt_dir []
-	/Users/lucamrgs/Big_Data/FederatedLab/UT/Malign
-
-# Filter traffic off a pcap
-$> python3 run.py --mode reject --reject_mud_rules result/ieee-ezviz-demo-1/ieee-ezviz-demo-1rule.csv --reject_config configs/reject_configs/ieee-ezviz-demo-1-A-floods --reject_to_named_dir time_1
-$> python3 run.py --mode reject --reject_mud_rules result/ieee-ezviz-demo-1/ieee-ezviz-demo-1rule.csv --reject_config configs/reject_configs/ieee-ezviz-demo-1-B-scans --reject_to_named_dir time_2
-
-# Generate NetFlow CSV
-$> python3 run.py --mode flows_gen --flowsgen_tgt_dir outputs/ieee-ezviz-demo-1/ieee-ezviz-demo-1_time_1
-$> python3 run.py --mode flows_gen --flowsgen_tgt_dir outputs/ieee-ezviz-demo-1/ieee-ezviz-demo-1_time_2
-
-# Cluster flows in CSV and generate characterization file
-$> python3 run.py --mode analyze --analysis_devname ieee-ezviz-demo-1 --analysis_action mrta_characterize --analysis_capture_metadata characterization_test.json --analysis_tgt outputs/ieee-ezviz-demo-1/ieee-ezviz-demo-1_time_1/ieee-ezviz-demo-1_time_1-all-flows-csv/*-CLN.csv 
-[ieee-ezviz-demo-1_time_1-all-flows-gen-custom-format-CLN.csv]
-$> python3 run.py --mode analyze --analysis_devname ieee-ezviz-demo-1 --analysis_action mrta_characterize --analysis_capture_metadata characterization_test.json --analysis_tgt outputs/ieee-ezviz-demo-1/ieee-ezviz-demo-1_time_2/ieee-ezviz-demo-1_time_2-all-flows-csv/*-CLN.csv 
-[ieee-ezviz-demo-1_time_2-all-flows-gen-custom-format-CLN.csv]
-
-# Generate the traffic evolution dataframe based on sequential pairwise traffic characterization files
-$> python3 run.py --mode analyze --analysis_devname ieee-ezviz-demo-1 --analysis_action device_mrt_evolution_datagen --analysis_tgt outputs/ieee-ezviz-demo-1/ieee-ezviz-demo-1_mrt_characterizations
-
-
-
-**** MACROs reject traffic to characterization file ****
-
-python3 MACRO_rjt_to_ch.py --devname ieee-ezviz-demo-1 --reject_config configs/reject_configs/ieee-ezviz-demo-1-A-mirai-floods --reject_to_named_dir time_1 --flowsgen_tgt_dir outputs/ieee-ezviz-demo-1/ieee-ezviz-demo-1_time_1 --analysis_capture_metadata characterization_test.json
-
-python3 MACRO_rjt_to_ch.py --devname ieee-ezviz-demo-1 --reject_config configs/reject_configs/ieee-ezviz-demo-1-B-scans --reject_to_named_dir time_2 --flowsgen_tgt_dir outputs/ieee-ezviz-demo-1/ieee-ezviz-demo-1_time_2 --analysis_capture_metadata characterization_test.json
-
-"""
-
-
-"""
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
-# 			TODO - CHANGE TO CSV-PER-PCAP APPROACH!!!!!!!!
-#			DONE >>> IT LOOKS LIKE IT WORKS!!
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
-
-SPLIT PCAP FILES ON SECONDS: editpcap -i 60 input.pcap output.pcap
-https://serverfault.com/questions/131872/how-to-split-a-pcap-file-into-a-set-of-smaller-ones
-https://www.wireshark.org/docs/man-pages/editcap.html
-
-DSR PATH EZVIZ: '/Users/lucamrgs/Big_Data/IEEE-Huy-Kang/dataset_scaler_gen_reference.csv'
-
-$> python3 run.py --mode mudgen --mudgen_config <file>.json
-
-$> python3 src/generate_rjt_configs.py --tgt_dir <full path to dir with pcaps to reject from> --devname <devname> --dev_mac <dev mac> --gw_mac <> --gw_ip4 <> [--gw_ip6 <>]
-
-$> python3 run.py --mode reject --reject_mud_rules result/<device-id>/<device-id>rule.csv --reject_config path/to/<name of generated rjt folder>
-
-$> python3 run.py --mode flows_gen --flowsgen_tgt_dir outputs/<device-id>[/rjt pcaps folder]
-
-$> python3 run.py --mode analyze --analysis_devname <device-id> --analysis_action mrta_characterize --dsr_path <path to dataset scaling generation reference csv> --analysis_capture_metadata <metadata-filename>.json --analysis_tgt outputs/<device-id>/<flows CSV folder>
-
-$> python3 run.py --mode analyze --analysis_devname <device-id> --analysis_action device_mrt_evolution_datagen --analysis_tgt outputs/<device-id>/<mrt characterizations folder>
-
-"""
-
