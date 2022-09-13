@@ -1,16 +1,13 @@
-
+# Imports
 import json
-from mimetypes import knownfiles
 import socket
 import re
 import binascii
 from ipaddress import ip_address, ip_network
 from scapy.all import *
-
 from mudscope.Constants import *
 
 debug = False
-
 
 """
     TODO: Support WIFI Protocols etc. if different from Eth

@@ -17,8 +17,6 @@ import subprocess
 from pathlib import Path
 import pandas as pd
 
-from scapy.all import rdpcap, wrpcap, IP, UDP, ICMP
-
 # Remove directories without errors, from https://stackoverflow.com/questions/31977833/rm-all-files-under-a-directory-using-python-subprocess-call
 import shutil
 import requests
@@ -28,6 +26,7 @@ from mudscope.Constants import *
 
 debug = False
 
+# TODO: remove hard-coded paths
 BASH_AUTO_PCAP_TO_FLOWS = BASE_DIR + 'mudscope/auto-scripts/bash/pcap_to_flows.sh'
 BASH_AUTO_FLOWS_TO_CSV = BASE_DIR + 'mudscope/auto-scripts/bash/flows_to_csv.sh'
 BASH_AUTO_MERGE_CSVS = BASE_DIR + 'mudscope/auto-scripts/bash/merge_csvs.sh'
@@ -36,9 +35,9 @@ FLOWS_DIR_TAG = '-flows'
 ALL_CSV_FLOWS_DIR_TAG = '-all-flows-csv'
 
 
-############################################################################################################
+################################################################################
 ################### >>> GEO IP
-############################################################################################################
+################################################################################
 """
     NOTE: GEO-DATA NOT SUPPORTED AT THE MOMENT
 """
@@ -52,9 +51,9 @@ import asyncio
 
 
 
-#############################################################################################################
+################################################################################
 ################### >>> Get Arguments
-############################################################################################################
+################################################################################
 
 
 def get_args(arguments=None):
@@ -78,9 +77,9 @@ def get_args(arguments=None):
     return parser.parse_args(arguments)
 
 
-############################################################################################################
+################################################################################
 ################### >>> DIRECTORY CLEANING
-############################################################################################################
+################################################################################
 
 def clean_up_flow_folders(pcap_dir, ask=False):
     print('>>> Removing all temporary flows folders...')
@@ -112,12 +111,9 @@ def clean_up_unused_csvs(csvs_dir):
             print('>>> Removed: {}'.format(path_to_file))
 
 
-############################################################################################################
+################################################################################
 ################### >>> PCAPs > FLOWS > CSV Pipeline
-############################################################################################################
-
-def manage_no_mrt():
-    pass
+################################################################################
 
 def pcaps_to_flows(pcaps_dir):
 
