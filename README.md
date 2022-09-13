@@ -116,7 +116,7 @@ optional arguments:
 ```
 
 ### reject
-TODO
+MUDscope enforces MUD profiles by taking `config`s specifying `pcap` files for which to filter given MUD `rules`. When enforcing MUD profiles, traffic that does not conform to the MUD specification will be **rejected** and stored as a separate `pcap` file in the specified `output` directory. See our [examples](examples/) for the format of accepted `config` files.
 
 ```
 usage: __main__.py reject [-h] --config <path> [<path> ...] --rules <path> --output <path>
@@ -134,7 +134,7 @@ optional arguments:
 ```
 
 ### netflows
-TODO
+The `pcap` files containing MUD-rejected traffic (MRT) must be transformed into NetFlows which are used by the remainder of MUDscope. To transform MRT pcap files into NetFlow files, we use MUDscope's `netflows` mode that takes as `input` a directory containing all MRT pcap files, transforms them into NetFlow files that will be stored in the `output` directory.
 
 ```
 usage: __main__.py netflows [-h] --input <path> --output <path>
