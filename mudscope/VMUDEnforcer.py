@@ -2,9 +2,6 @@
 import csv
 from pathlib import Path
 from scapy.all import *
-
-from pprint import pprint
-
 from mudscope.Flow import Flow
 from mudscope.Constants import *
 from mudscope.PacketsRegister import PacketsRegister
@@ -398,30 +395,3 @@ class Virtual_MUD_enforcer:
 
         sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
         sys.stdout.flush()
-
-
-
-
-if __name__ == '__main__':
-    # Testing...
-
-    # DEVICE MAC wlan 30m D-LINK e4:6f:13:d3:0f:22
-
-    # Phillips Hue IoT-23 00:17:88:75:b3:82
-
-    pcapfile = "outputs/ieee-ezviz-complete/mirai-ackflooding-all-ezviz-rejected.pcap"
-    gw_mac = "b8:27:eb:fd:68:e2"
-    dv_mac = "00:0c:43:b0:b6:4b"
-    filter_rules = "./result/eyeplus-babycam/eyeplus-babycamrule.csv"
-
-    #test_enforcer = Virtual_MUD_enforcer(dv_mac, 'devtest' gw_mac, filter_rules)
-    #test_enforcer.enforce_in_pcap(pcapfile)
-    
-    def process_packet(pkt):
-        if pkt.haslayer('IP'):
-            if pkt['IP'].src == '0.0.0.0':
-                try:
-                    print(socket.gethostbyaddr(pkt['IP'].dst))
-                except Exception as e:
-                    print(pkt['IP'].dst)
-    sniff(prn=process_packet, iface='en0', store=False)

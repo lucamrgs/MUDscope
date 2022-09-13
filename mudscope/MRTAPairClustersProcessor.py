@@ -88,11 +88,7 @@ import sys
 import json
 import numpy as np
 import datetime
-
-from pprint import pprint
-
 import pandas as pd
-
 from mudscope.Constants import *
 
 from scipy.spatial import distance_matrix
@@ -703,22 +699,3 @@ class MRTAPairClustersProcessor:
 			return self.ch2_clusters[cluster_lbl][SPATIAL_DATA_LBL][center_label]
 		else:
 			raise ValueError(f">>> ERROR: INCORRECT CH_FILE LABEL: Unrecognised 'ch' label '{ch_lbl}' in self.get_cluster_centroid. Accepted ch labels are '1' or '2'. Exiting.")
-
-
-if __name__ == '__main__':
-	print('Testing!')
-	#ch_f_ezviz_1 = './outputs/ieee-ezviz-pt/mrt_characterizations/ch_20210806_15-11-52_ieee-ezviz-pt.json'
-	#'ch_20211020_15-35-24_ieee-ezviz-ptscan-hostport-all-ezviz-rejected-flows-custom-hdr-CLN.csv.json'
-	ch_f_ezviz_1 = './outputs/ieee-ezviz-pt/ieee-ezviz-pt_mrt_characterizations/ch_20211020_15-35-23_ieee-ezviz-ptdos-synflooding-all-ezviz-rejected-flows-custom-hdr-CLN.csv.json'
-	#ch_f_ezviz_2 = './outputs/ieee-ezviz-pt/mrt_characterizations/ch_20210806_15-13-19_ieee-ezviz-pt.json'
-	ch_f_ezviz_2 = './outputs/ieee-ezviz-pt/ieee-ezviz-pt_mrt_characterizations/ch_20211020_15-35-24_ieee-ezviz-ptscan-hostport-all-ezviz-rejected-flows-custom-hdr-CLN.csv.json'
-
-	ch_f_nugu = './outputs/ieee-nugu-pt/mrt_characterizations/ch_20210812_11-49-35_ieee-nugu-pt.json'
-	mrta_pcp = MRTAPairClustersProcessor(ch_f_ezviz_1, ch_f_ezviz_2)
-	print(mrta_pcp.centers_distances_shift_matrix)
-	mrta_pcp.populate_clusters_shifts_data()
-	mrta_pcp.set_transition_characterization_data()
-	mrta_pcp.print_distance_matrix(readable_only=False)
-	mrta_pcp.save_data_to_json('doesitworkfurter.json')
-	mrta_pcp.get_transition_characterization_data_df_entry('a.csv', to_csv=True)
-	

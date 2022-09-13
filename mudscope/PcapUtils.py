@@ -14,9 +14,6 @@ from mudscope.Constants import *
 
 debug = False
 
-# Test ip, port for example_0
-# 192.168.1.137, 57080
-
 # A reference for analyzing captures with scapy:
 # https://vnetman.github.io/pcap/python/pyshark/scapy/libpcap/2018/10/25/analyzing-packet-captures-with-python-part-1.html
 
@@ -39,8 +36,6 @@ def process_packet(tg_ip, output):
         # Ethernet ID is 'Ethernet'
         layers = get_packet_layers(pkt)
         print(layers)
-        #print('SRC {} -> DST {}'.format(pkt.src, pkt.dst))
-        #pkt.show()
         
         #print(type(pkt.src))
         mac = parse_mac_from_hexbytes(pkt.src)
@@ -54,7 +49,6 @@ def process_packet(tg_ip, output):
 # pcap processor
 def process_pcap(filename, tg_ip, output):
 
-    # DONE: select packets "of" specific entity (IPv4 address) only
     # TODO: dump whole packets to-from source in separate file
     # TODO: generate relative netflows
     # TODO: statistics of devices/addresses/protocols or whatever
@@ -232,29 +226,3 @@ def parse_mac_from_hexbytes(hex_mac_addr):
     unparsed_str_mac_addr_crop = unparsed_str_mac_addr_excess[:12]
     mac = ':'.join(unparsed_str_mac_addr_crop[c:c+2] for c in range(0, len(unparsed_str_mac_addr_crop), 2))
     return mac
-
-
-
-
-if __name__ == '__main__':
-    # Testing things
-    TON_iot_pcap_test = '/Users/lucamrgs/Big_Data/TON_IoT-Datasets/Raw_datasets/Raw_Network_dataset/Network_dataset_pcaps/normal_pcaps/normal_13.pcap'
-    target_ip = '192.168.1.152'
-    ton_tests_output = '/out_pcaps/ton_tests.pcap'
-    # TEST mac addresses unparsed and parsed: \x00\x0c)\xd2\xb0\x02, 00:0c:29:d2:b0:02
-    
-    # NOTE: TON MUDgee generation is not working because if packet does not have ethernet, or if it fails to retrieve packets info
-    # it ignores the packet. Now it is the case that in TON, all packets are cooked linuxes, thus missing fields that MUDgee expects
-    # so MUDgee generation ignores every packet and builds 'empty' MUD data (profile and rules)
-
-    # SOLUTION:
-    # Either modify source code of MUDgee, or use other datasets.
-
-    #process_pcap(TON_iot_pcap_test, target_ip, ton_tests_output)
-    src_pcap = OUTPUTS_FOLDER + 'ieee-ezviz-complete/scan-hostport-all-ezviz-rejected.pcap'
-    gt_pcap = '/Users/lucamrgs/Big_Data/IEEE-Huy-Kang/iot_intrusion_dataset/gt/gt-scan-hostport-all-ezviz.pcap'
-    to_find, found, cvrg = covers(gt_pcap, src_pcap)
-
-    print(to_find)
-    print(found)
-    print(cvrg)

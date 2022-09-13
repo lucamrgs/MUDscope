@@ -14,7 +14,6 @@ import numpy as np
 import os
 import socket
 import subprocess
-from pathlib import Path
 import pandas as pd
 
 # Remove directories without errors, from https://stackoverflow.com/questions/31977833/rm-all-files-under-a-directory-using-python-subprocess-call
@@ -23,6 +22,7 @@ import requests
 import time
 
 from mudscope.Constants import *
+from pathlib import Path
 
 debug = False
 

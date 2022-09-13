@@ -6,13 +6,7 @@ from scapy.all import *
 
 debug = False
 
-# TODO: Change name to RejectedTrafficRegister
 class PacketsRegister:
-
-    # TODO: Logically link to VMUDEnforcer and include meta-data
-    #   INITIALIZE REGISTER ON PCAP FILE
-    # TODO: Add timings for filtering
-    # TODO: Add VOLUME of traffic per flow (pkt size)
 
     def __init__(self, type='VMUDEnforcer'):
         self.__type = type # Utility variable to know how the register is expected to be populated/used

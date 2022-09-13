@@ -1,22 +1,14 @@
 """
 Just a dirty quick script to scale a reference dataset. Deeply project-specific!!
+NOTE: Is this going to be a problem?
 """
 
-
+# Imports
 import sys
 import os
-
-import numpy as np
-
 import pandas as pd
-
-from sklearn.preprocessing import RobustScaler, StandardScaler
 from sklearn import preprocessing
-
-from datetime import datetime
 from IPy import IP
-
-
 
 ################################################################################################
 # Scaling reference pre-processing

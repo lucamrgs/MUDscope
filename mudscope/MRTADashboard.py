@@ -1,43 +1,28 @@
-
-from audioop import avg
-from distutils.log import debug
-from lib2to3.pgen2.token import PERCENT
-from multiprocessing.sharedctypes import Value
-import os
-from pathlib import Path
-from pyexpat import features
-import sys
-import ast
-from itertools import combinations
-
+# Imports
 from datetime import datetime
+from mudscope.Constants import MONITOR_OUTPUTS_FOLDER, MAX_DIFF_SIGNATURES_SIZE, MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD, MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
+from mudscope.MRTFeed import MRTFeed
+from pathlib import Path
 from typing import Union
 from tabulate import tabulate
-
-import time
-
+import os
+import sys
+import ast
 import json
-import pprint
-
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 PLOTS_FONT_SIZE = 14
 DISPLAY_FLOAT_PRECISION = 16
 COMPUTE_MAGNITUDE_PENALTY = True
 
-from mudscope.Constants import MONITOR_OUTPUTS_FOLDER, MAX_DIFF_SIGNATURES_SIZE, MRT_CLUSTERS_RANGES_PROPORTION_PENALISATION_THRESHOLD, MRT_SIGNATURES_COMBINED_CORRELATION_THESHOLD, MRT_WINDOW_SIGNATURE_DF_NAME_TAG, MRT_SIGNATURES_COMPARISON_MATRIX_PLACEHOLDER, FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK
 plt.rcParams.update({'font.size': PLOTS_FONT_SIZE})
-
-import numpy as np
-import pandas as pd
-from pandas.plotting import parallel_coordinates
 pd.set_option("display.precision", DISPLAY_FLOAT_PRECISION)
 
 MY_SAVE_PATH_DEFAULT = MONITOR_OUTPUTS_FOLDER
-#'/Users/lucamrgs/Desktop/My_Office/TNO/Dev/thesis-luca-morgese/demo_results/'#pre-results-data/diff-attacks-monodim/'
 
-from mudscope.MRTFeed import MRTFeed
 
 MRTFEEDS_TIME_OFFSET_TOLERANCE = 0.1
 # To gather the name of the device from the feed name
@@ -606,90 +591,3 @@ class MRTADashboard:
             #print(e)
             return True
         return False
-
-
-
-
-if __name__ == '__main__':
-    """
-    MRTADashboard.py
-    argv1 : 
-        - 'demo' backdoor for demo run
-        - dim: 'monodim', 'multi', 'mono'. 'monodim' is backdoor for higher-correlation features
-    """
-
-    print('>>> Testing MRTADashboard!')
-
-    """
-        NOTE: Test different setups from available configs, or define new ones with configs
-    """
-    config_file = 'nonrandomized_attacks_preliminary.json'
-    with open('/Users/lucamrgs/mudscope/configs/monitor_configs/' + config_file) as mrtf_conf:
-        mrtf_data = json.load(mrtf_conf)
-    mrtf_data_list = mrtf_data['mrtfeeds']
-    monitor_features = mrtf_data['features_watch']
-    signature_transitions_window_size = mrtf_data['transition_window']
-        
-    mrt_feeds_list = []
-    for l in mrtf_data_list:
-        mrt_feeds_list.append(MRTFeed(l['device_metadata'], l['csv_mrt_feed']))
-
-    mrta_test = MRTADashboard()
-    mrta_test.setup(mrt_feeds_list, monitor_features, signature_transitions_window_size)
-
-    #print(f'>>> DEBUG: Test mrt_csv_rolling_windows')
-    #subfeeds_test = mrta_test.get_mrt_feed_csv_rolling_windows(mrta_test.feeds[0])
-    #for f in subfeeds_test:
-    #    print(f)
-
-    mrta_test.generate_feeds_signatures_set()
-    print(f'############################################################################################################')
-    print(f'>>> DEBUG: Test generated feeds signatures set')
-    #print(mrta_test.feeds_signatures_set)
-    
-    mrta_test.generate_feeds_signatures_comparison_matrix()
-    print(f'############################################################################################################')
-    print(f'>>> DEBUG: Test generated signatures comparison matrix')
-    #print(mrta_test.feeds_signatures_comparison_matrix)
-
-    mrta_test.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
-    print(f'############################################################################################################')
-    print(f'>>> DEBUG: Test generated signatures comparison matrix after population')
-    #print(mrta_test.feeds_signatures_comparison_matrix.to_string())
-    #print(mrta_test.feeds_signatures_correlation_dictionary)
-
-    print(f'############################################################################################################')
-    print(f'>>> DEBUG: Test generated signatures correlation report')
-    mrta_test.generate_signatures_correlation_report()
-
-
-    # Below code is debug for testing
-    if sys.argv[1] == 'demo':
-        try:
-            monitor_features = sys.argv[2].split(',')
-        except Exception as e:
-            raise ValueError(f'>>> ERROR: Testing MRTDashboard code without monitor features specified. Exiting.')
-        
-        ut_csv_path = '/Users/lucamrgs/mudscope/outputs/ut-tplink-demo/ut-tplink-demo_mrt_transitions_dfs'
-        tue_csv_path = '/Users/lucamrgs/mudscope/outputs/tue-tplink-demo/tue-tplink-demo_mrt_transitions_dfs'
-
-        ut_tplink_demo_metadata = '/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_ut_tplink.json'
-        ut_tplink_demo_csv = os.path.abspath(os.path.join(ut_csv_path, os.listdir(ut_csv_path)[0]))
-        print(ut_tplink_demo_csv)
-
-        tue_tplink_demo_metadata = '/Users/lucamrgs/mudscope/configs/characterization_datas/ch_fedlab_tue_tplink.json'
-        tue_tplink_demo_csv = os.path.abspath(os.path.join(tue_csv_path, os.listdir(tue_csv_path)[0]))
-        print(tue_tplink_demo_csv)
-
-        mrtf_ut_tplink_demo = MRTFeed(ut_tplink_demo_metadata, ut_tplink_demo_csv)
-        mrtf_tue_tplink_demo = MRTFeed(tue_tplink_demo_metadata, tue_tplink_demo_csv)
-
-        mrta_d = MRTADashboard()
-        mrta_d.setup([mrtf_ut_tplink_demo, mrtf_tue_tplink_demo], 1)
-
-        mrta_d.total_avg_corr()
-        
-        for feature in monitor_features:
-            mrta_d.plot_monodim_metric(feature)
-        
-        sys.exit(1)

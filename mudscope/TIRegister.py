@@ -3,10 +3,8 @@ import os
 import csv
 import json
 import socket
-import difflib
 import requests
 import ipaddress
-from Flow import Flow
 from Constants import *
 from scapy.all import *
 from pprint import pprint
