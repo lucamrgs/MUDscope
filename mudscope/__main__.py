@@ -162,7 +162,7 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	parser_analyze.add_argument(
 		'--metadata',
 		metavar  = '<path>',
-		help     = 'path to JSON file describing the capture to analyse.', # \nIt shall contain at least "device_id" (string), and "deployment_info" (any type as of now) that describes the setting where the device is (e.g., lon, lat, industry_type, ...)
+		help     = 'path to JSON file describing the capture to analyse', # \nIt shall contain at least "device_id" (string), and "deployment_info" (any type as of now) that describes the setting where the device is (e.g., lon, lat, industry_type, ...)
 	)
 
 	parser_analyze.add_argument(
@@ -173,7 +173,7 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	parser_analyze.add_argument(
 		'--output',
 		metavar  = '<path>',
-		help     = "output directory/file for analyzed file(s).",
+		help     = "output directory/file for analyzed file(s)",
 		required = True,
 	)
 
