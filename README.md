@@ -255,11 +255,9 @@ We provide a running example in the [examples/](examples/) directory.
 
 
 ## Dataset
-TODO
-
-NOTEs:
-    - This project has been developed on the IEEE-Dataport IoT Network Intrusion Dataset (https://ieee-dataport.org/open-access/iot-network-intrusion-dataset), by Kang et al.
-
+Our evaluations were performed on two datasets:
+- Our own dataset available here: https://mega.nz/folder/p0kGgIAC#TzAzK2rSo_96DgNx2ID8fQ
+- The IEEE-Dataport IoT [Network Intrusion Dataset](https://ieee-dataport.org/open-access/iot-network-intrusion-dataset), by Kang et al.
 
 
 ## References
