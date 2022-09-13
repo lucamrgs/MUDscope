@@ -127,56 +127,63 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	)
 
 	########################################################################
-	#                            Mode = analyze                            #
+	#                         Mode = characterize                          #
 	########################################################################
 
-	parser_analyze = subparsers.add_parser(
-		MODE_ANALYZE,
-		description = 'Analyze NetFlows: characterization and evolution analysis.',
-		help        = 'Analyze NetFlows: characterization and evolution analysis.',
+	parser_characterize = subparsers.add_parser(
+		MODE_CHARACTERIZE,
+		description = 'Perform characterization analysis on MRT netflows.',
+		help        = 'Perform characterization analysis on MRT netflows.',
 	)
-	# Set possible analysis actions
-	action_list = [
-		# ANALYSIS_ACTION_IPS_FLOWS_GRAPHS,
-		# ANALYSIS_ACTION_PORTS_FLOWS_GRAPHS,
-		# ANALYSIS_ACTION_PKTS_CSV,
-		# ANALYSIS_ACTION_IPS_MAP,
-		# ANALYSIS_ACTION_FILTER_KNOWN_PROVIDERS,
-		ANALYSIS_ACTION_MRTA_CHARACTERIZE,
-		ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN,
-	]
-	parser_analyze.add_argument(
-		'--action',
-		choices  = action_list,
-		help     = 'action to perform in analysis',
-		required = True,
-	)
-
-	parser_analyze.add_argument(
+	parser_characterize.add_argument(
 		'--input',
 		nargs    = '+',
 		metavar  = '<path>',
-		help     = 'path(s) to file(s) containing MRT-related information',
+		help     = 'path(s) to CSV file(s) containing MRT netflows',
 		required = True,
 	)
-	parser_analyze.add_argument(
+	parser_characterize.add_argument(
 		'--metadata',
 		metavar  = '<path>',
 		help     = 'path to JSON file describing the capture to analyse', # \nIt shall contain at least "device_id" (string), and "deployment_info" (any type as of now) that describes the setting where the device is (e.g., lon, lat, industry_type, ...)
-	)
-
-	parser_analyze.add_argument(
-		'--dsr',
-		metavar  = '<path>',
-		help     = f'path to Dataset Scaler Reference (DSR) CSV file',
-	)
-	parser_analyze.add_argument(
-		'--output',
-		metavar  = '<path>',
-		help     = "output directory/file for analyzed file(s)",
 		required = True,
 	)
 
+	parser_characterize.add_argument(
+		'--dsr',
+		metavar  = '<path>',
+		help     = f'path to Dataset Scaler Reference (DSR) CSV file',
+		required = True,
+	)
+	parser_characterize.add_argument(
+		'--output',
+		metavar  = '<path>',
+		help     = "output directory in which to store analyzed file(s)",
+		required = True,
+	)
+
+	########################################################################
+	#                           Mode = evolution                           #
+	########################################################################
+
+	parser_evolution = subparsers.add_parser(
+		MODE_EVOLUTION,
+		description = 'Perform evolution analysis on characterization files to produce MRT feeds.',
+		help        = 'Perform evolution analysis on characterization files to produce MRT feeds.',
+	)
+	parser_evolution.add_argument(
+		'--input',
+		nargs    = '+',
+		metavar  = '<path>',
+		help     = 'path(s) to file(s) containing JSON characterization files',
+		required = True,
+	)
+	parser_evolution.add_argument(
+		'--output',
+		metavar  = '<path>',
+		help     = "output file in which to store MRT feed",
+		required = True,
+	)
 
 	########################################################################
 	#                             Monitor mode                             #
@@ -346,39 +353,6 @@ def mode_netflows(
 	)
 
 
-def mode_analyze(
-		mode   : str,
-		targets: Iterable[Union[str, Path]],
-		config : Union[str, Path],
-		dsr    : Union[str, Path],
-		output : Union[str, Path],
-	) -> None:
-	"""Run MUDscope in analyze mode.
-	
-		TODO
-		"""
-
-	# Operate in 
-	if mode == ANALYSIS_ACTION_MRTA_CHARACTERIZE:
-		return mode_characterize(
-			targets = targets,
-			config  = config,
-			dsr     = dsr,
-			outdir  = output,
-		)
-	elif mode == ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN:
-		return mode_evolution(
-			characterizations = targets,
-			outfile           = output,
-		)
-	else:
-		raise ValueError(
-			f"Unknown --action: '{mode}'"
-			f" . Should be one of '{ANALYSIS_ACTION_MRTA_CHARACTERIZE}', "
-			f"'{ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN}'."
-		)
-
-
 def mode_characterize(
 		targets: Iterable[Union[str, Path]],
 		config : Union[str, Path],
@@ -405,12 +379,6 @@ def mode_characterize(
 			Path to output directory in which to store processed
 			characterization files.
 		"""
-	###### Checks
-	if config is None:
-		raise ValueError('metadata parameter unspecified.')
-	if dsr is None:
-		raise ValueError('Dataset Scaler_generator Reference is unspecified.')
-
 	# Load metadata
 	with open(config) as md:
 		metadata = json.load(md)
@@ -602,14 +570,19 @@ def main(arguments=None) -> None:
 			pcap_dir = args.input,
 			outdir   = args.output,
 		)
-	# Mode analyze
-	elif args.mode == MODE_ANALYZE:
-		return mode_analyze(
-			mode    = args.action,
+	# Mode characterize
+	elif args.mode == MODE_CHARACTERIZE:
+		return mode_characterize(
 			targets = args.input,
 			config  = args.metadata,
 			dsr     = args.dsr,
-			output  = args.output,
+			outdir  = args.output,
+		)
+	# Mode evolution
+	elif args.mode == MODE_EVOLUTION:
+		return mode_evolution(
+			characterizations = args.input,
+			outfile           = args.output,
 		)
 	# Mode monitor
 	elif args.mode == MODE_MONITOR:

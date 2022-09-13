@@ -73,48 +73,42 @@ python3 -m mudscope.scale_reference_df_script \
 ```
 
 ## Characterize NetFlows using cluster methods
-Next we create characterization files describing the different traffic clusters from the produced NetFlows. We use MUDscope's `analyze` mode in combination with the `mrta_characterize` action:
+Next we create characterization files describing the different traffic clusters from the produced NetFlows. We use MUDscope's `characterize` mode:
 
 ```bash
 # UT traces
-python3 -m mudscope analyze \
-    --action mrta_characterize \
+python3 -m mudscope characterize \
     --input result/netflows/rejected/ut-tplink/*-CLN.csv \
     --metadata config/characterization/ut_tplink.json \
     --dsr result/netflows/benign/benign-custom-format-CLN-SCALED.csv \
     --output result/characterization/ut-tplink/
 
 # TUe traces
-python3 -m mudscope analyze \
-    --action mrta_characterize \
+python3 -m mudscope characterize \
     --input result/netflows/rejected/tue-tplink/*-CLN.csv \
     --metadata config/characterization/tue_tplink.json \
     --dsr result/netflows/benign/benign-custom-format-CLN-SCALED.csv \
     --output result/characterization/tue-tplink/
 ```
 Where:
- - `--action` gives the `mrta_characterize` action we want to take.
  - `--input` points to all netflow `.csv` files generated in the previous step.
  - `--metadata` is the path to the configuration file used for the analysis.
  - `--dsr` is the path to the DSR file produced in the previous step.
  - `--output` is the path to the output directory in which to store the output.
 
 ## Generate MRT feeds from characterisation files
-After generating the characterization files, we can produce MRT feeds by comparing differences between subsequent files. For this, we use MUDscope's `analyze` mode in combination with the `device_mrt_evolution_datagen` action:
+After generating the characterization files, we can produce MRT feeds by comparing differences between subsequent files. For this, we use MUDscope's `evolution` mode:
 
 ```bash
-python3 -m mudscope analyze \
-    --action device_mrt_evolution_datagen \
+python3 -m mudscope evolution \
     --input result/characterization/ut-tplink/*.json \
     --output result/evolution/ut-tplink.csv
 
-python3 -m mudscope analyze \
-    --action device_mrt_evolution_datagen \
+python3 -m mudscope evolution \
     --input result/characterization/tue-tplink/*.json \
     --output result/evolution/tue-tplink.csv
 ```
 Where:
- - `--action` gives the `device_mrt_evolution_datagen` action we want to take.
  - `--input` points to all characterization files used to generate the MRT feed.
  - `--output` is the path to the output directory in which to store the output.
 

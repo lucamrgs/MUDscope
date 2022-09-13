@@ -40,6 +40,8 @@ MODE_REJECT = 'reject'
 MODE_ANALYZE = 'analyze'
 MODE_FLOWS_GENERATION = 'netflows'
 MODE_MONITOR = 'monitor'
+MODE_CHARACTERIZE = 'characterize'
+MODE_EVOLUTION = 'evolution'
 
 ANALYSIS_ACTION_IPS_MAP = 'ips_map'
 ANALYSIS_ACTION_PKTS_CSV = 'packets_csv'

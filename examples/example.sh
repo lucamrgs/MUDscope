@@ -64,18 +64,16 @@ python3 -m mudscope.scale_reference_df_script \
     result/netflows/benign/benign-custom-format-CLN.csv
 
 
-# 4. Analyze NetFlows to perform clustering
+# 4. Characterize NetFlows by performing clustering
 # UT traces
-python3 -m mudscope analyze \
-    --action mrta_characterize \
+python3 -m mudscope characterize \
     --input result/netflows/rejected/ut-tplink/*-CLN.csv \
     --metadata config/characterization/ut_tplink.json \
     --dsr result/netflows/benign/benign-custom-format-CLN-SCALED.csv \
     --output result/characterization/ut-tplink/
 
 # TUe traces
-python3 -m mudscope analyze \
-    --action mrta_characterize \
+python3 -m mudscope characterize \
     --input result/netflows/rejected/tue-tplink/*-CLN.csv \
     --metadata config/characterization/tue_tplink.json \
     --dsr result/netflows/benign/benign-custom-format-CLN-SCALED.csv \
@@ -83,13 +81,11 @@ python3 -m mudscope analyze \
 
 
 # 5. Analyze characterizations to generate MRT feeds
-python3 -m mudscope analyze \
-    --action device_mrt_evolution_datagen \
+python3 -m mudscope evolution \
     --input result/characterization/ut-tplink/*.json \
     --output result/evolution/ut-tplink.csv
 
-python3 -m mudscope analyze \
-    --action device_mrt_evolution_datagen \
+python3 -m mudscope evolution \
     --input result/characterization/tue-tplink/*.json \
     --output result/evolution/tue-tplink.csv
 
