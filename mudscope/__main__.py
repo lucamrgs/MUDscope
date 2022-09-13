@@ -104,21 +104,21 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	)
 
 	########################################################################
-	#                           Mode = flows_gen                           #
+	#                           Mode = netflows                            #
 	########################################################################
 
-	parser_flows_gen = subparsers.add_parser(
+	parser_netflows = subparsers.add_parser(
 		MODE_FLOWS_GENERATION,
 		description = 'Transforms MRT pcap files to NetFlows.',
 		help        = 'Transforms MRT pcap files to NetFlows.',
 	)
-	parser_flows_gen.add_argument(
+	parser_netflows.add_argument(
 		'--input',
 		metavar  = '<path>',
 		help     = 'path to directory containing MUD-rejected pcap files',
 		required = True,
 	)
-	parser_flows_gen.add_argument(
+	parser_netflows.add_argument(
 		'--output',
 		metavar  = '<path>',
 		help     = 'path to output directory in which to store NetFlows',
@@ -612,12 +612,12 @@ def main(arguments=None) -> None:
 	args = parse_args(arguments)
 
 	# Run in given mode
-	# --mode mudgen
+	# Mode mudgen
 	if args.mode == MODE_MUDGEN:
 		return mode_mudgen(
 			config = args.config,
 		)
-	# --mode reject
+	# Mode reject
 	elif args.mode == MODE_REJECT:
 		return mode_reject(
 			mud_rules     = args.rules,
@@ -625,13 +625,13 @@ def main(arguments=None) -> None:
 			outdir        = args.output,
 			pcap_limit    = args.limit,
 		)
-	# --mode flows_gen
+	# Mode netflows
 	elif args.mode == MODE_FLOWS_GENERATION:
 		return mode_flow_file_gen(
 			pcap_dir = args.input,
 			outdir   = args.output,
 		)
-	# --mode analyze
+	# Mode analyze
 	elif args.mode == MODE_ANALYZE:
 		return mode_analyze(
 			mode    = args.action,
@@ -640,7 +640,7 @@ def main(arguments=None) -> None:
 			dsr     = args.dsr,
 			output  = args.output,
 		)
-	# --mode monitor
+	# Mode monitor
 	elif args.mode == MODE_MONITOR:
 		return mode_monitor(
 			config = args.mrtfeeds_config,

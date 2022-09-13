@@ -38,7 +38,7 @@ OUTPUTS_FOLDER = BASE_DIR + 'outputs/'
 MODE_MUDGEN = 'mudgen'
 MODE_REJECT = 'reject'
 MODE_ANALYZE = 'analyze'
-MODE_FLOWS_GENERATION = 'flows_gen'
+MODE_FLOWS_GENERATION = 'netflows'
 MODE_MONITOR = 'monitor'
 
 ANALYSIS_ACTION_IPS_MAP = 'ips_map'

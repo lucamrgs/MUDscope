@@ -39,16 +39,16 @@ Where:
  - `--output`: output directory in which to store rejected traffic.
 
 ## Create NetFlows based on MUD-rejected traffic (MRT) pcaps.
-After filtering out the rejected traffic, this traffic is still in `.pcap` format. MUDscope requires NetFlows, and thus we have to extract all netflows from the generated pcap files using MUDscope's `flows_gen` mode:
+After filtering out the rejected traffic, this traffic is still in `.pcap` format. MUDscope requires NetFlows, and thus we have to extract all netflows from the generated pcap files using MUDscope's `netflows` mode:
 
 ```bash
 # UT traces
-python3 -m mudscope flows_gen \
+python3 -m mudscope netflows \
     --input result/rejected/ut-tplink/ \
     --output result/netflows/rejected/ut-tplink/
 
 # TUe traces
-python3 -m mudscope flows_gen \
+python3 -m mudscope netflows \
     --input result/rejected/tue-tplink/ \
     --output result/netflows/rejected/tue-tplink/
 ```

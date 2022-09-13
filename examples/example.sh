@@ -45,12 +45,12 @@ python3 -m mudscope reject \
 
 # 3. Transform MUD-rejected traffic (MRT) pcaps into netflows
 # UT traces
-python3 -m mudscope flows_gen \
+python3 -m mudscope netflows \
     --input result/rejected/ut-tplink/ \
     --output result/netflows/rejected/ut-tplink/
 
 # TUe traces
-python3 -m mudscope flows_gen \
+python3 -m mudscope netflows \
     --input result/rejected/tue-tplink/ \
     --output result/netflows/rejected/tue-tplink/
 
