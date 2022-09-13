@@ -12,7 +12,6 @@ OutFileName="$base_dir_name.csv" #output csv has name directory.csv
 i=0  # Reset a counter
 
 for filename in $dir/*.csv; do
-    #echo "$filename"
 	if [ "$filename"  != "$OutFileName" ] ;      # Avoid recursion 
 	then 
 		if [[ $i -eq 0 ]] ; then 
