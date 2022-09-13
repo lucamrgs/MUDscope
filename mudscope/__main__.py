@@ -222,13 +222,6 @@ def mode_mudgen(config: Union[str, Path]) -> None:
 		config : Union[str, Path]
 			Path to config file from which to generate MUD profile.
 		"""
-	# Ensure we are given a config file
-	if config is None:
-		raise ValueError(
-			"Please specify a path to a config file using --config "
-			"<path>."
-		)
-
 	# Get info from MUD config file
 	print('>>> MUDGEN CONFIG FILE: {}'.format(config))
 	with open(config) as mg_cf:
@@ -245,10 +238,10 @@ def mode_mudgen(config: Union[str, Path]) -> None:
 
 
 def mode_reject(
-		mud_rules    : Union[str, Path],
-		reject_config: Iterable[Union[str, Path]],
-		outdir       : Union[str, Path],
-		pcap_limit   : Optional[int] = None,
+		rules     : Union[str, Path],
+		configs   : Iterable[Union[str, Path]],
+		outdir    : Union[str, Path],
+		pcap_limit: Optional[int] = None,
 	) -> None:
 	"""Run MUDscope in reject mode.
 	
@@ -257,11 +250,11 @@ def mode_reject(
 		
 		Parameters
 		----------
-		mud_rules : Union[str, Path]
+		rules : Union[str, Path]
 			Path to csv file containing MUD rules.
 			Usually this is generated as an output of the mode_mudgen function.
 
-		reject_config : Iterable[Union[str, Path]]
+		configs : Iterable[Union[str, Path]]
 			Path to json file containing reject configuration.
 
 		outdir : Union[str, Path]
@@ -274,30 +267,18 @@ def mode_reject(
 	#                                Checks                                #
 	########################################################################
 
-	# Check all parameters entered
-	if mud_rules is None:
-		raise ValueError("Please specify --rules <path>")
-
 	# Check if MUD rules exist
-	if not os.path.isfile(mud_rules):
+	if not os.path.isfile(rules):
 		raise ValueError(
-			f'MUD-derived (OpenFlow) rules CSV file <{mud_rules}> not found.'
+			f'MUD-derived (OpenFlow) rules CSV file <{rules}> not found.'
 		)
-
-	# Check if filter is specified
-	if reject_config is None:
-		raise ValueError('Please specify --config <path>')
-
-	# Check if output dir is set
-	if outdir is None:
-		raise ValueError('Please specify --output <path>')
 
 	########################################################################
 	#                                 Run                                  #
 	########################################################################
 
 	# Loop over all specified config files
-	for config in reject_config:
+	for config in configs:
 		# Check if file exists
 		if not os.path.isfile(config):
 			raise ValueError(f"Unknown config file: '{config}'")
@@ -322,7 +303,7 @@ def mode_reject(
 			device_mac   = data['deviceConfig']['device'],
 			device_name  = data['deviceConfig']['deviceName'] ,
 			gateway_mac  = data['defaultGatewayConfig']['macAddress'],
-			filter_rules = mud_rules,
+			filter_rules = rules,
 		)
 
 		# Run virtual MUD enforcer on pcap, for given
@@ -334,11 +315,11 @@ def mode_reject(
 		)
 
 
-def mode_flow_file_gen(
+def mode_netflows(
 		pcap_dir: Union[str, Path],
 		outdir  : Union[str, Path],
 	) -> None:
-	"""Run MUDscope in flow_file_gen mode.
+	"""Run MUDscope in netflows mode.
 	
 		Transforms pcap files of MUD-rejected traffic into NetFlows.
 		
@@ -351,17 +332,11 @@ def mode_flow_file_gen(
 			Output directory in which to store NetFlows.
 		"""
 	# Check if pcap_dir exists
-	if pcap_dir is None or not os.path.isdir(pcap_dir):
+	if not os.path.isdir(pcap_dir):
 		raise ValueError(
-			f"Null or invalid --input argument for mode "
-			f"{MODE_FLOWS_GENERATION}. Please enter a valid path to folder "
+			f"Invalid --input argument for mode {MODE_FLOWS_GENERATION}. "
+			f"Please enter a valid path to folder "
 			"containing pcaps to convert to flows CSV file."
-		)
-
-	# Check if outdir is valid
-	if outdir is None:
-		raise ValueError(
-			"Unspecified --output, please set parameter."
 		)
 
 	# Transform MRT to CSV files
@@ -382,11 +357,6 @@ def mode_analyze(
 	
 		TODO
 		"""
-	# Check if target is given
-	if targets is None:
-		raise ValueError(
-			"Unspecified parameter --input, please set parameter."
-		)
 
 	# Operate in 
 	if mode == ANALYSIS_ACTION_MRTA_CHARACTERIZE:
@@ -621,14 +591,14 @@ def main(arguments=None) -> None:
 	# Mode reject
 	elif args.mode == MODE_REJECT:
 		return mode_reject(
-			mud_rules     = args.rules,
-			reject_config = args.config,
-			outdir        = args.output,
-			pcap_limit    = args.limit,
+			rules      = args.rules,
+			configs    = args.config,
+			outdir     = args.output,
+			pcap_limit = args.limit,
 		)
 	# Mode netflows
 	elif args.mode == MODE_FLOWS_GENERATION:
-		return mode_flow_file_gen(
+		return mode_netflows(
 			pcap_dir = args.input,
 			outdir   = args.output,
 		)
