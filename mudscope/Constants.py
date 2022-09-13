@@ -1,22 +1,10 @@
 
 import os
-import numpy as np
 
 """ NOTE: CHANGE ON OWN DIRECTORIES THE BELOW LIST OF CONSTANTS
-    TODO: Dockerize
 """
 # NOTE: Assumes main directory is one parent directory above
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/' #'/Users/lucamrgs/mudscope/'
-
-# --- DISCONTINUED --- Flows provenance analysis
-# Download from: https://www.microsoft.com/en-us/download/confirmation.aspx?id=53602
-#MICROSOFT_IP_RANGES_CSV = '/Users/lucamrgs/Downloads/msft-public-ips.csv'
-# Download from: https://github.com/ejrv/VPNs
-#KNOWN_IPV4_VPNS_TXT = '/Users/lucamrgs/Downloads/VPNs-master/vpn-ipv4.txt'
-#KNOWN_IPV6_VPNS_TXT = '/Users/lucamrgs/Downloads/VPNs-master/vpn-ipv6.txt'
-#KNOWN_IPV4_VPNS = np.genfromtxt(KNOWN_IPV4_VPNS_TXT, dtype='str')
-#KNOWN_IPV6_VPNS = np.genfromtxt(KNOWN_IPV6_VPNS_TXT, dtype='str')
-
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/'
 
 
 # Project directories
@@ -34,7 +22,7 @@ MUD_DEFAULT_CONFIG_FILE = MUD_CONFIGS_FOLDER + 'last_mud_config.json'
 
 OUTPUTS_FOLDER = BASE_DIR + 'outputs/'
 
-# Main run.py actions
+# mudgscope/__main__.py actions
 MODE_MUDGEN = 'mudgen'
 MODE_REJECT = 'reject'
 MODE_ANALYZE = 'analyze'
@@ -42,15 +30,6 @@ MODE_FLOWS_GENERATION = 'netflows'
 MODE_MONITOR = 'monitor'
 MODE_CHARACTERIZE = 'characterize'
 MODE_EVOLUTION = 'evolution'
-
-ANALYSIS_ACTION_IPS_MAP = 'ips_map'
-ANALYSIS_ACTION_PKTS_CSV = 'packets_csv'
-ANALYSIS_ACTION_MRTA_CHARACTERIZE = 'mrta_characterize'
-ANALYSIS_ACTION_IPS_FLOWS_GRAPHS = 'ips_flows_graphs'
-ANALYSIS_ACTION_PORTS_FLOWS_GRAPHS = 'ports_flows_graphs'
-ANALYSIS_ACTION_FILTER_KNOWN_PROVIDERS = 'filter_known_providers'
-ANALYSIS_ACTION_DEVICE_MRT_EVOLUTION_DATAGEN = 'device_mrt_evolution_datagen'
-
 
 REJECTED_DATA_FILE_TAG = '-rejected'
 SUSPICIOUS_DATA_FILE_TAG = '-sus'
@@ -61,14 +40,11 @@ ETH802_3_TAG = '802.3'
 IPV6_TAG = 'ipv6'
 EAPOL_TAG = 'eapol'
 OTHERS_TAG = 'other'
-
 IPV4_TAG = 'ipv4'
 
 # PacketsRegister
 NEW_FLOW = 1
 UPDATED_FLOW = 0
-
-
 
 # Utility Regexs
 IPV4_REGEX = '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}'
@@ -180,10 +156,7 @@ FEEDS_SIGNATURES_CORRELATION_DICTIONARIES_KEY_LINK = '---'
 # Tests...
 if __name__ == '__main__':
     import ipaddress
-    from pprint import pprint
 
-    #print(len(KNOWN_IPV4_VPNS))
-    #print(len(KNOWN_IPV6_VPNS))
     print(BASE_DIR)
     ip_addr = ipaddress.ip_network('2a0b:e181:500::/40')
     print(type(ip_addr))
