@@ -30,10 +30,7 @@ RUN git clone https://github.com/phaag/nfdump.git && \
 # Install MUDscope
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
-COPY mudscope/ /mudscope/mudscope/
-COPY pyproject.toml /mudscope/
-COPY setup.py /mudscope/
-COPY README.md /mudscope/
+COPY . /mudscope/
 RUN pip3 install -e .
 
 # Copy examples
