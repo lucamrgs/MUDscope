@@ -89,6 +89,8 @@ python3 -m mudscope evolution \
     --input result/characterization/tue-tplink/*.json \
     --output result/evolution/tue-tplink.csv
 
-# python3 -m mudscope.MRTADashboard \
-#     demo \
-#     clusters_balance,all_dists_avg,mutual_matches_n,mutual_matches_percentage,fwd_matches_n,fwd_matches_percentage,bwd_matches_n,bwd_matches_percentage
+
+# 6. Monitor changes in MRT feeds
+python3 -m mudscope monitor \
+    --config config/monitor/tplink.json \
+    --output result/monitor/

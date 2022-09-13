@@ -4,12 +4,14 @@ from distutils.log import debug
 from lib2to3.pgen2.token import PERCENT
 from multiprocessing.sharedctypes import Value
 import os
+from pathlib import Path
 from pyexpat import features
 import sys
 import ast
 from itertools import combinations
 
 from datetime import datetime
+from typing import Union
 from tabulate import tabulate
 
 import time
@@ -439,7 +441,7 @@ class MRTADashboard:
                         #print(f'Signatures correlation key: \n>>>{signatures_correlation_dictionary_key}\n')
         #print(self.feeds_signatures_comparison_matrix)
 
-    def generate_detected_anomalies_report(self, save_dir=MY_SAVE_PATH_DEFAULT, report_name='recorded_anomalies.txt'):
+    def generate_detected_anomalies_report(self):
         self.anomalies_report.append('\n\n*~*~*~*~*~*~*~* Anomalies recorded for each MRT feed submitted *~*~*~*~*~*~*~*\n\n')
         for entry, val in self.feeds_anomalies.items():
             #print(f'ENTRY: {entry}')
@@ -459,23 +461,32 @@ class MRTADashboard:
             self.anomalies_report.append(report_entry)
 
     
-    def generate_report(self, report_name='report.txt', plots=True):
+    def generate_report(self, outdir: Union[str, Path], filename='report.txt', plots=True):
         self.generate_detected_anomalies_report()
         self.generate_report_from_matched_anomalies()
+
+        # Cast outdir to Path
+        if not isinstance(outdir, Path):
+            outdir = Path(outdir)
+
+        # Ensure output directory exists
+        outdir.mkdir(parents=True, exist_ok=True)
         
-        now = datetime.now()
-        date = now.strftime("%Y-%m-%d-%H-%M")
-        save_fullpath = MY_SAVE_PATH_DEFAULT + date + '_' + report_name
-        with open(save_fullpath, 'w') as output:
+        # Write output to report
+        with open(outdir / filename, 'w') as output:
             for line in self.anomalies_report:
                 output.write(line)
             for line in self.better_anomalies_report:
                 output.write(line)
+
         # Output plots
         if plots:
             for feature in self.features_watch_list:
-                self.plot_monodim_metric2(feature)
-        print(f'>>> Report saved to {save_fullpath}.')
+                self.plot_monodim_metric2(
+                    feature,
+                    save_dir = outdir,
+                )
+        print(f'>>> Report saved to {outdir / filename}.')
 
         
 
@@ -555,12 +566,12 @@ class MRTADashboard:
         #plt.tick_params(axis='y', labelrotation=45)
         #plt.set_ylabel(metric)
         plt.box(False)
-        plt.savefig(MY_SAVE_PATH_DEFAULT + metric + '.pdf')
+        plt.savefig(save_dir / (metric + '.pdf'))
         
         if show:
             plt.show()
         
-        print(f'>>> Output saved to {save_dir}.')
+        print(f'>>> Output saved to {save_dir / (metric + ".pdf")}.')
 
 
     def print_feeds(self):

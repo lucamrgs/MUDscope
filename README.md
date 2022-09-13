@@ -98,9 +98,10 @@ Which supports the following modes:
 3. `netflows`, transforms MRT pcap files to NetFlows.
 4. `characterize`, Perform characterization analysis on MRT netflows.
 5. `evolution`, Perform evolution analysis on characterization files to produce MRT feeds.
+6. `monitor`, Monitor and compare anomalous activities captured in MRT feeds.
 
 ```
-usage: __main__.py [-h] {mudgen,reject,netflows,characterize,evolution} ...
+usage: __main__.py [-h] {mudgen,reject,netflows,characterize,evolution,monitor} ...
 
 MUDscope - Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-
 provided behaviour profiles.
@@ -111,12 +112,13 @@ optional arguments:
 mode:
   Mode in which to run MUDscope.
 
-  {mudgen,reject,netflows,characterize,evolution}
+  {mudgen,reject,netflows,characterize,evolution,monitor}
     mudgen              Create MUD files from benign network traces.
     reject              Filter MUD rejected traffic from pcap files.
     netflows            Transform MRT pcap files to NetFlows.
     characterize        Perform characterization analysis on MRT netflows.
     evolution           Perform evolution analysis on characterization files to produce MRT feeds.
+    monitor             Monitor and compare anomalous activities captured in MRT feeds.
 ```
 
 ### mudgen
@@ -233,28 +235,19 @@ optional arguments:
 ```
 
 ### monitor
-TODO check
+After generating MRT feeds for each device, we can compare feeds from different devices or vendors to see larger trends in the attacks targeting these devices. To this end, MUDscope provides the `monitor` mode which takes as input a `config` file specifying which MRT feeds to analyze and for which features to analyze them (see [example](examples/) for an example config file). Next, it will `output` its report and produced plots into the specified `output` directory.
 
 ```
-To compare anomalous activities captured in MRTs for multiple devices, use again the ``run.py`` script, with the following argument:
+usage: __main__.py monitor [-h] --config <path> --output <path>
 
-- ``--mode monitor``
-- ``--mrtfeeds_config <path/to/json_file>`` : path to json file listing the set of MRT feeds and associated device metadata to compare. In the file, also lists the features of the MRTfeeds to analyse for correlation. ``features_watch`` is the list of features on which mrt feeds are compared. To be provided as a single string, where features are divided by comma (,). E.g.: --monitor_features feature1,feature2. See examples in folder. Available/suggested features are:
-    clusters_balance;
-    all_dists_avg;
-    mutual_matches_n;
-    mutual_matches_percentage;
-    fwd_matches_n;
-    fwd_matches_percentage;
-    fwd_matches_agglomeration_avg;
-    fwd_matches_agglomeration_max;
-    bwd_matches_n;
-    bwd_matches_percentage;
-    bwd_matches_agglomeration_avg;
-    bwd_matches_agglomeration_max.
-    An example can be found in configs/monitor_configs/monitor_test.json.
-    The command outputs one plot per specified 'watch feature', for each of the devices specified in the mrtfeeds_config. Additionally, a log file is output where device-specific anomalies are shown, as well as pairwise matches of anomalous activities, if present.
+Monitor and compare anomalous activities captured in MRT feeds.
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --config <path>  monitor config file specifying MRT feeds to compare
+  --output <path>  path to directory which to write output monitor plots
 ```
+
 
 ## Examples
 We provide a running example in the [examples/](examples/) directory.

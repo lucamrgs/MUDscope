@@ -112,5 +112,17 @@ Where:
  - `--input` points to all characterization files used to generate the MRT feed.
  - `--output` is the path to the output directory in which to store the output.
 
+## Monitor difference between MRT feeds
+Once we have obtained the MRT feeds, we can monitor for differences in the feeds to see if e.g., devices are attacked simultaneously. For this, we use MUDscope's `monitor` mode:
+
+```bash
+python3 -m mudscope monitor \
+    --config config/monitor/tplink.json \
+    --output result/monitor/
+```
+Where:
+ - `--config` points to the config file describing how to perform monitoring.
+ - `--output` is the path to the output directory in which to store the monitor report and produced plots.
+
 ## Clean output
 If you wish to remove all output, simply remove the `result/` directory or run `./example clean`.

@@ -3,12 +3,12 @@
         {   
             "name" : "tue-tplink",
             "device_metadata" : "config/characterization/tue_tplink.json",
-            "csv_mrt_feed": "analysis/evolution/tue-tplink.csv"
+            "csv_mrt_feed": "result/evolution/tue-tplink.csv"
         },
        {   
             "name" : "ut-tplink",
             "device_metadata" : "config/characterization/ut_tplink.json",
-            "csv_mrt_feed": "analysis/evolution/ut-tplink.csv"
+            "csv_mrt_feed": "result/evolution/ut-tplink.csv"
         }
     ],
     "transition_window" : 2,

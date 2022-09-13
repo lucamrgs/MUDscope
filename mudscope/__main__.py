@@ -189,27 +189,24 @@ def parse_args(arguments=None) -> argparse.Namespace:
 	#                             Monitor mode                             #
 	########################################################################
 
-	# Currently not supported
-
-	# group_monitor = parser.add_argument_group(
-	# 	title       = 'Mode: monitor',
-	# 	description = 'Monitors changes in MRT feeds. '
-	# 	              'Required arguments when mode is monitor.',
-	# )
+	parser_monitor = subparsers.add_parser(
+		MODE_MONITOR,
+		description = 'Monitor and compare anomalous activities captured in MRT feeds.',
+		help        = 'Monitor and compare anomalous activities captured in MRT feeds.',
+	)
 	
-	# group_monitor.add_argument(
-	# 	'--mrtfeeds_config',
-	# 	metavar='<path>',
-	# 	help=f'configuration monitor file specifying which mrt feeds to compare (JSON list of dev_metadata + csv feed) are taken.',
-	# )
-	# group_monitor.add_argument(
-	# 	'--monitor_features',
-	# 	help=f'MRT feed features to cross-compare on the MRT feeds list specified in --mrtfeeds_config.', #'\nUse format feature1,feature2,...',
-	# )
-	# # group_monitor.add_argument(
-	# # 	'--monitor_output',
-	# # 	help=f'path to which the monitor plots output will be exported.',
-	# # )
+	parser_monitor.add_argument(
+		'--config',
+		metavar  = '<path>',
+		help     = 'monitor config file specifying MRT feeds to compare', #  (JSON list of dev_metadata + csv feed) are taken
+		required = True,
+	)
+	parser_monitor.add_argument(
+		'--output',
+		metavar  = '<path>',
+		help     = 'path to directory in which to write output monitor plots',
+		required = True,
+	)
 
 	# Return parsed arguments
 	return parser.parse_args(arguments)
@@ -494,7 +491,10 @@ def mode_evolution(
 	df.to_csv(outfile)
 	
 
-def mode_monitor(config: Union[str, Path]) -> None:
+def mode_monitor(
+		config: Union[str, Path],
+		output: Union[str, Path],
+	) -> None:
 	"""Run MUDscope in monitor mode.
 
 		Generate fluctuation graphs in MRT feeds.
@@ -503,6 +503,9 @@ def mode_monitor(config: Union[str, Path]) -> None:
 		----------
 		config : Union[str, Path]
 			Path to config file for generating fluctuation graphs.
+
+		output : Union[str, Path]
+			Path to output directory in which to store resulting graphs.
 		"""
 
 	""" Generate fluctuation graphs """
@@ -511,14 +514,6 @@ def mode_monitor(config: Union[str, Path]) -> None:
 	#	MRTFeed metric(s) to display
 	#	Save location for graphs and overall data
 	#	TODO/Future work: Specify time window section
-	
-	# MRT Feeds information and building
-	if config is None:
-		raise ValueError(
-			'Attempting monitor options without having specified the '
-			'mrtfeeds_config file. A valid mrtfeeds_config file must be '
-			'specified in order to compare mrt feeds.'
-		)
 
 	with open(config) as mrtf_conf:
 		mrtf_data = json.load(mrtf_conf)
@@ -539,7 +534,9 @@ def mode_monitor(config: Union[str, Path]) -> None:
 	#mrtadb.generate_feeds_signatures_comparison_matrix()
 	#mrtadb.populate_feeds_signatures_comparison_matrix_over_watch_features_correlation()
 
-	mrtadb.generate_report()
+	mrtadb.generate_report(
+		outdir = output,
+	)
 	#mrtadb.generate_report(report_name='comprehensive_report.txt', plots=False)
 
 
@@ -587,7 +584,8 @@ def main(arguments=None) -> None:
 	# Mode monitor
 	elif args.mode == MODE_MONITOR:
 		return mode_monitor(
-			config = args.mrtfeeds_config,
+			config   = args.config,
+			output   = args.output,
 		)
 	else:
 		raise ValueError(f"Unknown mode: {args.mode}")
