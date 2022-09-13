@@ -167,6 +167,7 @@ editcap -i <60> path/to/input.pcap path/to/output.pcap
 This splits a pcap file into smaller files each containing traffic for `-i` seconds, outputting all generated files to the specified path. See [editcap doc](https://www.wireshark.org/docs/man-pages/editcap.html) for more information.
 
 In our running [example](examples/), this split has already been performed.
+
 ---
 
 ```
