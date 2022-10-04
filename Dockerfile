@@ -20,6 +20,7 @@ RUN git clone https://github.com/ayyoob/mudgee.git && \
 # Install nfpcapd
 RUN git clone https://github.com/phaag/nfdump.git && \
     cd nfdump && \
+    git checkout v1.6.24 && \
     ./autogen.sh && \
     ./configure --enable-nfpcapd && \
     make && \
