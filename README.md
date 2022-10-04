@@ -266,8 +266,8 @@ Our evaluations were performed on two datasets:
 
 ### Bibtex
 ```
-@inproceedings{morgese2022mudscope,
-  title={{Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behaviour profiles}},
+@inproceedings{zangrandi2022mudscope,
+  title={{Stepping out of the MUD: Contextual threat information for IoT devices with manufacturer-provided behavior profiles}},
   author={Morgese Zangrandi, Luca and van Ede, Thijs and Booij, Tim and Sciancalepore, Savio and Allodi, Luca and Continella, Andrea},
   booktitle={Proceedings of ACSAC '22: ACM Annual Computer Security Applications Conference (ACSAC '22).},
   year={2022},
