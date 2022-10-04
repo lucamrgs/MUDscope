@@ -64,7 +64,7 @@ Please install the following dependencies to run MUDscope
   - [tcpdump](https://www.tcpdump.org/)
   - [Maven](https://maven.apache.org/)
 - [editcap](https://www.wireshark.org/docs/man-pages/editcap.html)
-- [nfpcapd](https://github.com/phaag/nfdump), note that this binary should be compiled with the `--enable-nfpcapd` flag set
+- [nfpcapd](https://github.com/phaag/nfdump) v1.6.24, note that this binary should be compiled with the `--enable-nfpcapd` flag set
 
 ```bash
 # Dependencies
@@ -73,6 +73,7 @@ sudo apt install libpcap-dev
 # Installation
 git clone https://github.com/phaag/nfdump.git # Clone nfdump directory
 cd nfdump                                     # Change to nfdump directory
+git checkout v1.6.24                          # Ensure we are working with v1.6.24
 ./autogen.sh                                  # Setup configuration
 ./configure --enable-nfpcapd                  # Build nfpcapd
 make                                          # Make file
