@@ -257,7 +257,7 @@ We provide a running example in the [examples/](examples/) directory.
 
 ## Dataset
 Our evaluations were performed on two datasets:
-- Our own dataset available here: https://mega.nz/folder/p0kGgIAC#TzAzK2rSo_96DgNx2ID8fQ
+- Our own dataset available here: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7182597.svg)](https://doi.org/10.5281/zenodo.7182597)
 - The IEEE-Dataport IoT [Network Intrusion Dataset](https://ieee-dataport.org/open-access/iot-network-intrusion-dataset), by Kang et al.
 
 
