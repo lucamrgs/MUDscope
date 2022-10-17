@@ -253,7 +253,7 @@ optional arguments:
 
 ## Examples
 We provide a running example in the [examples/](examples/) directory.
-
+We provide the results set of our research at: https://mega.nz/folder/hx8VgRxa#9tBD8Mh8DplIzfobQcF45w
 
 ## Dataset
 Our evaluations were performed on two datasets:
